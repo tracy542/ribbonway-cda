@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Ribbon CDA Form</title>
+<style>
+  :root{
+    --navy:#0b2540; --navy2:#123a63; --gold:#c9a227; --ink:#111; --muted:#5b6b7c;
+    --line:#dfe6ee; --bg:#f4f7fb; --card:#ffffff; --ok:#1c7a3d; --warn:#b45309; --err:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45}
+  a{color:var(--navy2)}
+  h1,h2,h3{margin:0 0 8px;color:var(--navy)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+  header.page-head{padding:22px 20px 10px;text-align:center}
+  header.page-head h1{font-size:22px}
+  header.page-head p{margin:0;color:var(--muted)}
+
+  /* ===== Sponsor banner (site-wide standard pattern) ===== */
+  .sponsor-bar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; background: linear-gradient(90deg, #005f73 0%, #0a9396 100%); color: #fff; padding: 10px 20px; font-size: 12px; box-shadow: 0 2px 10px rgba(0,95,115,.3); }
+  .sponsor-bar-logo-wrap { justify-self: center; background: #fff; border-radius: 10px; padding: 7px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.16); display: flex; align-items: center; }
+  .sponsor-bar-brand-wrap { justify-self: start; background: #fff; border-radius: 10px; padding: 7px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.16); display: flex; align-items: center; }
+  .sponsor-bar-brand-wrap img { height: 30px; width: auto; display: block; }
+  @media (max-width: 900px) { .sponsor-bar-brand-wrap img { height: 24px; } }
+  .sponsor-bar-logo-wrap img { height: 30px; width: auto; display: block; }
+  .sponsor-bar-right { display: flex; align-items: center; gap: 10px; }
+  .sponsor-bar-cta { min-height: 32px; border-radius: 8px; padding: 7px 16px; font-size: 12px; font-weight: 800; text-decoration: none; background: #fff; color: #005f73; white-space: nowrap; }
+  .sponsor-bar-cta:hover { background: #e3f7f7; }
+  .sponsor-bar-close { border: 0; background: transparent; color: #c9ecec; width: 26px; height: 26px; border-radius: 50%; font-size: 15px; line-height: 1; flex: 0 0 auto; cursor:pointer; }
+  .sponsor-bar-close:hover { background: rgba(255,255,255,.16); color: #fff; }
+  @media (max-width: 900px) { .sponsor-bar-logo-wrap img { height: 24px; } }
+  @media (max-width: 640px) { .sponsor-bar { grid-template-columns: 1fr; text-align: center; padding: 10px 14px; } .sponsor-bar-right { justify-content: center; } }
+
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start;margin-top:16px}
+  @media (max-width:980px){.layout{grid-template-columns:1fr}}
+
+  .drafts-bar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .drafts-bar select{flex:1;min-width:220px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em}
+  .pill.projected{background:#fff4d6;color:#8a6100}
+  .pill.closed{background:#d9f2e3;color:var(--ok)}
+  .pill.voided{background:#f3d9d9;color:var(--err)}
+
+  fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:0 0 16px}
+  legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
+  .sub-legend{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
+  .grid.g2{grid-template-columns:repeat(2,1fr)}
+  .grid.g3{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:640px){.grid.g2,.grid.g3{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;font-weight:700;color:#334;margin-bottom:3px}
+  .hint{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=file],select,textarea{
+    width:100%;padding:8px 9px;border:1px solid #c8d2dc;border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink)
+  }
+  textarea{resize:vertical;min-height:56px}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
+  .field{margin-bottom:2px}
+  .readonly-display{width:100%;padding:8px 9px;border:1px dashed #c8d2dc;border-radius:7px;background:#f7f9fb;font-weight:700;color:var(--navy)}
+  input:read-only{background:#f7f9fb;color:var(--navy);font-weight:700}
+  .row-card{border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px;background:#fbfcfe}
+  .row-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .row-card-head strong{font-size:12px;color:var(--navy2)}
+  .btn{display:inline-block;border:1px solid var(--navy2);background:#fff;color:var(--navy2);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .btn:hover{background:#eef4fb}
+  .btn.small{padding:5px 10px;font-size:11.5px}
+  .btn.danger{border-color:var(--err);color:var(--err)}
+  .btn.danger:hover{background:#fdeeee}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.primary:hover{background:var(--navy2)}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#3a2e00}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .add-row-btn{margin-top:4px}
+  .conditional{display:none}
+  .conditional.show{display:block}
+  .banner-note{background:#eef4fb;border:1px solid #cfe0f2;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#234}
+  .doc-chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .doc-chip{display:flex;align-items:center;gap:8px;background:#eef4fb;border:1px solid #cfe0f2;border-radius:999px;padding:5px 8px 5px 12px;font-size:12px;color:#234}
+  .doc-chip .doc-chip-name{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .doc-chip button{border:0;background:#d8e4f2;color:#234;width:18px;height:18px;border-radius:50%;font-size:12px;line-height:1;cursor:pointer;flex:0 0 auto}
+  .doc-chip button:hover{background:#c3d6ea}
+  .doc-count{font-size:11px;color:var(--muted);margin-top:6px}
+  .doc-count.limit{color:var(--err);font-weight:600}
+  .banner-note.warn{background:#fff8e8;border-color:#f0dfa8;color:#6b5300}
+  .fixed-text{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#334}
+
+  .recap{position:sticky;top:16px;background:var(--navy);color:#fff;border-radius:12px;padding:16px}
+  .recap h3{color:#fff;font-size:14px;margin-bottom:10px}
+  .recap-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .recap-row.total{font-weight:800;color:var(--gold);border-bottom:none;padding-top:8px}
+  .recap-agent{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.25)}
+  .recap-agent-name{font-weight:700;font-size:12px;color:#dfe9f7;margin-bottom:2px}
+  .recap-check{margin-top:12px;padding:8px;border-radius:8px;font-size:11.5px;font-weight:700;text-align:center}
+  .recap-check.ok{background:#173}
+  .recap-check.bad{background:#7a1c1c}
+
+  .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
+  .msg-list{list-style:none;margin:0;padding:0}
+  .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
+  .msg-list li.error{background:#fdeeee;color:var(--err);border:1px solid #f2c9c9}
+  .msg-list li.ok{background:#eaf7ee;color:var(--ok);border:1px solid #c6e9cf}
+  #submitStatus{margin-top:10px}
+  .required-star{color:var(--err)}
+  .checkbox-line{display:flex;gap:8px;align-items:flex-start;font-size:12.5px}
+  .checkbox-line input{width:auto;margin-top:3px}
+
+  /* ===== Direct note from Tracy ===== */
+  .tracy-note{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--navy);color:#fff;padding:12px 20px;font-size:13px}
+  .tracy-note-mark{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#3a2e00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
+  .tracy-note-body b{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+  .tracy-note-body ul{margin:4px 0 0;padding-left:18px}
+  .tracy-note-body li{margin:2px 0}
+  .tracy-note-close{border:0;background:transparent;color:#9fb3c9;width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;flex:0 0 auto;cursor:pointer}
+  .tracy-note-close:hover{background:rgba(255,255,255,.12);color:#fff}
+  @media (max-width:640px){.tracy-note{grid-template-columns:1fr;text-align:center}.tracy-note-mark{justify-self:center}}
+</style>
+</head>
+<body>
+
+  <div class="sponsor-bar" id="sponsorBar" hidden>
+    <div class="sponsor-bar-brand-wrap" aria-label="Weichert, Realtors - Blue Ribbon">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeIAAABQCAMAAADyQoZbAAAADFBMVEX/////8yH/8iEAAABnU08tAAAAAXRSTlMAQObYZgAABXtJREFUeNrtm+uS2yAMhbXV+79zp81sYuAcXcB2Nqz0o9MIcST0YQc7rUiZY19f766g7GL7+vrz7hLKrrVCvL0V4u2tEG9vH49YnzY1dHVV726PbIVY+VBiEs8yV9W7+7M1Yg0NZZLMVPXu/myAWNYQp1KcUNRlq+chOyFWOnAS4jivQnzJIuOIk/fpCV6F+JJFdstU1cBQLsNEUXetnod8PmJZQZzMsFrThYvnIYU4kWG5ptsWf7StECtx85Fcipmabls8DdkWsSplPPndOlfTXYvnIRsglhsQn1LSpYl4SCG+r6RLE/GQvRArdPIRV2UmczvQO1yl9aV3titiHQwMYY2hX67bu1EY2lDJSv78u2Ib1XdAjBjkENutiuwJK4dDwQaFN4sU4hRir1e2D046ehwMTnas5Ffwss0Qgx4bIyYtzEtic9Q2XLuXvB39XYjN0w3vvkeDqlsEQ4gDe8W9xRTiKOIAiGDbo6rBvWJulkI8iRg77OseezzETCm6WcQ/QWyLuO+dhxh1J4GYVQDb7m8e4HNImnAftgdi2pfhgxnpdrlvOpzTX2IshvExNstI0ieMEWNZU8dpfKvz+rMLvx0xaV0QMS+BMInsr9xrE2MohfhZ0CLib50fiNiSuwqxetmHHhoL571hiMHHKcRQh/A8DbGFMdRkichZcyLbQFwhfsvHhWKLIJaTEDefz0VM2uL1njZoBjEth7mziM1EvJYgYpW9EQe7bM6h8wmRbPKPQCw/FzE1CV/5tBxCJJtcM4lWELdPCm2mIOLXd3FbHXDJ6FGY77jUftmc/gTiQE8vQpxKlEd8BN37zQUBxC+dAQW6RkZg8EI6hA3DYOgzEOtdiNVBfOi+WjqNwv9+t2HABcQVp5tBHGvyZyDmtQQQa0NyRNz00kHczNIuDrgERiF9gscc+92IQas44t7jbZVhDLrUjVJ8GUcQc/Y/CbGf7xbEaiKGOhGeMmRzdhQnzMdCuK5HPKO0jrgTMRGzmXHEEkTMzns3Ir7hufh2xM/vyCnE4NN4MSKl7/O1GTWNONY/GEXnRPBhpfcjps/F8CuF6+gRbhCxmFHmPaMQJxDLOYjlXsQSGKMdOroZYhWcIo2YbZYM4sVXHw8HRUzFGWLMc/FGvYY4gaIQm4jx3eB2xF6HTKY4BbvUJS6c2wenIxYDcbPSCOJx7IQTNedoDTlO2EZ7r0whzm8Wq/7zED+LMHoeQ6wjYkWI3XTq9pYjpgSNgJGVeX2KoSQ5JbguGDRxotYurN3MCcT9NODK7qg0YvCs5SIOzAkiFlcoixhExd5RH1E25XXhEGnjaHhqGwdcgjzLiO0mGUTDcz4BMd6ZB7L//jxs2YZ5DLH00x4ubZUGD0dscAwPoTAwMb8rMGKDsaPEBOYQd/18uYc6Rh0L8fjNhB5UWRkOYmtNTpc4z/CcMOJppUXErgEl49RuK6nv0qD4JGIxe0y6nN8VjX9ZiU0fm7XJ/4YYl5sYEtBmPBiek0E8p8Sm7454xTTQzDPmXKN0mFuIt7dCvL31t4FCvL0V4u2tEG9vhThg7KTLz8DwwUy4guIROkGi8VKIIwZejmPHYSSIncngxx9eivXTfSH2jfzIYiGWDGIrZe8HL+qPgeEfE8saSyPWVcSHN9QkJfEX4jnLI8Zv8R156AoiFuOdWCH2jV0iFmK5FnHgt5unFWLfvF82Bv9jELqRvOUiP3yyKpF+IfYte6K+EDE9URsVFWLfvOPt4DYubkMeutiNOsG4EPuWRUxGzzxRD36jpELs2xzi8KHXeC7m3w310HSq5R6alIY78qMKfbvFtlt9F59t+F/pONGjn0ZbqeMTCvH2Voi3t0K8vRXi7a0Qb2+FeHv7dMJ/AZFvXNNCsi50AAAAAElFTkSuQmCC" alt="Weichert, Realtors - Blue Ribbon">
+    </div>
+    <a class="sponsor-bar-logo-wrap" id="sponsorBarLogoLink" href="#" target="_blank" rel="noopener" aria-label="Revolution Mortgage">
+      <img id="sponsorBarLogo" src="data:image/png;base64,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" alt="Revolution Mortgage">
+    </a>
+    <div class="sponsor-bar-right">
+      <a class="sponsor-bar-cta" id="sponsorBarCta" href="#" target="_blank" rel="noopener">Learn more</a>
+      <button class="sponsor-bar-close" id="sponsorBarClose" type="button" aria-label="Dismiss">×</button>
+    </div>
+  </div>
+
+  <div class="tracy-note" id="tracyNote" hidden>
+    <div class="tracy-note-mark">TA</div>
+    <div class="tracy-note-body">
+      <b>A direct note from Tracy</b>
+      Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?
+      <ul>
+        <li>Ask every buyer, every time — before the contract, not after.</li>
+        <li>On a typical loan, that's often $2,000+ back in their pocket.</li>
+        <li>Costs you nothing. Takes one text.</li>
+      </ul>
+    </div>
+    <button class="tracy-note-close" id="tracyNoteClose" type="button" aria-label="Dismiss">×</button>
+  </div>
+
+<div class="wrap">
+  <header class="page-head">
+    <h1>Commission Disbursement Authorization (CDA)</h1>
+    <p>Weichert, Realtors - Blue Ribbon — Front Royal VA · Martinsburg WV · Bowie MD · Blue Ribbon Referral Agency</p>
+  </header>
+
+  <div class="drafts-bar">
+    <label for="draftSelect" style="margin:0;white-space:nowrap">Your saved drafts:</label>
+    <select id="draftSelect"><option value="">— Start a new CDA —</option></select>
+    <button type="button" class="btn small" id="resumeDraftBtn">Resume</button>
+    <button type="button" class="btn small" id="newDraftBtn">Start New CDA</button>
+    <span id="currentRecordBadge"></span>
+  </div>
+  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">Saved drafts live only on the device/browser where you started them — they won't show up if you switch to a phone, another computer, or a different browser. Finish and hit Submit from that same device. Once submitted, it's off the device and safe.</p>
+
+  <div class="layout">
+    <div>
+      <form id="cdaForm" autocomplete="off">
+
+        <fieldset>
+          <legend>1 &middot; Office &amp; Transaction</legend>
+          <div class="grid g3">
+            <div class="field">
+              <label for="submitterName">Your Name <span class="required-star">*</span></label>
+              <input type="text" id="submitterName" required minlength="2" maxlength="100">
+            </div>
+            <div class="field">
+              <label for="submitterEmail">Your Email <span class="required-star">*</span></label>
+              <input type="email" id="submitterEmail" required>
+            </div>
+            <div class="field">
+              <label for="officeCode">Office <span class="required-star">*</span></label>
+              <select id="officeCode" required>
+                <option value="">Select office…</option>
+                <option value="FR">FR — Front Royal, VA</option>
+                <option value="MBG">MBG — Martinsburg, WV</option>
+                <option value="Bow">Bow — Bowie, MD</option>
+                <option value="REF">REF — Blue Ribbon Referral Agency</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid g3" style="margin-top:10px">
+            <div class="field">
+              <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
+              <select id="transactionType" required>
+                <option value="">Select type…</option>
+                <option value="Listing Side">Listing Side</option>
+                <option value="Buyer Side">Buyer Side</option>
+                <option value="Dual Side / Both">Dual Side / Both</option>
+                <option value="Rental">Rental</option>
+                <option value="Referral Only">Referral Only</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field" id="projectedDateField">
+              <label for="projectedClosingDate">Projected Closing Date</label>
+              <input type="date" id="projectedClosingDate">
+              <div class="hint">Planning only — no fee math depends on this date.</div>
+            </div>
+            <div class="field" id="actualDateField">
+              <label for="actualClosingDate">Actual Closing Date <span id="actualDateStar" class="required-star" style="display:none">*</span></label>
+              <input type="date" id="actualClosingDate">
+              <div class="hint">Required to Mark Closed. Drives the transaction ID year.</div>
+            </div>
+          </div>
+          <div class="grid g3" style="margin-top:10px">
+            <div class="field conditional" id="otherTransactionTypeField">
+              <label for="otherTransactionType">Please specify transaction type <span class="required-star">*</span></label>
+              <input type="text" id="otherTransactionType" maxlength="100">
+            </div>
+            <div class="field conditional" id="dealStageField">
+              <label for="dealStage">Deal Stage</label>
+              <select id="dealStage"></select>
+              <div class="hint">Pick the stage you've just reached, then use "Save Progress" below. The last stage uses the primary button instead.</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- =========================== STANDARD CDA =========================== -->
+        <div id="standardSection">
+
+          <fieldset>
+            <legend>2 &middot; Transaction, Parties &amp; Title/Escrow</legend>
+            <div class="grid g3">
+              <div class="field conditional show" id="salePriceField"><label for="salePrice">Sale Price ($) <span class="required-star">*</span></label><input type="number" id="salePrice" min="0.01" step="0.01"></div>
+              <div class="field conditional show" id="grossCommissionMethodField">
+                <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
+                <select id="grossCommissionMethod"><option value="Percent">Percent of Sale Price</option><option value="Flat">Flat Amount</option></select>
+              </div>
+              <div class="field"><label for="mlsNumber">MLS / Reference Number</label><input type="text" id="mlsNumber" maxlength="50">
+                <div class="hint">Mandatory unless this property was not listed in MLS.</div>
+              </div>
+            </div>
+            <div class="grid g3" style="margin-top:8px">
+              <div class="field conditional show" id="grossCommissionPercentField">
+                <label for="grossCommissionPercent">Gross Commission (%) <span class="required-star">*</span></label>
+                <input type="number" id="grossCommissionPercent" min="0.0001" max="100" step="0.0001">
+                <div class="hint">Calculates against Sale Price.</div>
+              </div>
+              <div class="field"><label for="grossCommission">Gross Commission Due Brokerage ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01">
+                <div class="hint">Auto-filled when using Percent entry. Switch to Flat Amount to type a dollar figure directly.</div>
+              </div>
+              <div class="field"><label for="zipDotloopId">ZipForm / Dotloop Transaction ID</label><input type="text" id="zipDotloopId" maxlength="80">
+                <div class="hint">So we can pull the file directly if needed.</div>
+              </div>
+            </div>
+
+            <div class="sub-legend">Property</div>
+            <div class="grid g3">
+              <div class="field" style="grid-column:span 2"><label for="propStreet">Street <span class="required-star">*</span></label><input type="text" id="propStreet" maxlength="150"></div>
+              <div class="field"><label for="propCity">City <span class="required-star">*</span></label><input type="text" id="propCity" maxlength="80"></div>
+              <div class="field">
+                <label for="propState">State <span class="required-star">*</span></label>
+                <select id="propState"><option value="VA">VA</option><option value="WV">WV</option><option value="MD">MD</option><option value="Other">Other</option></select>
+              </div>
+              <div class="field conditional" id="propStateOtherField"><label for="propStateOther">State (specify)</label><input type="text" id="propStateOther" maxlength="40"></div>
+              <div class="field"><label for="propZip">ZIP <span class="required-star">*</span></label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
+            </div>
+
+            <div class="sub-legend" id="buyersLegend">Buyer(s)</div>
+            <div id="buyersList"></div>
+            <button type="button" class="btn small add-row-btn" id="addBuyerBtn">+ Add buyer</button>
+
+            <div class="sub-legend" id="sellersLegend">Seller(s)</div>
+            <div id="sellersList"></div>
+            <button type="button" class="btn small add-row-btn" id="addSellerBtn">+ Add seller</button>
+
+            <div class="conditional" id="listingAgentBlock">
+              <div class="sub-legend" id="listingAgentLegend">Listing Agent of Record</div>
+              <div class="grid g2">
+                <div class="field"><label for="listingAgentName" id="listingAgentNameLabel">Listing Agent Name <span class="required-star">*</span></label><input type="text" id="listingAgentName" maxlength="100"></div>
+                <div class="field"><label for="listingAgentEmail" id="listingAgentEmailLabel">Listing Agent Email <span class="required-star">*</span></label><input type="email" id="listingAgentEmail"></div>
+              </div>
+            </div>
+
+            <div class="conditional show" id="titleEscrowBlock">
+              <div class="sub-legend">Title / Escrow (Information is REQUIRED)</div>
+              <div class="grid g3">
+                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100"></div>
+                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150"></div>
+                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
+                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
+                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
+                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
+                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
+                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span></label><input type="email" id="titleEmail"></div>
+              </div>
+            </div>
+            <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
+
+            <div class="sub-legend">Notes</div>
+            <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>3 &middot; Brokerage-Level Money</legend>
+            <div class="sub-legend">Administrative Fee lines (credits/debits against the brokerage)</div>
+            <div id="adminFeesList"></div>
+            <button type="button" class="btn small add-row-btn" id="addAdminFeeBtn">+ Add administrative fee line</button>
+
+            <div class="sub-legend">Reimbursables</div>
+            <div id="reimbList"></div>
+            <button type="button" class="btn small add-row-btn" id="addReimbBtn">+ Add reimbursable line</button>
+
+            <div class="sub-legend">External Referral (owed to an outside brokerage/agent)</div>
+            <div class="grid g3">
+              <div class="field">
+                <label for="externalReferralOwed">Is an external referral fee owed? <span class="required-star">*</span></label>
+                <select id="externalReferralOwed"><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
+              </div>
+            </div>
+            <div class="conditional" id="referralOwedBlock">
+              <div class="grid g3" style="margin-top:8px">
+                <div class="field"><label for="referralCompany">Referral Company <span class="required-star">*</span></label><input type="text" id="referralCompany" maxlength="150"></div>
+                <div class="field"><label for="referralContactName">Contact Name <span class="required-star">*</span></label><input type="text" id="referralContactName" maxlength="100"></div>
+                <div class="field"><label for="referralContactPhone">Contact Phone <span class="required-star">*</span></label><input type="tel" id="referralContactPhone"></div>
+                <div class="field"><label for="referralContactEmail">Contact Email <span class="required-star">*</span></label><input type="email" id="referralContactEmail"></div>
+                <div class="field"><label for="referralFeeRate">Referral Fee Rate (% of Gross) <span class="required-star">*</span></label><input type="number" id="referralFeeRate" min="0.0001" max="100" step="0.0001"></div>
+                <div class="field"><label for="referralPartnerPayoutPercent">Partner Payout %</label><input type="number" id="referralPartnerPayoutPercent" value="80" min="0" max="100" step="0.0001"><div class="hint">Default 80% — broker/admin only to change.</div></div>
+              </div>
+              <div class="grid g3" style="margin-top:6px">
+                <div class="field"><label>Referral Fee (RF)</label><div class="readonly-display" id="referralFeeDisplay">$0.00</div></div>
+                <div class="field"><label>Outside Partner Payout (OP)</label><div class="readonly-display" id="referralPartnerPayoutDisplay">$0.00</div></div>
+                <div class="field"><label>Posted as Administrative Fee debit</label><div class="readonly-display">External Referral Fee</div></div>
+              </div>
+              <div class="grid g3" style="margin-top:6px">
+                <div class="field"><label for="referralAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="referralAgreementUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+                <div class="field"><label for="referralW9Upload">W-9 <span class="required-star">*</span></label><input type="file" id="referralW9Upload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+                <div class="field"><label for="referralWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="referralWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+              </div>
+            </div>
+
+            <div class="sub-legend">Brokerage Recap</div>
+            <div class="grid g3">
+              <div class="field"><label>Administrative Fee Total (A)</label><div class="readonly-display" id="adminFeeTotalDisplay">$0.00</div></div>
+              <div class="field"><label>Reimbursables Total (R)</label><div class="readonly-display" id="reimbTotalDisplay">$0.00</div></div>
+              <div class="field"><label>Total Due to Brokerage (TDB)</label><div class="readonly-display" id="totalDueBrokerageDisplay">$0.00</div></div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>4 &middot; Commission Recipients (up to 4 agent slots)</legend>
+            <div class="banner-note">The lead agent on this transaction is responsible for completing this form.</div>
+            <div class="grid g3" style="margin-bottom:10px">
+              <div class="field">
+                <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
+                <select id="allocationMethod">
+                  <option value="Percent">Percent of Gross Commission</option>
+                  <option value="Fixed">Fixed Commission Amount</option>
+                </select>
+              </div>
+            </div>
+            <div id="agentsList"></div>
+            <button type="button" class="btn small add-row-btn" id="addAgentBtn">+ Add commission agent</button>
+          </fieldset>
+
+          <fieldset>
+            <legend>5 &middot; File Accuracy Assessment</legend>
+            <div class="banner-note">
+              File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
+              Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
+              A <strong>$100 processing fee is deducted from the agent's commission</strong> if the paperwork has 3 or more errors,
+              or if any required form is missing. Goal: complete, accurate paperwork on the first pass.
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>6 &middot; Required Uploads</legend>
+            <div class="field">
+              <label for="cdaDocsUpload">Choose Files — Listing Agreement, ALL Ratified Contract Paperwork, and ALL Closeout Paperwork <span class="required-star">*</span></label>
+              <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
+              <div class="hint">Select everything at once — up to 20 files (hold Ctrl/Cmd, or Shift for a range, to pick several).
+                Include the listing agreement (if applicable), the full ratified contract, and all closeout paperwork together.</div>
+            </div>
+            <div id="cdaDocsChips" class="doc-chip-list"></div>
+            <div id="cdaDocsCount" class="doc-count"></div>
+            <div class="hint">Accepted: PDF, JPG/JPEG, PNG, TIFF. Max 25MB per file, up to 20 files total. TIFF files are archived but cannot be
+              read by the automatic evidence review — they'll be flagged for human review instead.</div>
+          </fieldset>
+
+          <fieldset>
+            <legend>7 &middot; Certification &amp; Final Actions</legend>
+            <div class="fixed-text">"I certify that the information, amounts, and uploaded documents in this Commission
+              Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
+              Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
+            <div class="fixed-text" style="margin-top:8px">"I have provided wiring instructions to the title company and
+              have verified the method our firm will receive payment."</div>
+            <div class="grid g3" style="margin-top:10px">
+              <div class="field">
+                <label for="paymentMethod">Payment Method <span class="required-star">*</span></label>
+                <select id="paymentMethod"><option value="">Select…</option><option value="Wire">Wire</option><option value="Check">Check</option><option value="Paid at Table by Title">Paid at Table by Title</option></select>
+              </div>
+              <div class="field"><label for="typedSignature">Typed Signature (must match your name above) <span class="required-star">*</span></label><input type="text" id="typedSignature"></div>
+              <div class="field"><label for="certificationDate">Certification Date <span class="required-star">*</span></label><input type="date" id="certificationDate"></div>
+            </div>
+            <div class="banner-note warn conditional" id="checkDelayNote">Checks require prior authorization from the broker before this option is selected, and may delay your payout up to 7 to 10 days depending on bank policies.</div>
+
+            <div class="field" style="margin-top:10px">
+              <label for="remarks">Remarks</label>
+              <textarea id="remarks" maxlength="2000" placeholder="Anything you want to convey to compliance, the processor, or the broker."></textarea>
+            </div>
+
+            <div class="conditional" id="voidBlock">
+              <div class="sub-legend">Void this record</div>
+              <div class="field"><label for="voidReason">Void Reason <span class="required-star">*</span></label><textarea id="voidReason" maxlength="1000"></textarea></div>
+            </div>
+
+            <div id="submitStatus"></div>
+            <div class="actions-bar">
+              <button type="button" class="btn danger conditional" id="voidRecordBtn">Void Record</button>
+              <button type="button" class="btn" id="saveStageBtn">Save Progress</button>
+              <button type="button" class="btn primary" id="markClosedBtn">Mark Closed / Submit CDA</button>
+            </div>
+          </fieldset>
+
+        </div>
+        <!-- ========================= END STANDARD CDA ========================= -->
+
+        <!-- =========================== REFERRAL ONLY =========================== -->
+        <div id="referralOnlySection" class="conditional">
+          <fieldset>
+            <legend>Referral Only — Simplified Submission</legend>
+            <div class="banner-note">Referral Only records skip transaction pricing, commission-agent math, and the
+              standard closeout uploads entirely. Just the referral paperwork below.</div>
+            <div class="grid g3" style="margin-top:10px">
+              <div class="field"><label for="rfOnlyDirection">Direction <span class="required-star">*</span></label>
+                <select id="rfOnlyDirection"><option value="">Select…</option><option value="Incoming">Incoming (we received the referral)</option><option value="Outgoing">Outgoing (we sent the referral out)</option></select>
+              </div>
+              <div class="field"><label for="rfOnlyCompany">Other Party Company <span class="required-star">*</span></label><input type="text" id="rfOnlyCompany" maxlength="150"></div>
+              <div class="field"><label for="rfOnlyContactName">Other Party Contact Name <span class="required-star">*</span></label><input type="text" id="rfOnlyContactName" maxlength="100"></div>
+              <div class="field"><label for="rfOnlyContactEmail">Other Party Email</label><input type="email" id="rfOnlyContactEmail"></div>
+              <div class="field"><label for="rfOnlyContactPhone">Other Party Phone</label><input type="tel" id="rfOnlyContactPhone"></div>
+            </div>
+            <div class="grid g3" style="margin-top:10px">
+              <div class="field"><label for="rfOnlyAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="rfOnlyAgreementUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+              <div class="field"><label for="rfOnlyW9Upload">W-9 <span class="required-star">*</span></label><input type="file" id="rfOnlyW9Upload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+              <div class="field"><label for="rfOnlyWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="rfOnlyWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
+            </div>
+            <div class="fixed-text" style="margin-top:12px">"Tracking the referred client's status is the referring agent's responsibility, not the brokerage's."</div>
+            <label class="checkbox-line" style="margin-top:8px">
+              <input type="checkbox" id="rfOnlyAcknowledged">
+              <span>I acknowledge the above before submitting this referral. <span class="required-star">*</span></span>
+            </label>
+            <div id="referralSubmitStatus" style="margin-top:10px"></div>
+            <div class="actions-bar">
+              <button type="button" class="btn primary" id="submitReferralBtn">Submit Referral</button>
+            </div>
+          </fieldset>
+        </div>
+        <!-- ========================= END REFERRAL ONLY ========================= -->
+
+      </form>
+    </div>
+
+    <aside class="recap" id="recapPanel">
+      <h3>Live Reconciliation</h3>
+      <div class="recap-row"><span>Gross Commission (G)</span><span id="rG">$0.00</span></div>
+      <div class="recap-row"><span>Administrative Fee (A)</span><span id="rA">$0.00</span></div>
+      <div class="recap-row"><span>Reimbursables (R)</span><span id="rR">$0.00</span></div>
+      <div class="recap-row total"><span>Total Due to Brokerage</span><span id="rTDB">$0.00</span></div>
+      <div id="rAgents"></div>
+      <div class="recap-row total" style="margin-top:8px"><span>Total Net Due Agents</span><span id="rTNA">$0.00</span></div>
+      <div class="recap-row total"><span>Net Due Brokerage</span><span id="rNB">$0.00</span></div>
+      <div class="recap-check ok" id="rCheck">Reconciliation check: $0.00</div>
+    </aside>
+  </div>
+</div>
+
+<template id="buyerRowTpl">
+  <div class="row-card" data-buyer-row>
+    <div class="row-card-head"><strong>Buyer</strong><button type="button" class="btn small danger" data-remove>Remove</button></div>
+    <div class="grid g3">
+      <div class="field"><label>Full Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
+      <div class="field"><label>Email</label><input type="email" data-f="email"></div>
+      <div class="field"><label>Phone <span class="required-star">*</span></label><input type="tel" data-f="phone"></div>
+    </div>
+  </div>
+</template>
+
+<template id="sellerRowTpl">
+  <div class="row-card" data-seller-row>
+    <div class="row-card-head"><strong>Seller</strong><button type="button" class="btn small danger" data-remove>Remove</button></div>
+    <div class="grid g3">
+      <div class="field"><label>Full Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
+      <div class="field"><label>Email</label><input type="email" data-f="email"></div>
+      <div class="field"><label>Phone <span class="required-star">*</span></label><input type="tel" data-f="phone"></div>
+    </div>
+  </div>
+</template>
+
+<template id="adjustmentRowTpl">
+  <div class="row-card" data-adj-row>
+    <div class="row-card-head"><strong data-adj-title>Line</strong><button type="button" class="btn small danger" data-remove>Remove</button></div>
+    <div class="grid g3">
+      <div class="field"><label>Description <span class="required-star">*</span></label><input type="text" data-f="description" maxlength="150"></div>
+      <div class="field"><label>Type <span class="required-star">*</span></label><select data-f="type"><option value="Credit">Credit</option><option value="Debit">Debit</option></select></div>
+      <div class="field"><label>Amount ($) <span class="required-star">*</span></label><input type="number" data-f="amount" min="0.01" step="0.01" data-calc-trigger></div>
+      <div class="field"><label>Source / Payee <span class="required-star">*</span></label><input type="text" data-f="payee" maxlength="150"></div>
+      <div class="field" style="grid-column:span 2"><label>Note</label><input type="text" data-f="note" maxlength="500"></div>
+    </div>
+  </div>
+</template>
+
+<template id="agentSlotTpl">
+  <div class="row-card" data-agent-slot style="border-color:#b9c9d9">
+    <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
+    <div class="grid g3">
+      <div class="field"><label>Agent Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
+      <div class="field"><label>Agent Email <span class="required-star">*</span></label><input type="email" data-f="email"></div>
+      <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50"></div>
+      <div class="field"><label>Deal Role <span class="required-star">*</span></label>
+        <select data-f="deal_role"><option value="Listing">Listing</option><option value="Buyer">Buyer</option><option value="Both">Both</option><option value="Other/In-house">Other/In-house</option></select>
+      </div>
+      <div class="field"><label>Company <span class="required-star">*</span></label>
+        <select data-f="agent_company"><option value="Weichert Blue Ribbon">Weichert Blue Ribbon</option><option value="Blue Ribbon Referral Agency">Blue Ribbon Referral Agency</option></select>
+      </div>
+      <div class="field" data-method-percent><label>Share of Transaction Percent (%) <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
+      <div class="field" data-method-fixed style="display:none"><label>Fixed Commission Amount ($) <span class="required-star">*</span></label><input type="number" data-f="commission_amount_fixed" min="0.01" step="0.01" data-calc-trigger></div>
+      <div class="field"><label>Commission Amount (computed)</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
+      <div class="field" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
+      <div class="field" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
+    </div>
+
+    <div class="sub-legend">Additional Closing Fees</div>
+    <div data-closing-fees-list></div>
+    <button type="button" class="btn small add-row-btn" data-add-closing-fee>+ Add closing fee line</button>
+
+    <div class="sub-legend">Other Post-Commission Adjustments</div>
+    <div data-post-adj-list></div>
+    <button type="button" class="btn small add-row-btn" data-add-post-adj>+ Add adjustment line</button>
+
+    <div class="grid g3" style="margin-top:10px">
+      <div class="field"><label>Closing Fees Total</label><div class="readonly-display" data-computed="closing_fees_total">$0.00</div></div>
+      <div class="field"><label>ARF (6% policy)</label><div class="readonly-display" data-computed="arf_amount">$0.00</div></div>
+      <div class="field"><label>Post-Commission Adjustments Total</label><div class="readonly-display" data-computed="post_adjustments_total">$0.00</div></div>
+      <div class="field"><label>Preliminary Net</label><div class="readonly-display" data-computed="preliminary_net_due">$0.00</div></div>
+      <div class="field"><label>Final Net Amount Due <span class="required-star">*</span></label><div class="readonly-display" data-computed="net_due_agent">$0.00</div></div>
+      <div class="field"><label>Rounding Difference</label><div class="readonly-display" data-computed="rounding_difference">$0.00</div></div>
+    </div>
+    <div class="field" style="margin-top:6px"><label>Calculation Note (required for fixed amounts, manual adjustments, rounding, zero-floor, or overrides)</label><textarea data-f="calculation_note" maxlength="1000"></textarea></div>
+  </div>
+</template>
+
+<script>
+(function () {
+  "use strict";
+
+  // ============================================================
+  // SPONSOR BANNER — site-wide standard pattern. Only these values
+  // change if the preferred lender partner ever changes.
+  // ============================================================
+  const SPONSOR_BANNER = {
+    enabled: true,
+    name: "Revolution Mortgage",
+    ctaText: "Get Pre-Approved — .5% Buyer Fee Credit",
+    ctaUrl: "https://www.revolutionmortgage.com/loan-officer/1940374"
+  };
+  // ============================================================
+
+  const WEBHOOK_URL = "https://hook.us2.make.com/sxmxpdnmrsyp3u5c8w1uqr5vg8hj3q0x";
+  const DRAFTS_KEY = "wbr.cda.drafts.v1";
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  function bindSponsorBar() {
+    const bar = $("#sponsorBar");
+    if (!bar || !SPONSOR_BANNER || !SPONSOR_BANNER.enabled) return;
+    const DISMISS_KEY = "wbr.cda.sponsor.dismissed.v1:" + (SPONSOR_BANNER.name || "");
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
+    if (dismissed) return;
+    const logoLink = $("#sponsorBarLogoLink");
+    const cta = $("#sponsorBarCta");
+    const close = $("#sponsorBarClose");
+    if (logoLink) logoLink.href = SPONSOR_BANNER.ctaUrl || "#";
+    if (cta) { cta.textContent = SPONSOR_BANNER.ctaText || "Learn more"; cta.href = SPONSOR_BANNER.ctaUrl || "#"; }
+    if (close) close.addEventListener("click", () => { bar.hidden = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
+    bar.hidden = false;
+  }
+
+  // ============================================================
+  // Money / math helpers — mirror the Make "Reconcile CDA" module exactly
+  // ============================================================
+  const n = v => { if (v === "" || v == null) return 0; const x = parseFloat(String(v).replace(/[^0-9.\-]/g, "")); return isNaN(x) ? 0 : x; };
+  const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
+  const money = x => "$" + (Number(x) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const uuid = () => (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("cda_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10));
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+
+  let currentRecordId = uuid();
+
+  // ============================================================
+  // Dynamic row builders. All event binding for rows they create is
+  // done via document-level delegation (see bindDelegatedEvents), so
+  // rows restored later from a saved draft's HTML work identically to
+  // freshly-added rows without any re-binding step.
+  // ============================================================
+  function addTplRow(containerSel, tplId) {
+    const container = $(containerSel);
+    const tpl = $("#" + tplId);
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    container.appendChild(node);
+    return node;
+  }
+
+  function addBuyerRow() { addTplRow("#buyersList", "buyerRowTpl"); }
+  function addSellerRow() { addTplRow("#sellersList", "sellerRowTpl"); }
+  function addAdjustmentRow(containerSel, title) {
+    const node = addTplRow(containerSel, "adjustmentRowTpl");
+    node.querySelector("[data-adj-title]").textContent = title;
+  }
+  function addAgentAdjustmentRow(agentSlotNode, kind, title) {
+    const containerSel = kind === "closing-fees" ? "[data-closing-fees-list]" : "[data-post-adj-list]";
+    const container = agentSlotNode.querySelector(containerSel);
+    const tpl = $("#adjustmentRowTpl");
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    node.querySelector("[data-adj-title]").textContent = title;
+    container.appendChild(node);
+  }
+
+  function countAgentSlots() { return $$("[data-agent-slot]").length; }
+
+  function addAgentSlot() {
+    if (countAgentSlots() >= 4) return;
+    const node = addTplRow("#agentsList", "agentSlotTpl");
+    const idx = countAgentSlots();
+    node.dataset.slot = String(idx);
+    node.querySelector("[data-agent-title]").textContent = "Agent " + idx + (idx === 1 ? " (required)" : "");
+    if (idx === 1) node.querySelector("[data-remove-agent]").style.display = "none";
+    updateAddAgentBtn();
+    applyAllocationMethodToSlots();
+    return node;
+  }
+
+  function renumberAgentSlots() {
+    $$("[data-agent-slot]").forEach((slot, i) => {
+      const idx = i + 1;
+      slot.dataset.slot = String(idx);
+      slot.querySelector("[data-agent-title]").textContent = "Agent " + idx + (idx === 1 ? " (required)" : "");
+      slot.querySelector("[data-remove-agent]").style.display = idx === 1 ? "none" : "";
+    });
+    updateAddAgentBtn();
+  }
+
+  function updateAddAgentBtn() {
+    const btn = $("#addAgentBtn");
+    if (btn) btn.disabled = countAgentSlots() >= 4;
+  }
+
+  function applyAllocationMethodToSlots() {
+    const methodEl = $("#allocationMethod");
+    const method = methodEl ? methodEl.value : "Percent";
+    $$("[data-agent-slot]").forEach(slot => {
+      slot.querySelector("[data-method-percent]").style.display = method === "Fixed" ? "none" : "";
+      slot.querySelector("[data-method-fixed]").style.display = method === "Fixed" ? "" : "none";
+    });
+  }
+
+  function sumSignedRows(rows) {
+    return r2(rows.reduce((t, r) => t + (r.type === "Debit" ? -n(r.amount) : n(r.amount)), 0));
+  }
+
+  function collectAdjustmentRows(container) {
+    if (!container) return [];
+    return $$("[data-adj-row]", container).map(row => ({
+      description: row.querySelector('[data-f="description"]').value.trim(),
+      type: row.querySelector('[data-f="type"]').value,
+      amount: n(row.querySelector('[data-f="amount"]').value),
+      payee: row.querySelector('[data-f="payee"]').value.trim(),
+      note: row.querySelector('[data-f="note"]').value.trim()
+    })).filter(r => r.description || r.amount);
+  }
+
+  function collectAgents() {
+    const method = $("#allocationMethod").value;
+    return $$("[data-agent-slot]").map((slot, i) => {
+      const closingFees = collectAdjustmentRows(slot.querySelector("[data-closing-fees-list]"));
+      const postAdj = collectAdjustmentRows(slot.querySelector("[data-post-adj-list]"));
+      return {
+        slotEl: slot,
+        slot: i + 1,
+        name: slot.querySelector('[data-f="name"]').value.trim(),
+        email: slot.querySelector('[data-f="email"]').value.trim(),
+        mls_id: slot.querySelector('[data-f="mls_id"]').value.trim(),
+        deal_role: slot.querySelector('[data-f="deal_role"]').value,
+        agent_company: slot.querySelector('[data-f="agent_company"]').value,
+        referral_payout_percent: n(slot.querySelector('[data-f="referral_payout_percent"]').value),
+        allocation_method: method,
+        split_percent: n(slot.querySelector('[data-f="split_percent"]').value),
+        commission_amount: method === "Fixed" ? n(slot.querySelector('[data-f="commission_amount_fixed"]').value) : 0,
+        closing_fees: closingFees,
+        post_adjustments: postAdj,
+        calculation_note: slot.querySelector('[data-f="calculation_note"]').value.trim()
+      };
+    }).filter(a => a.name);
+  }
+
+  // ============================================================
+  // Live reconciliation — mirrors Make module 3 ("Reconcile CDA") exactly
+  // ============================================================
+  function recalc() {
+    syncGrossCommissionMethod();
+    const G = n($("#grossCommission").value);
+
+    const referralOwed = $("#externalReferralOwed").value === "true";
+    const referralRate = n($("#referralFeeRate").value);
+    const payoutPct = $("#referralPartnerPayoutPercent").value !== "" ? n($("#referralPartnerPayoutPercent").value) : 80;
+    const RF = referralOwed ? r2(G * referralRate / 100) : 0;
+    const OP = referralOwed ? r2(RF * payoutPct / 100) : 0;
+    $("#referralFeeDisplay").textContent = money(RF);
+    $("#referralPartnerPayoutDisplay").textContent = money(OP);
+
+    let adminFeesCalc = collectAdjustmentRows($("#adminFeesList"));
+    if (referralOwed && OP > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "External Referral Fee", type: "Debit", amount: OP }]);
+    const reimb = collectAdjustmentRows($("#reimbList"));
+
+    const A = sumSignedRows(adminFeesCalc);
+    const R = sumSignedRows(reimb);
+    const TDB = r2(G + A + R);
+
+    $("#adminFeeTotalDisplay").textContent = money(A);
+    $("#reimbTotalDisplay").textContent = money(R);
+    $("#totalDueBrokerageDisplay").textContent = money(TDB);
+    $("#rG").textContent = money(G);
+    $("#rA").textContent = money(A);
+    $("#rR").textContent = money(R);
+    $("#rTDB").textContent = money(TDB);
+
+    const method = $("#allocationMethod").value;
+    const agents = collectAgents();
+    let cRaw = agents.map(a => method === "Fixed" ? n(a.commission_amount) : r2(G * n(a.split_percent) / 100));
+    if (method !== "Fixed" && agents.length) {
+      const sumC = r2(cRaw.reduce((t, x) => t + x, 0));
+      const diff = r2(G - sumC);
+      if (Math.abs(diff) >= 0.01) {
+        let maxSplit = -1, idx = -1;
+        agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; idx = i; } });
+        if (idx >= 0) cRaw[idx] = r2(cRaw[idx] + diff);
+      }
+    }
+
+    const ARF = r2(0.06 * (G - OP));
+
+    const agentsList = $("#rAgents");
+    agentsList.innerHTML = "";
+    let TNA = 0;
+    agents.forEach((a, i) => {
+      const isReferralAgency = a.agent_company === "Blue Ribbon Referral Agency";
+      const rowARF = isReferralAgency ? 0 : ARF;
+      const payoutPctRow = isReferralAgency ? (a.referral_payout_percent || 80) : 100;
+      const CiRaw = cRaw[i];
+      const referralPayoutAmt = isReferralAgency ? r2(CiRaw * payoutPctRow / 100) : 0;
+      const Ci = isReferralAgency ? referralPayoutAmt : CiRaw;
+      const Fi = sumSignedRows(a.closing_fees);
+      const Pi = sumSignedRows(a.post_adjustments);
+      const AccuracyFeei = 0;
+      const PN = r2(Ci + Fi + Pi - rowARF - AccuracyFeei);
+      const Ni = Math.max(0, PN);
+      TNA = r2(TNA + Ni);
+
+      const slot = a.slotEl;
+      const setComputed = (name, val) => { const el = slot.querySelector('[data-computed="' + name + '"]'); if (el) el.textContent = money(val); };
+      const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(G * n(a.split_percent) / 100)) : 0;
+      slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = isReferralAgency ? "" : "none"; });
+      const titleEl = slot.querySelector("[data-agent-title]");
+      if (titleEl) titleEl.textContent = "Agent " + (i + 1) + (i === 0 ? " (required)" : "") + " — " + (a.agent_company || "Weichert Blue Ribbon");
+      setComputed("commission_amount", CiRaw);
+      setComputed("referral_payout_amount", referralPayoutAmt);
+      setComputed("closing_fees_total", Fi);
+      setComputed("arf_amount", rowARF);
+      setComputed("post_adjustments_total", r2(Pi - rowARF - AccuracyFeei));
+      setComputed("preliminary_net_due", PN);
+      setComputed("net_due_agent", Ni);
+      setComputed("rounding_difference", rounding);
+
+      const row = document.createElement("div");
+      row.className = "recap-agent";
+      row.innerHTML = '<div class="recap-agent-name">' + (a.name || "Agent " + (i + 1)) + (isReferralAgency ? " (Blue Ribbon Referral Agency)" : "") + '</div>' +
+        '<div class="recap-row"><span>Commission</span><span>' + money(Ci) + '</span></div>' +
+        '<div class="recap-row"><span>ARF (−)</span><span>-' + money(rowARF) + '</span></div>' +
+        '<div class="recap-row"><span>Net Due</span><span>' + money(Ni) + '</span></div>';
+      agentsList.appendChild(row);
+    });
+
+    const NB = r2(TDB - TNA);
+    const check = r2(TDB - (NB + TNA));
+    $("#rTNA").textContent = money(TNA);
+    $("#rNB").textContent = money(NB);
+    const checkEl = $("#rCheck");
+    checkEl.textContent = "Reconciliation check: " + money(check);
+    checkEl.className = "recap-check " + (Math.abs(check) < 0.005 ? "ok" : "bad");
+
+    return { G, A, R, TDB, agents, cRaw, ARF, RF, OP, referralOwed, referralRate, payoutPct, adminFeesCalc, reimb, TNA, NB, check };
+  }
+
+  // ============================================================
+  // Show/hide logic driven by Transaction Type etc.
+  // ============================================================
+  function updateTransactionTypeUI() {
+    const t = $("#transactionType").value;
+    const isReferralOnly = t === "Referral Only";
+    $("#standardSection").style.display = isReferralOnly ? "none" : "";
+    $("#referralOnlySection").classList.toggle("show", isReferralOnly);
+
+    const isRental = t === "Rental";
+    const isListingOrDual = t === "Listing Side" || t === "Dual Side / Both";
+    $("#listingAgentBlock").classList.toggle("show", isListingOrDual || isRental);
+
+    // Rentals don't have a sale price or (usually) a title/escrow company —
+    // hide those and stop requiring them; relabel Buyer/Seller -> Tenant/Landlord.
+    $("#salePriceField").classList.toggle("show", !isRental);
+    $("#titleEscrowBlock").classList.toggle("show", !isRental);
+    $("#rentalTitleNote").classList.toggle("show", isRental);
+    $("#buyersLegend").textContent = isRental ? "Tenant(s)" : "Buyer(s)";
+    $("#sellersLegend").textContent = isRental ? "Landlord(s)" : "Seller(s)";
+    $("#listingAgentLegend").textContent = isRental ? "Property Manager / Landlord Agent of Record" : "Listing Agent of Record";
+    $("#listingAgentNameLabel").innerHTML = (isRental ? "Landlord Agent Name" : "Listing Agent Name") + ' <span class="required-star">*</span>';
+    $("#listingAgentEmailLabel").innerHTML = (isRental ? "Landlord Agent Email" : "Listing Agent Email") + ' <span class="required-star">*</span>';
+
+    $("#otherTransactionTypeField").classList.toggle("show", t === "Other");
+    updateDealStageOptions();
+
+    // Rentals have no Sale Price, so Gross Commission can't be computed as a
+    // percent of it — force Flat entry and hide the Percent toggle for them.
+    $("#grossCommissionMethodField").classList.toggle("show", !isRental);
+    if (isRental && $("#grossCommissionMethod").value !== "Flat") $("#grossCommissionMethod").value = "Flat";
+  }
+
+  // Gross Commission Due Brokerage can be typed as a flat dollar amount, or
+  // entered as a percent that's calculated against Sale Price. Percent mode
+  // keeps #grossCommission (the field everything else — recalc, validation,
+  // the webhook payload — already reads) in sync and read-only; Flat mode
+  // hands control back to the agent exactly as before this feature existed.
+  function syncGrossCommissionMethod() {
+    const isRental = $("#transactionType").value === "Rental";
+    const isPercent = !isRental && $("#grossCommissionMethod").value === "Percent";
+    $("#grossCommissionPercentField").classList.toggle("show", isPercent);
+    const gcInput = $("#grossCommission");
+    gcInput.readOnly = isPercent;
+    if (isPercent) {
+      const pct = n($("#grossCommissionPercent").value);
+      const sp = n($("#salePrice").value);
+      gcInput.value = (pct > 0 && sp > 0) ? String(r2(sp * pct / 100)) : "";
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Deal-stage gates. Listing-side deals (Listing/Dual/Rental) can be
+  // started the moment the listing is taken, well before there's a
+  // contract; Buyer Side deals start at Contract since there's no
+  // listing step. Referral Only and Other keep the original single
+  // Projected/Closed flow — no gate rules have been defined for them.
+  // The final stage in each list is handled by the Mark Closed /
+  // Submit Closeout button, not the stage dropdown.
+  // ------------------------------------------------------------
+  const STAGE_DEFS = {
+    listing: [
+      { key: "listing_taken", label: "Listing Taken" },
+      { key: "contract", label: "Contract" },
+      { key: "clear_to_close", label: "Clear to Close" },
+      { key: "closed", label: "Closed", final: true }
+    ],
+    buyer: [
+      { key: "contract", label: "Contract" },
+      { key: "clear_to_close", label: "Clear to Close" },
+      { key: "closeout", label: "Closeout", final: true }
+    ]
+  };
+  function stagesForType(t) {
+    if (t === "Listing Side" || t === "Dual Side / Both" || t === "Rental") return STAGE_DEFS.listing;
+    if (t === "Buyer Side") return STAGE_DEFS.buyer;
+    return null;
+  }
+  function updateDealStageOptions() {
+    const t = $("#transactionType").value;
+    const stages = stagesForType(t);
+    const field = $("#dealStageField");
+    const sel = $("#dealStage");
+    const markBtn = $("#markClosedBtn");
+    if (!stages) {
+      field.classList.remove("show");
+      sel.innerHTML = "";
+      markBtn.textContent = "Mark Closed / Submit CDA";
+      return;
+    }
+    const early = stages.filter(s => !s.final);
+    const finalStage = stages.find(s => s.final);
+    const currentVal = sel.value;
+    sel.innerHTML = early.map(s => '<option value="' + s.key + '">' + s.label + '</option>').join("");
+    sel.value = early.some(s => s.key === currentVal) ? currentVal : (early[0] ? early[0].key : "");
+    field.classList.add("show");
+    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : "Mark Closed") : "Mark Closed / Submit CDA";
+  }
+
+  // Rentals conventionally split 80% to the agent (matches the brokerage's
+  // long-standing "rental80" pay plan) — prefill it once when Rental is picked,
+  // but only if the agent hasn't already typed a split, so we never clobber it.
+  function maybeDefaultRentalSplit() {
+    if ($("#transactionType").value !== "Rental") return;
+    if ($("#allocationMethod").value !== "Percent") return;
+    const slots = $$("[data-agent-slot]");
+    if (slots.length !== 1) return;
+    const splitInput = slots[0].querySelector('[data-f="split_percent"]');
+    if (splitInput && !splitInput.value.trim()) {
+      splitInput.value = "80";
+    }
+  }
+  function updatePropStateOther() { $("#propStateOtherField").classList.toggle("show", $("#propState").value === "Other"); }
+  function updateReferralOwedBlock() { $("#referralOwedBlock").classList.toggle("show", $("#externalReferralOwed").value === "true"); }
+  function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check"); }
+
+  function refreshConditionalUI() {
+    updateTransactionTypeUI();
+    updatePropStateOther();
+    updateReferralOwedBlock();
+    updateCheckDelayNote();
+    applyAllocationMethodToSlots();
+    updateAddAgentBtn();
+  }
+
+  // ============================================================
+  // Drafts (localStorage) — Projected Closing persistence for this device.
+  // Files cannot be persisted in localStorage, so a resumed draft asks
+  // the agent to re-attach documents before final submission.
+  // ============================================================
+  function loadDraftsIndex() { try { return JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}"); } catch (e) { return {}; } }
+  function saveDraftsIndex(idx) { try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(idx)); } catch (e) {} }
+
+  function refreshDraftUI() {
+    const idx = loadDraftsIndex();
+    const sel = $("#draftSelect");
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">— Start a new CDA —</option>';
+    Object.keys(idx).sort((a, b) => (idx[b].updated_at || "").localeCompare(idx[a].updated_at || "")).forEach(id => {
+      const d = idx[id];
+      if (d.record_status !== "projected") return;
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = (d.property_address || "(no address yet)") + " — " + (d.office_code || "") + (d.stage_label ? " — " + d.stage_label : "") + " — updated " + (d.updated_at ? d.updated_at.slice(0, 10) : "");
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o => o.value === currentVal)) sel.value = currentVal;
+  }
+
+  function buildPropertyAddress() {
+    const street = $("#propStreet").value.trim();
+    const city = $("#propCity").value.trim();
+    const state = $("#propState").value === "Other" ? $("#propStateOther").value.trim() : $("#propState").value;
+    const zip = $("#propZip").value.trim();
+    return [street, [city, state].filter(Boolean).join(", "), zip].filter(Boolean).join(", ");
+  }
+
+  // ------------------------------------------------------------
+  // Explicit JSON snapshot/restore of live field values.
+  // NOTE: outerHTML does NOT reflect values typed into inputs/selects
+  // (only their original attributes), so drafts must be serialized
+  // field-by-field rather than by cloning markup.
+  // ------------------------------------------------------------
+  function serializeSimpleFields() {
+    const out = {};
+    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id]").forEach(el => {
+      if (el.type === "file") return;
+      out[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
+    });
+    return out;
+  }
+  function serializeSimpleRows(container) {
+    return $$("[data-buyer-row],[data-seller-row]", container).map(row => {
+      const obj = {};
+      row.querySelectorAll("[data-f]").forEach(el => { obj[el.dataset.f] = el.value; });
+      return obj;
+    });
+  }
+  function serializeAdjRows(container) {
+    return $$("[data-adj-row]", container).map(row => {
+      const obj = {};
+      row.querySelectorAll("[data-f]").forEach(el => { obj[el.dataset.f] = el.value; });
+      return obj;
+    });
+  }
+  function serializeAgentSlots() {
+    return $$("[data-agent-slot]").map(slot => {
+      const obj = {};
+      Array.from(slot.querySelectorAll("[data-f]")).filter(el => !el.closest("[data-adj-row]")).forEach(el => { obj[el.dataset.f] = el.value; });
+      obj.closing_fees = serializeAdjRows(slot.querySelector("[data-closing-fees-list]"));
+      obj.post_adjustments = serializeAdjRows(slot.querySelector("[data-post-adj-list]"));
+      return obj;
+    });
+  }
+  function buildSnapshot() {
+    return {
+      simple: serializeSimpleFields(),
+      buyers: serializeSimpleRows($("#buyersList")),
+      sellers: serializeSimpleRows($("#sellersList")),
+      adminFees: serializeAdjRows($("#adminFeesList")),
+      reimb: serializeAdjRows($("#reimbList")),
+      agents: serializeAgentSlots()
+    };
+  }
+  function fillRowFields(row, data) {
+    Object.keys(data).forEach(k => { const el = row.querySelector('[data-f="' + k + '"]'); if (el) el.value = data[k]; });
+  }
+  function restoreSnapshot(snap) {
+    $("#buyersList").innerHTML = "";
+    (snap.buyers || []).forEach(b => { addBuyerRow(); fillRowFields($("#buyersList [data-buyer-row]:last-child"), b); });
+    $("#sellersList").innerHTML = "";
+    (snap.sellers || []).forEach(s => { addSellerRow(); fillRowFields($("#sellersList [data-seller-row]:last-child"), s); });
+    $("#adminFeesList").innerHTML = "";
+    (snap.adminFees || []).forEach(a => { addAdjustmentRow("#adminFeesList", "Administrative Fee Line"); fillRowFields($("#adminFeesList [data-adj-row]:last-child"), a); });
+    $("#reimbList").innerHTML = "";
+    (snap.reimb || []).forEach(r => { addAdjustmentRow("#reimbList", "Reimbursable Line"); fillRowFields($("#reimbList [data-adj-row]:last-child"), r); });
+
+    $("#agentsList").innerHTML = "";
+    (snap.agents && snap.agents.length ? snap.agents : [{}]).forEach(a => {
+      const slot = addAgentSlot();
+      if (!slot) return;
+      Object.keys(a).forEach(k => {
+        if (k === "closing_fees" || k === "post_adjustments") return;
+        const el = Array.from(slot.querySelectorAll('[data-f="' + k + '"]')).filter(e => !e.closest("[data-adj-row]"))[0];
+        if (el) el.value = a[k];
+      });
+      (a.closing_fees || []).forEach(cf => { addAgentAdjustmentRow(slot, "closing-fees", "Additional Closing Fee"); fillRowFields(slot.querySelector("[data-closing-fees-list] [data-adj-row]:last-child"), cf); });
+      (a.post_adjustments || []).forEach(pa => { addAgentAdjustmentRow(slot, "post-adj", "Post-Commission Adjustment"); fillRowFields(slot.querySelector("[data-post-adj-list] [data-adj-row]:last-child"), pa); });
+    });
+    renumberAgentSlots();
+
+    // simple fields last, after every dynamic id-bearing field exists
+    Object.keys(snap.simple || {}).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === "checkbox" || el.type === "radio") el.checked = snap.simple[id];
+      else el.value = snap.simple[id];
+    });
+  }
+
+  function persistDraft(stageKey, stageLabel) {
+    const idx = loadDraftsIndex();
+    const updatedAt = new Date().toISOString();
+    idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress(), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
+    saveDraftsIndex(idx);
+    try { localStorage.setItem("wbr.cda.draftform." + currentRecordId, JSON.stringify(buildSnapshot())); } catch (e) {}
+    refreshDraftUI();
+  }
+  function removeDraft(id) {
+    const idx = loadDraftsIndex();
+    delete idx[id];
+    saveDraftsIndex(idx);
+    try { localStorage.removeItem("wbr.cda.draftform." + id); } catch (e) {}
+    refreshDraftUI();
+  }
+  function resumeDraft(id) {
+    let raw;
+    try { raw = localStorage.getItem("wbr.cda.draftform." + id); } catch (e) {}
+    if (!raw) { alert("That draft could not be found on this device."); return; }
+    let snap;
+    try { snap = JSON.parse(raw); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
+    restoreSnapshot(snap);
+    currentRecordId = id;
+    refreshConditionalUI();
+    if (snap.simple && snap.simple.dealStage) {
+      const stageSel = $("#dealStage");
+      if ([...stageSel.options].some(o => o.value === snap.simple.dealStage)) stageSel.value = snap.simple.dealStage;
+    }
+    setBadge();
+    recalc();
+    $("#voidBlock").classList.add("show");
+    $("#voidRecordBtn").classList.add("show");
+    $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Draft resumed. Please re-attach any documents before submitting — browsers do not let sites keep files in local storage.</li></ul>';
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function setBadge() {
+    const idx = loadDraftsIndex();
+    const d = idx[currentRecordId];
+    const stageLabel = d && d.stage_label ? d.stage_label : "";
+    $("#currentRecordBadge").innerHTML = '<span class="pill projected">Editing draft ' + currentRecordId.slice(0, 8) + '…' + (stageLabel ? " · " + stageLabel : "") + '</span>';
+  }
+
+  // ============================================================
+  // Validation
+  // ============================================================
+  function requiredMsg(cond, msg, errors) { if (!cond) errors.push(msg); }
+
+  function validateCommon(errors) {
+    requiredMsg($("#submitterName").value.trim().length >= 2, "Your name is required.", errors);
+    requiredMsg(/^\S+@\S+\.\S+$/.test($("#submitterEmail").value.trim()), "A valid email is required.", errors);
+    requiredMsg($("#officeCode").value, "Office is required.", errors);
+    requiredMsg($("#transactionType").value, "Transaction type is required.", errors);
+    if ($("#transactionType").value === "Other") {
+      requiredMsg($("#otherTransactionType").value.trim(), "Please specify the transaction type.", errors);
+    }
+  }
+
+  function validateStandardForClose(calc, errors) {
+    const t = $("#transactionType").value;
+    const isRental = t === "Rental";
+    requiredMsg($("#actualClosingDate").value, "Actual Closing Date is required to Mark Closed.", errors);
+    if (!isRental) requiredMsg(n($("#salePrice").value) > 0, "Sale Price is required and must be greater than $0.", errors);
+    requiredMsg(n($("#grossCommission").value) > 0, "Gross Commission Due Brokerage is required and must be greater than $0.", errors);
+    requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required.", errors);
+    requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required.", errors);
+    requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP must be a valid US ZIP.", errors);
+
+    if (t === "Buyer Side" || t === "Dual Side / Both") requiredMsg($$("[data-buyer-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one buyer is required.", errors);
+    if (t === "Listing Side" || t === "Dual Side / Both") requiredMsg($$("[data-seller-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one seller is required.", errors);
+    $$("[data-buyer-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Tenant" : "Buyer") + " #" + (i + 1) + " phone is required.", errors));
+    $$("[data-seller-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Landlord" : "Seller") + " #" + (i + 1) + " phone is required.", errors));
+    if (t === "Listing Side" || t === "Dual Side / Both" || isRental) {
+      requiredMsg($("#listingAgentName").value.trim().length >= 2, (isRental ? "Landlord Agent Name" : "Listing Agent Name") + " is required.", errors);
+      requiredMsg(/^\S+@\S+\.\S+$/.test($("#listingAgentEmail").value.trim()), (isRental ? "Landlord Agent Email" : "Listing Agent Email") + " is required.", errors);
+    }
+    if (!isRental) {
+      requiredMsg($("#titleContactName").value.trim(), "Title contact name is required.", errors);
+      requiredMsg($("#titleCompanyName").value.trim(), "Title company is required.", errors);
+      requiredMsg($("#titleStreet").value.trim(), "Title street is required.", errors);
+      requiredMsg($("#titleCity").value.trim(), "Title city is required.", errors);
+      requiredMsg($("#titleState").value.trim(), "Title state is required.", errors);
+      requiredMsg($("#titlePhone").value.trim(), "Title phone is required.", errors);
+      requiredMsg(/^\S+@\S+\.\S+$/.test($("#titleEmail").value.trim()), "A valid title email is required.", errors);
+    }
+
+    requiredMsg($("#externalReferralOwed").value !== "", "Please answer whether an external referral fee is owed.", errors);
+    if ($("#externalReferralOwed").value === "true") {
+      requiredMsg($("#referralCompany").value.trim(), "Referral company is required.", errors);
+      requiredMsg($("#referralContactName").value.trim(), "Referral contact name is required.", errors);
+      requiredMsg(n($("#referralFeeRate").value) > 0, "Referral fee rate is required.", errors);
+      requiredMsg($("#referralAgreementUpload").files.length > 0, "Referral Agreement upload is required.", errors);
+      requiredMsg($("#referralW9Upload").files.length > 0, "Referral W-9 upload is required.", errors);
+      requiredMsg($("#referralWiringUpload").files.length > 0, "Referral Wiring Instructions upload is required.", errors);
+    }
+
+    requiredMsg(calc.agents.length >= 1, "At least one commission agent (Agent 1) is required.", errors);
+    if (t === "Dual Side / Both") {
+      const roles = calc.agents.map(a => a.deal_role);
+      requiredMsg(roles.includes("Listing") && roles.includes("Buyer"), "Dual Side / Both requires at least one Listing-role and one Buyer-role agent.", errors);
+    }
+    const method = $("#allocationMethod").value;
+    if (method === "Percent") {
+      const sumPct = r2(calc.agents.reduce((t, a) => t + n(a.split_percent), 0));
+      requiredMsg(Math.abs(sumPct - 100) < 0.01, "Split percentages across active agents must sum to exactly 100% (currently " + sumPct + "%).", errors);
+    } else {
+      const sumC = r2(calc.cRaw.reduce((t, x) => t + x, 0));
+      requiredMsg(Math.abs(sumC - calc.G) < 0.01, "Fixed commission amounts across active agents must sum exactly to Gross Commission (currently " + money(sumC) + " vs " + money(calc.G) + ").", errors);
+    }
+    requiredMsg(Math.abs(calc.check) < 0.005, "Reconciliation check must equal $0.00 before this CDA can be Closed.", errors);
+
+    requiredMsg(cdaDocsFiles.length > 0, "At least one document (listing, contract, and/or closeout paperwork) must be attached.", errors);
+
+    requiredMsg($("#paymentMethod").value, "Payment method is required.", errors);
+    const typed = $("#typedSignature").value.trim().toLowerCase().replace(/\s+/g, " ");
+    const named = $("#submitterName").value.trim().toLowerCase().replace(/\s+/g, " ");
+    requiredMsg(typed && typed === named, "Typed signature must match your name exactly.", errors);
+    requiredMsg($("#certificationDate").value && $("#certificationDate").value <= todayISO(), "Certification date is required and cannot be in the future.", errors);
+  }
+
+  function validateReferralOnly(errors) {
+    requiredMsg($("#rfOnlyDirection").value, "Direction is required.", errors);
+    requiredMsg($("#rfOnlyCompany").value.trim(), "Other party company is required.", errors);
+    requiredMsg($("#rfOnlyContactName").value.trim(), "Other party contact name is required.", errors);
+    requiredMsg($("#rfOnlyAgreementUpload").files.length > 0, "Referral Agreement upload is required.", errors);
+    requiredMsg($("#rfOnlyW9Upload").files.length > 0, "W-9 upload is required.", errors);
+    requiredMsg($("#rfOnlyWiringUpload").files.length > 0, "Wiring Instructions upload is required.", errors);
+    requiredMsg($("#rfOnlyAcknowledged").checked, "You must acknowledge the disclaimer before submitting.", errors);
+  }
+
+  function showErrors(targetSel, errors) {
+    const el = $(targetSel);
+    if (!errors.length) { el.innerHTML = ""; return; }
+    el.innerHTML = '<ul class="msg-list">' + errors.map(e => '<li class="error">' + e + '</li>').join("") + '</ul>';
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // ============================================================
+  // Submission — multipart/form-data POST to the ACB-003 webhook.
+  // Make's webhook module turns file parts into {name, data} objects,
+  // which is exactly what the scenario's document-review step reads.
+  // ============================================================
+  function buildStandardFormData(calc, recordStatus, voidReason) {
+    const fd = new FormData();
+    fd.append("cda_record_id", currentRecordId);
+    fd.append("record_status", recordStatus);
+    fd.append("office_code", $("#officeCode").value);
+    fd.append("transaction_type", $("#transactionType").value);
+    fd.append("other_transaction_type", $("#otherTransactionType").value.trim());
+    fd.append("property_address", buildPropertyAddress());
+    fd.append("submitter_name", $("#submitterName").value.trim());
+    fd.append("submitter_email", $("#submitterEmail").value.trim());
+    fd.append("projected_closing_date", $("#projectedClosingDate").value);
+    fd.append("actual_closing_date", $("#actualClosingDate").value);
+    fd.append("gross_commission", String(calc.G));
+    fd.append("agents_json", JSON.stringify(calc.agents.map(a => ({
+      name: a.name, email: a.email, mls_id: a.mls_id, deal_role: a.deal_role,
+      agent_company: a.agent_company, referral_payout_percent: a.referral_payout_percent,
+      allocation_method: a.allocation_method, split_percent: a.split_percent, commission_amount: a.commission_amount,
+      closing_fees: a.closing_fees, post_adjustments: a.post_adjustments, calculation_note: a.calculation_note
+    }))));
+    fd.append("admin_fees_json", JSON.stringify(collectAdjustmentRows($("#adminFeesList"))));
+    fd.append("reimbursables_json", JSON.stringify(calc.reimb));
+    fd.append("external_referral_owed", $("#externalReferralOwed").value === "true" ? "true" : "false");
+    fd.append("referral_fee_rate", String(calc.referralRate || 0));
+    fd.append("referral_partner_payout_percent", String(calc.payoutPct || 80));
+    fd.append("referral_company", $("#referralCompany").value.trim());
+    fd.append("referral_direction", "");
+    fd.append("other_party_name", "");
+    fd.append("other_party_company", "");
+    fd.append("other_party_email", "");
+    fd.append("other_party_phone", "");
+    fd.append("payment_method", $("#paymentMethod").value);
+    fd.append("void_reason", voidReason || "");
+    fd.append("sale_price", String(n($("#salePrice").value)));
+    fd.append("gross_commission_method", $("#transactionType").value === "Rental" ? "Flat" : $("#grossCommissionMethod").value);
+    fd.append("gross_commission_percent", String(n($("#grossCommissionPercent").value)));
+    fd.append("mls_number", $("#mlsNumber").value.trim());
+    fd.append("zip_dotloop_id", $("#zipDotloopId").value.trim());
+    fd.append("transaction_notes", $("#transactionNotes").value.trim());
+    fd.append("remarks", $("#remarks").value.trim());
+    fd.append("title_company_name", $("#titleCompanyName").value.trim());
+    fd.append("title_contact_name", $("#titleContactName").value.trim());
+    fd.append("listing_agent_name", $("#listingAgentName").value.trim());
+    fd.append("listing_agent_email", $("#listingAgentEmail").value.trim());
+    fd.append("typed_signature", $("#typedSignature").value.trim());
+    fd.append("certification_date", $("#certificationDate").value);
+
+    cdaDocsFiles.slice(0, CDA_DOCS_MAX).forEach((f, i) => {
+      fd.append("doc_" + (i + 1), f, f.name);
+    });
+
+    const rA = $("#referralAgreementUpload").files[0];
+    const rW = $("#referralW9Upload").files[0];
+    const rWire = $("#referralWiringUpload").files[0];
+    if (rA) fd.append("referral_agreement_doc", rA, rA.name);
+    if (rW) fd.append("referral_w9_doc", rW, rW.name);
+    if (rWire) fd.append("referral_wiring_doc", rWire, rWire.name);
+
+    return fd;
+  }
+
+  async function postToWebhook(fd) {
+    const resp = await fetch(WEBHOOK_URL, { method: "POST", body: fd });
+    if (!resp.ok) throw new Error("Server responded with status " + resp.status);
+    let json = null;
+    try { json = await resp.json(); } catch (e) {}
+    return json;
+  }
+
+  async function handleSaveStage() {
+    const errors = [];
+    validateCommon(errors);
+    const calc = recalc();
+    showErrors("#submitStatus", errors);
+    if (errors.length) return;
+    const stages = stagesForType($("#transactionType").value);
+    const stageKey = stages ? $("#dealStage").value : "";
+    const stageLabel = stages ? ((stages.find(s => s.key === stageKey) || {}).label || "") : "";
+    const btn = $("#saveStageBtn");
+    btn.disabled = true;
+    // Save to this device first so nothing is ever lost to a network hiccup,
+    // then try to sync to the office (Tracy is not notified on stage saves —
+    // only the final Mark Closed / Submit Closeout step notifies him).
+    persistDraft(stageKey, stageLabel);
+    setBadge();
+    $("#voidBlock").classList.add("show");
+    $("#voidRecordBtn").classList.add("show");
+    try {
+      const fd = buildStandardFormData(calc, "projected", "");
+      fd.append("deal_stage", stageKey);
+      await postToWebhook(fd);
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime from the drafts list at the top of this page (on this device).</li></ul>';
+    } catch (e) {
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here in your drafts list — try Save again once you are back online.</li></ul>';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function handleMarkClosed() {
+    const errors = [];
+    validateCommon(errors);
+    const calc = recalc();
+    validateStandardForClose(calc, errors);
+    showErrors("#submitStatus", errors);
+    if (errors.length) return;
+    if (!confirm("Submitting will lock this CDA as Closed and notify Tracy. Continue?")) return;
+    const btn = $("#markClosedBtn");
+    btn.disabled = true;
+    const stages = stagesForType($("#transactionType").value);
+    const finalStage = stages ? stages.find(s => s.final) : null;
+    try {
+      const fd = buildStandardFormData(calc, "closed", "");
+      fd.append("deal_stage", finalStage ? finalStage.key : "closed");
+      await postToWebhook(fd);
+      removeDraft(currentRecordId);
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted and Closed. Tracy has been notified with the full recap.</li></ul>';
+      $("#saveStageBtn").disabled = true;
+    } catch (e) {
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not submit: ' + e.message + '. Nothing was lost — please try again.</li></ul>';
+      btn.disabled = false;
+    }
+  }
+
+  async function handleVoid() {
+    const reason = $("#voidReason").value.trim();
+    const errors = [];
+    requiredMsg(reason, "A void reason is required.", errors);
+    showErrors("#submitStatus", errors);
+    if (errors.length) return;
+    if (!confirm("Voiding is permanent and cannot be undone. Continue?")) return;
+    const calc = recalc();
+    const btn = $("#voidRecordBtn");
+    btn.disabled = true;
+    try {
+      await postToWebhook(buildStandardFormData(calc, "voided", reason));
+      removeDraft(currentRecordId);
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Record voided.</li></ul>';
+    } catch (e) {
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not void: ' + e.message + '</li></ul>';
+      btn.disabled = false;
+    }
+  }
+
+  async function handleSubmitReferral() {
+    const errors = [];
+    validateCommon(errors);
+    validateReferralOnly(errors);
+    showErrors("#referralSubmitStatus", errors);
+    if (errors.length) return;
+    if (!confirm("Submit this referral?")) return;
+    const btn = $("#submitReferralBtn");
+    btn.disabled = true;
+    const fd = new FormData();
+    fd.append("cda_record_id", currentRecordId);
+    fd.append("record_status", "closed");
+    fd.append("office_code", $("#officeCode").value);
+    fd.append("transaction_type", "Referral Only");
+    fd.append("property_address", "");
+    fd.append("submitter_name", $("#submitterName").value.trim());
+    fd.append("submitter_email", $("#submitterEmail").value.trim());
+    fd.append("actual_closing_date", todayISO());
+    fd.append("gross_commission", "0");
+    fd.append("agents_json", "[]");
+    fd.append("admin_fees_json", "[]");
+    fd.append("reimbursables_json", "[]");
+    fd.append("external_referral_owed", "false");
+    fd.append("referral_direction", $("#rfOnlyDirection").value);
+    fd.append("other_party_name", $("#rfOnlyContactName").value.trim());
+    fd.append("other_party_company", $("#rfOnlyCompany").value.trim());
+    fd.append("other_party_email", $("#rfOnlyContactEmail").value.trim());
+    fd.append("other_party_phone", $("#rfOnlyContactPhone").value.trim());
+    fd.append("payment_method", "");
+    fd.append("remarks", "");
+    fd.append("void_reason", "");
+    fd.append("referral_tracking_acknowledged", "true");
+    const rA = $("#rfOnlyAgreementUpload").files[0];
+    const rW = $("#rfOnlyW9Upload").files[0];
+    const rWire = $("#rfOnlyWiringUpload").files[0];
+    if (rA) fd.append("referral_agreement_doc", rA, rA.name);
+    if (rW) fd.append("referral_w9_doc", rW, rW.name);
+    if (rWire) fd.append("referral_wiring_doc", rWire, rWire.name);
+    try {
+      await postToWebhook(fd);
+      $("#referralSubmitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Referral submitted. Tracy has been notified.</li></ul>';
+    } catch (e) {
+      $("#referralSubmitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not submit: ' + e.message + '. Please try again.</li></ul>';
+      btn.disabled = false;
+    }
+  }
+
+  // ============================================================
+  // Document-level event delegation — survives the outerHTML swap used
+  // by resumeDraft(), and requires no per-row binding at all.
+  // ============================================================
+  function bindDelegatedEvents() {
+    document.addEventListener("click", e => {
+      const removeRow = e.target.closest("[data-remove]");
+      if (removeRow) { removeRow.closest("[data-buyer-row],[data-seller-row],[data-adj-row]").remove(); recalc(); return; }
+
+      const removeAgent = e.target.closest("[data-remove-agent]");
+      if (removeAgent) { removeAgent.closest("[data-agent-slot]").remove(); renumberAgentSlots(); recalc(); return; }
+
+      const addClosingFee = e.target.closest("[data-add-closing-fee]");
+      if (addClosingFee) { addAgentAdjustmentRow(addClosingFee.closest("[data-agent-slot]"), "closing-fees", "Additional Closing Fee"); recalc(); return; }
+
+      const addPostAdj = e.target.closest("[data-add-post-adj]");
+      if (addPostAdj) { addAgentAdjustmentRow(addPostAdj.closest("[data-agent-slot]"), "post-adj", "Post-Commission Adjustment"); recalc(); return; }
+
+      if (e.target.id === "addBuyerBtn") { addBuyerRow(); return; }
+      if (e.target.id === "addSellerBtn") { addSellerRow(); return; }
+      if (e.target.id === "addAdminFeeBtn") { addAdjustmentRow("#adminFeesList", "Administrative Fee Line"); recalc(); return; }
+      if (e.target.id === "addReimbBtn") { addAdjustmentRow("#reimbList", "Reimbursable Line"); recalc(); return; }
+      if (e.target.id === "addAgentBtn") { addAgentSlot(); maybeDefaultRentalSplit(); recalc(); return; }
+      if (e.target.id === "saveStageBtn") { handleSaveStage(); return; }
+      if (e.target.id === "markClosedBtn") { handleMarkClosed(); return; }
+      if (e.target.id === "voidRecordBtn") { handleVoid(); return; }
+      if (e.target.id === "submitReferralBtn") { handleSubmitReferral(); return; }
+      if (e.target.id === "resumeDraftBtn") {
+        const id = $("#draftSelect").value;
+        if (!id) { alert("Choose a saved draft first."); return; }
+        resumeDraft(id);
+        return;
+      }
+      if (e.target.id === "newDraftBtn") {
+        if (confirm("Start a new blank CDA? Any unsaved changes on this page will be lost.")) window.location.reload();
+        return;
+      }
+    });
+
+    document.addEventListener("change", e => {
+      if (e.target.id === "allocationMethod") { applyAllocationMethodToSlots(); recalc(); return; }
+      if (e.target.id === "transactionType") { updateTransactionTypeUI(); maybeDefaultRentalSplit(); recalc(); return; }
+      if (e.target.id === "propState") { updatePropStateOther(); return; }
+      if (e.target.id === "externalReferralOwed") { updateReferralOwedBlock(); recalc(); return; }
+      if (e.target.id === "paymentMethod") { updateCheckDelayNote(); return; }
+      if (e.target.closest("#cdaForm")) recalc();
+    });
+    document.addEventListener("input", e => {
+      if (e.target.closest("#cdaForm")) recalc();
+    });
+  }
+
+  // ============================================================
+  // Section 6 uploads — one generic "Choose Files" picker (up to 10)
+  // instead of separate named categories. Files are tracked in
+  // cdaDocsFiles (not the input's own .files, so individual files can
+  // be removed) and sent as doc_1..doc_N in buildStandardFormData().
+  // ============================================================
+  const CDA_DOCS_MAX = 20;
+  let cdaDocsFiles = [];
+
+  function renderCdaDocsChips() {
+    const wrap = $("#cdaDocsChips");
+    const countEl = $("#cdaDocsCount");
+    if (!wrap) return;
+    wrap.innerHTML = cdaDocsFiles.map((f, i) =>
+      '<span class="doc-chip"><span class="doc-chip-name" title="' + f.name.replace(/"/g, "&quot;") + '">' + f.name +
+      '</span><button type="button" data-remove-cda-doc="' + i + '" aria-label="Remove file">&times;</button></span>'
+    ).join("");
+    if (countEl) {
+      countEl.textContent = cdaDocsFiles.length + " of " + CDA_DOCS_MAX + " files selected";
+      countEl.classList.toggle("limit", cdaDocsFiles.length >= CDA_DOCS_MAX);
+    }
+  }
+
+  function bindCdaDocsUpload() {
+    const input = $("#cdaDocsUpload");
+    if (!input) return;
+    input.addEventListener("change", () => {
+      const incoming = Array.from(input.files || []);
+      let overflow = false;
+      for (const f of incoming) {
+        if (cdaDocsFiles.length >= CDA_DOCS_MAX) { overflow = true; break; }
+        const dup = cdaDocsFiles.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+        if (!dup) cdaDocsFiles.push(f);
+      }
+      input.value = ""; // reset so the same file(s) can be re-picked later
+      renderCdaDocsChips();
+      if (overflow) {
+        showErrors("#submitStatus", ["You can attach up to " + CDA_DOCS_MAX + " files. Remove one before adding another."]);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-remove-cda-doc]");
+      if (!btn) return;
+      const idx = Number(btn.getAttribute("data-remove-cda-doc"));
+      cdaDocsFiles.splice(idx, 1);
+      renderCdaDocsChips();
+    });
+    renderCdaDocsChips();
+  }
+
+  function bindTracyNote() {
+    const note = $("#tracyNote");
+    if (!note) return;
+    const DISMISS_KEY = "wbr.cda.tracynote.dismissed.v1";
+    let dismissed = false;
+    try { dismissed = localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
+    if (dismissed) return;
+    const close = $("#tracyNoteClose");
+    if (close) close.addEventListener("click", () => { note.hidden = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
+    note.hidden = false;
+  }
+
+  function init() {
+    bindSponsorBar();
+    bindTracyNote();
+    bindCdaDocsUpload();
+    bindDelegatedEvents();
+    addAgentSlot();
+    $("#certificationDate").value = todayISO();
+    refreshConditionalUI();
+    recalc();
+    refreshDraftUI();
+    setBadge();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+</script>
+</body>
+</html>
