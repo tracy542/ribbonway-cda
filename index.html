@@ -153,13 +153,14 @@
   </header>
 
   <div class="drafts-bar">
-    <label for="draftSelect" style="margin:0;white-space:nowrap">Your saved drafts:</label>
-    <select id="draftSelect"><option value="">— Start a new CDA —</option></select>
-    <button type="button" class="btn small" id="resumeDraftBtn">Resume</button>
+    <label for="resumeCodeInput" style="margin:0;white-space:nowrap">Resume a saved CDA — enter your code:</label>
+    <input type="text" id="resumeCodeInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7 digits" style="width:100px">
+    <button type="button" class="btn small" id="resumeCodeBtn">Resume</button>
     <button type="button" class="btn small" id="newDraftBtn">Start New CDA</button>
     <span id="currentRecordBadge"></span>
   </div>
-  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">Saved drafts live only on the device/browser where you started them — they won't show up if you switch to a phone, another computer, or a different browser. Finish and hit Submit from that same device. Once submitted, it's off the device and safe.</p>
+  <p class="hint" id="codeWriteDownNote" style="margin:-10px 0 16px 2px;color:var(--navy2);font-weight:600"></p>
+  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">Your code is random and is <strong>not saved anywhere you can look it up</strong> — it only lives in this CDA's record. Write it down now. Any device, any browser, any time before you submit: come back here and enter that code to pick up exactly where you left off.</p>
 
   <div class="layout">
     <div>
@@ -567,6 +568,7 @@
   // ============================================================
 
   const WEBHOOK_URL = "https://hook.us2.make.com/sxmxpdnmrsyp3u5c8w1uqr5vg8hj3q0x";
+  const RESUME_LOOKUP_URL = "https://hook.us2.make.com/wj3f19983vuawo16eyobwul9c5h2b25l";
   const DRAFTS_KEY = "wbr.cda.drafts.v1";
 
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -594,10 +596,31 @@
   const n = v => { if (v === "" || v == null) return 0; const x = parseFloat(String(v).replace(/[^0-9.\-]/g, "")); return isNaN(x) ? 0 : x; };
   const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
   const money = x => "$" + (Number(x) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const uuid = () => (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("cda_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10));
+  // 7-digit numbers-only code: easy to read back over the phone, no
+  // letters to confuse (O/0, 1/I). Generated fresh per deal (not per
+  // agent), so one leaked code only exposes one transaction.
+  const genCode = () => String(Math.floor(1000000 + Math.random() * 9000000));
   const todayISO = () => new Date().toISOString().slice(0, 10);
 
-  let currentRecordId = uuid();
+  let currentRecordId = genCode();
+
+  // Background, non-blocking collision check: with 9,000,000 possible
+  // codes the odds of two deals ever colliding are vanishingly small,
+  // so the form is usable immediately with the code shown at once. If
+  // this check (rarely) finds the code already taken, or if the agent
+  // is offline, it fails silently and the badge/note simply update
+  // again if a swap happened -- nothing blocks on this.
+  async function ensureUniqueCode() {
+    for (let tries = 0; tries < 5; tries++) {
+      try {
+        const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: currentRecordId }) });
+        if (!resp.ok) return;
+        const json = await resp.json();
+        if (!json || !json.found) return;
+        currentRecordId = genCode();
+      } catch (e) { return; }
+    }
+  }
 
   // ============================================================
   // Dynamic row builders. All event binding for rows they create is
@@ -936,22 +959,6 @@
   function loadDraftsIndex() { try { return JSON.parse(localStorage.getItem(DRAFTS_KEY) || "{}"); } catch (e) { return {}; } }
   function saveDraftsIndex(idx) { try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(idx)); } catch (e) {} }
 
-  function refreshDraftUI() {
-    const idx = loadDraftsIndex();
-    const sel = $("#draftSelect");
-    const currentVal = sel.value;
-    sel.innerHTML = '<option value="">— Start a new CDA —</option>';
-    Object.keys(idx).sort((a, b) => (idx[b].updated_at || "").localeCompare(idx[a].updated_at || "")).forEach(id => {
-      const d = idx[id];
-      if (d.record_status !== "projected") return;
-      const opt = document.createElement("option");
-      opt.value = id;
-      opt.textContent = (d.property_address || "(no address yet)") + " — " + (d.office_code || "") + (d.stage_label ? " — " + d.stage_label : "") + " — updated " + (d.updated_at ? d.updated_at.slice(0, 10) : "");
-      sel.appendChild(opt);
-    });
-    if ([...sel.options].some(o => o.value === currentVal)) sel.value = currentVal;
-  }
-
   function buildPropertyAddress() {
     const street = $("#propStreet").value.trim();
     const city = $("#propCity").value.trim();
@@ -1044,46 +1051,62 @@
   }
 
   function persistDraft(stageKey, stageLabel) {
+    // Local safety net only (survives a network hiccup on Save) — the
+    // code typed back in on any device is what actually resumes a draft
+    // now; this index/blob is never read back through the UI anymore.
     const idx = loadDraftsIndex();
     const updatedAt = new Date().toISOString();
     idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress(), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
     saveDraftsIndex(idx);
     try { localStorage.setItem("wbr.cda.draftform." + currentRecordId, JSON.stringify(buildSnapshot())); } catch (e) {}
-    refreshDraftUI();
   }
   function removeDraft(id) {
     const idx = loadDraftsIndex();
     delete idx[id];
     saveDraftsIndex(idx);
     try { localStorage.removeItem("wbr.cda.draftform." + id); } catch (e) {}
-    refreshDraftUI();
   }
-  function resumeDraft(id) {
-    let raw;
-    try { raw = localStorage.getItem("wbr.cda.draftform." + id); } catch (e) {}
-    if (!raw) { alert("That draft could not be found on this device."); return; }
-    let snap;
-    try { snap = JSON.parse(raw); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
-    restoreSnapshot(snap);
-    currentRecordId = id;
-    refreshConditionalUI();
-    if (snap.simple && snap.simple.dealStage) {
-      const stageSel = $("#dealStage");
-      if ([...stageSel.options].some(o => o.value === snap.simple.dealStage)) stageSel.value = snap.simple.dealStage;
+
+  async function resumeByCode(code) {
+    code = (code || "").trim();
+    if (!/^\d{7}$/.test(code)) { alert("Enter the 7-digit code exactly as you wrote it down — numbers only."); return; }
+    const btn = $("#resumeCodeBtn");
+    if (btn) btn.disabled = true;
+    try {
+      const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code }) });
+      if (!resp.ok) throw new Error("Server responded with status " + resp.status);
+      const json = await resp.json();
+      if (!json || !json.found) { alert("No CDA was found for that code. Double-check the digits and try again."); return; }
+      if (!json.resumable) { alert("That code belongs to a CDA that has already been " + (json.record_status || "processed") + " — it can no longer be resumed."); return; }
+      let snap;
+      try { snap = JSON.parse(json.client_snapshot_json || "{}"); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
+      restoreSnapshot(snap);
+      currentRecordId = code;
+      refreshConditionalUI();
+      if (snap.simple && snap.simple.dealStage) {
+        const stageSel = $("#dealStage");
+        if ([...stageSel.options].some(o => o.value === snap.simple.dealStage)) stageSel.value = snap.simple.dealStage;
+      }
+      setBadge();
+      recalc();
+      $("#voidBlock").classList.add("show");
+      $("#voidRecordBtn").classList.add("show");
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Draft resumed from the office. Please re-attach any documents before submitting — browsers do not let sites keep files in local storage.</li></ul>';
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      alert("Could not reach the office to resume that draft (" + e.message + "). Check your connection and try again.");
+    } finally {
+      if (btn) btn.disabled = false;
     }
-    setBadge();
-    recalc();
-    $("#voidBlock").classList.add("show");
-    $("#voidRecordBtn").classList.add("show");
-    $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Draft resumed. Please re-attach any documents before submitting — browsers do not let sites keep files in local storage.</li></ul>';
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function setBadge() {
     const idx = loadDraftsIndex();
     const d = idx[currentRecordId];
     const stageLabel = d && d.stage_label ? d.stage_label : "";
-    $("#currentRecordBadge").innerHTML = '<span class="pill projected">Editing draft ' + currentRecordId.slice(0, 8) + '…' + (stageLabel ? " · " + stageLabel : "") + '</span>';
+    $("#currentRecordBadge").innerHTML = '<span class="pill projected">Editing draft — code ' + currentRecordId + (stageLabel ? " · " + stageLabel : "") + '</span>';
+    const note = $("#codeWriteDownNote");
+    if (note) note.innerHTML = "Your code for this CDA: <strong style=\"font-size:1.15em\">" + currentRecordId + "</strong> — write it down now.";
   }
 
   // ============================================================
@@ -1230,6 +1253,10 @@
     fd.append("listing_agent_email", $("#listingAgentEmail").value.trim());
     fd.append("typed_signature", $("#typedSignature").value.trim());
     fd.append("certification_date", $("#certificationDate").value);
+    // Full field-level snapshot (same shape used for the local safety-net
+    // copy) so a "projected" save can be pulled back down whole by code,
+    // on any device — not just the ~24 fields the Reconcile step maps.
+    fd.append("client_snapshot_json", JSON.stringify(buildSnapshot()));
 
     cdaDocsFiles.slice(0, CDA_DOCS_MAX).forEach((f, i) => {
       fd.append("doc_" + (i + 1), f, f.name);
@@ -1275,9 +1302,9 @@
       const fd = buildStandardFormData(calc, "projected", "");
       fd.append("deal_stage", stageKey);
       await postToWebhook(fd);
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime from the drafts list at the top of this page (on this device).</li></ul>';
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime, from any device, by entering your code (' + currentRecordId + ') at the top of this page.</li></ul>';
     } catch (e) {
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here in your drafts list — try Save again once you are back online.</li></ul>';
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here — try Save again once you are back online so it can be resumed by code from other devices too.</li></ul>';
     } finally {
       btn.disabled = false;
     }
@@ -1300,7 +1327,7 @@
       fd.append("deal_stage", finalStage ? finalStage.key : "closed");
       await postToWebhook(fd);
       removeDraft(currentRecordId);
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted and Closed. Tracy has been notified with the full recap.</li></ul>';
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted and Closed. Tracy has been notified with the full recap, and you and Tracy have each been emailed a confirmation with this CDA\'s code (' + currentRecordId + ').</li></ul>';
       $("#saveStageBtn").disabled = true;
     } catch (e) {
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not submit: ' + e.message + '. Nothing was lost — please try again.</li></ul>';
@@ -1377,7 +1404,7 @@
 
   // ============================================================
   // Document-level event delegation — survives the outerHTML swap used
-  // by resumeDraft(), and requires no per-row binding at all.
+  // by restoreSnapshot(), and requires no per-row binding at all.
   // ============================================================
   function bindDelegatedEvents() {
     document.addEventListener("click", e => {
@@ -1402,10 +1429,8 @@
       if (e.target.id === "markClosedBtn") { handleMarkClosed(); return; }
       if (e.target.id === "voidRecordBtn") { handleVoid(); return; }
       if (e.target.id === "submitReferralBtn") { handleSubmitReferral(); return; }
-      if (e.target.id === "resumeDraftBtn") {
-        const id = $("#draftSelect").value;
-        if (!id) { alert("Choose a saved draft first."); return; }
-        resumeDraft(id);
+      if (e.target.id === "resumeCodeBtn") {
+        resumeByCode($("#resumeCodeInput").value);
         return;
       }
       if (e.target.id === "newDraftBtn") {
@@ -1498,8 +1523,13 @@
     $("#certificationDate").value = todayISO();
     refreshConditionalUI();
     recalc();
-    refreshDraftUI();
     setBadge();
+    const codeInput = $("#resumeCodeInput");
+    if (codeInput) codeInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); resumeByCode(codeInput.value); } });
+    // Confirm this brand-new code is unique before the agent has had a
+    // chance to write it down; on the rare collision (or if offline) the
+    // badge/note simply refresh again with whatever code is final.
+    ensureUniqueCode().then(() => setBadge());
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
