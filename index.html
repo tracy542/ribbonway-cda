@@ -775,12 +775,42 @@
 
     const ARF = r2(0.06 * (G - OP));
 
+    // ARF is a single 6% assessment on the WHOLE deal (net of any outside
+    // referral payout) — never charged per agent. It's split proportionally
+    // among the ARF-liable agent slots (i.e. not Blue Ribbon Referral Agency
+    // slots, which pay no ARF) by their share of commission. Rounding
+    // remainder goes to whichever liable agent has the highest split, same
+    // convention as the commission-rounding adjustment above.
+    const arfLiableIdx = [];
+    let arfLiableSum = 0;
+    agents.forEach((a, i) => {
+      if (a.agent_company !== "Blue Ribbon Referral Agency") {
+        arfLiableIdx.push(i);
+        arfLiableSum += cRaw[i];
+      }
+    });
+    const rowARFs = agents.map(() => 0);
+    if (arfLiableIdx.length === 1) {
+      rowARFs[arfLiableIdx[0]] = ARF;
+    } else if (arfLiableIdx.length > 1 && arfLiableSum > 0) {
+      let allocated = 0;
+      let maxSplit = -1, maxIdx = arfLiableIdx[0];
+      arfLiableIdx.forEach(i => { const sp = n(agents[i].split_percent); if (sp > maxSplit) { maxSplit = sp; maxIdx = i; } });
+      arfLiableIdx.forEach(i => {
+        if (i === maxIdx) return;
+        const share = r2(ARF * (cRaw[i] / arfLiableSum));
+        rowARFs[i] = share;
+        allocated = r2(allocated + share);
+      });
+      rowARFs[maxIdx] = r2(ARF - allocated);
+    }
+
     const agentsList = $("#rAgents");
     agentsList.innerHTML = "";
     let TNA = 0;
     agents.forEach((a, i) => {
       const isReferralAgency = a.agent_company === "Blue Ribbon Referral Agency";
-      const rowARF = isReferralAgency ? 0 : ARF;
+      const rowARF = rowARFs[i];
       const payoutPctRow = isReferralAgency ? (a.referral_payout_percent || 80) : 100;
       const CiRaw = cRaw[i];
       const referralPayoutAmt = isReferralAgency ? r2(CiRaw * payoutPctRow / 100) : 0;
