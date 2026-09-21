@@ -301,6 +301,21 @@
 
             <div class="sub-legend">Notes</div>
             <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
+
+            <div class="sub-legend">Additional Commission at Closing</div>
+            <div class="grid g3">
+              <div class="field">
+                <label for="extraAdminFeeCollected">Additional Commission (Admin Fee) Collected at Closing? <span class="required-star">*</span></label>
+                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
+              </div>
+            </div>
+            <div class="conditional" id="extraAdminFeeBlock">
+              <div class="grid g3" style="margin-top:8px">
+                <div class="field"><label for="extraAdminFeeAmount">Amount Collected ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
+                <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
+              </div>
+              <div class="hint">Yes: this amount is on top and flows straight to the brokerage — agents' payouts aren't touched. No: the Administrative Fee comes off the bottom of each agent's payout automatically, proportional to their share of the transaction — you no longer need to enter it under each agent's Additional Closing Fees.</div>
+            </div>
           </fieldset>
           <fieldset id="externalReferralSection">
             <legend>2A &middot; External Referral</legend>
@@ -546,6 +561,7 @@
     <div class="grid g3" style="margin-top:10px">
       <div class="field"><label>Closing Fees Total</label><div class="readonly-display" data-computed="closing_fees_total">$0.00</div></div>
       <div class="field"><label>ARF (6% policy)</label><div class="readonly-display" data-computed="arf_amount">$0.00</div></div>
+      <div class="field"><label>Admin Fee (off-bottom)</label><div class="readonly-display" data-computed="admin_fee_amount">$0.00</div></div>
       <div class="field"><label>Post-Commission Adjustments Total</label><div class="readonly-display" data-computed="post_adjustments_total">$0.00</div></div>
       <div class="field"><label>Preliminary Net</label><div class="readonly-display" data-computed="preliminary_net_due">$0.00</div></div>
       <div class="field"><label>Final Net Amount Due <span class="required-star">*</span></label><div class="readonly-display" data-computed="net_due_agent">$0.00</div></div>
@@ -747,8 +763,12 @@
     $("#referralFeeDisplay").textContent = money(RF);
     $("#referralPartnerPayoutDisplay").textContent = money(OP);
 
+    const extraFeeCollected = $("#extraAdminFeeCollected").value === "true";
+    const extraFeeAmount = extraFeeCollected ? n($("#extraAdminFeeAmount").value) : 0;
+
     let adminFeesCalc = collectAdjustmentRows($("#adminFeesList"));
     if (referralOwed && OP > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "External Referral Fee", type: "Debit", amount: OP }]);
+    if (extraFeeCollected && extraFeeAmount > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "Additional Commission Collected at Closing", type: "Credit", amount: extraFeeAmount }]);
     const reimb = collectAdjustmentRows($("#reimbList"));
 
     const A = sumSignedRows(adminFeesCalc);
@@ -808,6 +828,35 @@
       rowARFs[maxIdx] = r2(ARF - allocated);
     }
 
+    // Admin Fee (A) on-top vs off-bottom: if additional commission was
+    // collected AT CLOSING specifically to cover the admin fee (Yes), that
+    // extra amount is already folded into A above as brokerage revenue and
+    // agents are NOT charged anything further for it. If nothing extra was
+    // collected (No -- the normal/default case), the existing Admin Fee
+    // Total (A) is instead charged against the agents themselves,
+    // proportionally by their share of the transaction -- same proration
+    // convention as ARF above, but with no Blue Ribbon Referral Agency
+    // carve-out and applied across ALL active agent slots.
+    const adminFeeOffBottom = !extraFeeCollected;
+    const rowAdminFees = agents.map(() => 0);
+    if (adminFeeOffBottom && agents.length && Math.abs(A) > 0.0001) {
+      const sumCraw = cRaw.reduce((t, x) => t + x, 0);
+      if (agents.length === 1) {
+        rowAdminFees[0] = A;
+      } else if (sumCraw > 0) {
+        let allocated = 0;
+        let maxSplit = -1, maxIdx = 0;
+        agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; maxIdx = i; } });
+        agents.forEach((a, i) => {
+          if (i === maxIdx) return;
+          const share = r2(A * (cRaw[i] / sumCraw));
+          rowAdminFees[i] = share;
+          allocated = r2(allocated + share);
+        });
+        rowAdminFees[maxIdx] = r2(A - allocated);
+      }
+    }
+
     const agentsList = $("#rAgents");
     agentsList.innerHTML = "";
     let TNA = 0;
@@ -820,8 +869,9 @@
       const Ci = isReferralAgency ? referralPayoutAmt : CiRaw;
       const Fi = sumSignedRows(a.closing_fees);
       const Pi = sumSignedRows(a.post_adjustments);
+      const rowAdminFee = rowAdminFees[i];
       const AccuracyFeei = 0;
-      const PN = r2(Ci + Fi + Pi - rowARF - AccuracyFeei);
+      const PN = r2(Ci + Fi + Pi - rowARF - rowAdminFee - AccuracyFeei);
       const Ni = Math.max(0, PN);
       TNA = r2(TNA + Ni);
 
@@ -835,6 +885,7 @@
       setComputed("referral_payout_amount", referralPayoutAmt);
       setComputed("closing_fees_total", Fi);
       setComputed("arf_amount", rowARF);
+      setComputed("admin_fee_amount", rowAdminFee);
       setComputed("post_adjustments_total", r2(Pi - rowARF - AccuracyFeei));
       setComputed("preliminary_net_due", PN);
       setComputed("net_due_agent", Ni);
@@ -845,6 +896,7 @@
       row.innerHTML = '<div class="recap-agent-name">' + (a.name || "Agent " + (i + 1)) + (isReferralAgency ? " (Blue Ribbon Referral Agency)" : "") + '</div>' +
         '<div class="recap-row"><span>Commission</span><span>' + money(Ci) + '</span></div>' +
         '<div class="recap-row"><span>ARF (−)</span><span>-' + money(rowARF) + '</span></div>' +
+        (rowAdminFee > 0 ? '<div class="recap-row"><span>Admin Fee (−)</span><span>-' + money(rowAdminFee) + '</span></div>' : '') +
         '<div class="recap-row"><span>Net Due</span><span>' + money(Ni) + '</span></div>';
       agentsList.appendChild(row);
     });
@@ -974,12 +1026,22 @@
   }
   function updatePropStateOther() { $("#propStateOtherField").classList.toggle("show", $("#propState").value === "Other"); }
   function updateReferralOwedBlock() { $("#referralOwedBlock").classList.toggle("show", $("#externalReferralOwed").value === "true"); }
+  function updateExtraAdminFeeBlock() {
+    const v = $("#extraAdminFeeCollected").value;
+    $("#extraAdminFeeBlock").classList.toggle("show", v === "true");
+    const display = $("#extraAdminFeeHandlingDisplay");
+    if (!display) return;
+    if (v === "true") display.textContent = "On top — credited to the brokerage, no agent impact.";
+    else if (v === "false") display.textContent = "Off the bottom — Admin Fee split among agents by share of transaction.";
+    else display.textContent = "—";
+  }
   function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check"); }
 
   function refreshConditionalUI() {
     updateTransactionTypeUI();
     updatePropStateOther();
     updateReferralOwedBlock();
+    updateExtraAdminFeeBlock();
     updateCheckDelayNote();
     applyAllocationMethodToSlots();
     updateAddAgentBtn();
@@ -1187,6 +1249,10 @@
     }
 
     requiredMsg($("#externalReferralOwed").value !== "", "Please answer whether an external referral fee is owed.", errors);
+    requiredMsg($("#extraAdminFeeCollected").value !== "", "Please answer whether additional commission (admin fee) was collected at closing.", errors);
+    if ($("#extraAdminFeeCollected").value === "true") {
+      requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
+    }
     if ($("#externalReferralOwed").value === "true") {
       requiredMsg($("#referralCompany").value.trim(), "Referral company is required.", errors);
       requiredMsg($("#referralContactName").value.trim(), "Referral contact name is required.", errors);
@@ -1266,6 +1332,8 @@
     fd.append("external_referral_owed", $("#externalReferralOwed").value === "true" ? "true" : "false");
     fd.append("referral_fee_rate", String(calc.referralRate || 0));
     fd.append("referral_partner_payout_percent", String(calc.payoutPct || 80));
+    fd.append("extra_admin_fee_collected", $("#extraAdminFeeCollected").value === "true" ? "true" : "false");
+    fd.append("extra_admin_fee_amount", String(n($("#extraAdminFeeAmount").value)));
     fd.append("referral_company", $("#referralCompany").value.trim());
     fd.append("referral_direction", "");
     fd.append("other_party_name", "");
@@ -1478,6 +1546,7 @@
       if (e.target.id === "transactionType") { updateTransactionTypeUI(); maybeDefaultRentalSplit(); recalc(); return; }
       if (e.target.id === "propState") { updatePropStateOther(); return; }
       if (e.target.id === "externalReferralOwed") { updateReferralOwedBlock(); recalc(); return; }
+      if (e.target.id === "extraAdminFeeCollected") { updateExtraAdminFeeBlock(); recalc(); return; }
       if (e.target.id === "paymentMethod") { updateCheckDelayNote(); return; }
       if (e.target.closest("#cdaForm")) recalc();
     });
