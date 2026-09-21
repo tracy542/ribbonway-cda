@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Ribbon Agent Profile</title>
+<style>
+  :root{
+    --navy:#0b2540; --navy2:#123a63; --gold:#c9a227; --ink:#111; --muted:#5b6b7c;
+    --line:#dfe6ee; --bg:#f4f7fb; --card:#ffffff; --ok:#1c7a3d; --warn:#b45309; --err:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45}
+  a{color:var(--navy2)}
+  h1,h2,h3{margin:0 0 8px;color:var(--navy)}
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px 80px}
+  header.page-head{padding:26px 20px 10px;text-align:center}
+  header.page-head h1{font-size:22px}
+  header.page-head p{margin:0;color:var(--muted)}
+
+  fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:16px 0}
+  legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
+  .sub-legend{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
+  .grid.g2{grid-template-columns:repeat(2,1fr)}
+  @media (max-width:640px){.grid.g2{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;font-weight:700;color:#334;margin-bottom:3px}
+  .hint{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+  input[type=text],input[type=email],input[type=tel],input[type=number],select,textarea{
+    width:100%;padding:8px 9px;border:1px solid #c8d2dc;border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink)
+  }
+  textarea{resize:vertical;min-height:56px}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
+  .field{margin-bottom:2px}
+  .btn{display:inline-block;border:1px solid var(--navy2);background:#fff;color:var(--navy2);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer}
+  .btn:hover{background:#eef4fb}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;width:100%;padding:12px 18px;font-size:14px}
+  .btn.primary:hover{background:var(--navy2)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .required-star{color:var(--err)}
+  .banner-note{background:#eef4fb;border:1px solid #cfe0f2;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#234;margin-bottom:16px}
+  .msg-list{list-style:none;margin:0;padding:0}
+  .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
+  .msg-list li.error{background:#fdeeee;color:var(--err);border:1px solid #f2c9c9}
+  #submitStatus{margin-top:10px}
+
+  .success-card{background:var(--navy);color:#fff;border-radius:14px;padding:28px 24px;text-align:center;margin:16px 0}
+  .success-card .agent-id{font-size:34px;font-weight:800;color:var(--gold);letter-spacing:.03em;margin:10px 0}
+  .success-card p{color:#dfe9f7;margin:4px 0}
+  .success-card .status-tag{display:inline-block;background:var(--gold);color:#3a2e00;border-radius:999px;padding:3px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page-head">
+    <h1>Blue Ribbon Agent Profile</h1>
+    <p>Weichert, Realtors &mdash; Blue Ribbon · one-time setup, update anytime</p>
+  </header>
+
+  <div class="banner-note">
+    Fill this in once and we'll assign you a Blue Ribbon Agent ID. That ID lets you find yourself instantly in the CDA form dropdown instead of hunting for an ID code &mdash; your name does the work. Submitting again later with the same email just updates your profile; your Agent ID never changes.
+  </div>
+
+  <form id="profileForm">
+    <fieldset>
+      <legend>Your Info</legend>
+      <div class="grid g2">
+        <div class="field">
+          <label>Full Name <span class="required-star">*</span></label>
+          <input type="text" id="name" required autocomplete="name">
+        </div>
+        <div class="field">
+          <label>Email <span class="required-star">*</span></label>
+          <input type="email" id="email" required autocomplete="email">
+          <div class="hint">This is how we find your profile if you submit again to update it.</div>
+        </div>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <div class="field">
+          <label>Cell Phone</label>
+          <input type="tel" id="cell_phone" autocomplete="tel" placeholder="(555) 555-5555">
+        </div>
+        <div class="field">
+          <label>Office <span class="required-star">*</span></label>
+          <select id="office" required>
+            <option value="" disabled selected>Select office&hellip;</option>
+            <option value="FR">Front Royal (FR)</option>
+            <option value="MRB">MRB</option>
+            <option value="BOW">Bowie (BOW)</option>
+            <option value="REF">Blue Ribbon Referral Agency (REF)</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>License &amp; MLS</legend>
+      <div class="grid g2">
+        <div class="field">
+          <label>MLS Agent ID#</label>
+          <input type="text" id="mls_agent_id">
+        </div>
+        <div class="field">
+          <label>License State</label>
+          <input type="text" id="license_state" maxlength="2" placeholder="VA" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>License #(s)</label>
+        <input type="text" id="license_numbers" placeholder="e.g. VA-1234567, WV-7654321">
+        <div class="hint">List more than one, comma-separated, if you're licensed in multiple states.</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Team &amp; Split</legend>
+      <div class="grid g2">
+        <div class="field">
+          <label>Standard Split %</label>
+          <input type="number" id="standard_split_pct" min="0" max="100" step="0.1" placeholder="70">
+        </div>
+        <div class="field">
+          <label>Team Leader / Agent</label>
+          <select id="team_leader_or_agent">
+            <option value="Agent" selected>Agent</option>
+            <option value="Team Leader">Team Leader</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Team Name</label>
+        <input type="text" id="team_name" placeholder="Leave blank if not on a named team">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mailing Address</legend>
+      <div class="field">
+        <label>Mailing Address</label>
+        <textarea id="mailing_address" placeholder="Street, City, State, ZIP"></textarea>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn primary" id="submitBtn">Save My Profile</button>
+    <div id="submitStatus"></div>
+  </form>
+
+  <div class="success-card hidden" id="successCard">
+    <div class="status-tag" id="successTag">Profile Saved</div>
+    <p>Your Blue Ribbon Agent ID</p>
+    <div class="agent-id" id="successAgentId">&mdash;</div>
+    <p id="successName"></p>
+    <p style="margin-top:14px;font-size:12px">You can close this page. This ID will follow your name in the CDA form &mdash; no need to memorize it.</p>
+  </div>
+</div>
+
+<script>
+const WEBHOOK_URL = "https://hook.us2.make.com/bfu5hdx22t1e1k7b7qpteztmb08dcw9o";
+
+const form = document.getElementById('profileForm');
+const submitBtn = document.getElementById('submitBtn');
+const statusBox = document.getElementById('submitStatus');
+const successCard = document.getElementById('successCard');
+
+function showError(msg){
+  statusBox.innerHTML = '<ul class="msg-list"><li class="error">' + msg + '</li></ul>';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  statusBox.innerHTML = '';
+
+  const payload = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    cell_phone: document.getElementById('cell_phone').value.trim(),
+    office: document.getElementById('office').value,
+    mls_agent_id: document.getElementById('mls_agent_id').value.trim(),
+    license_numbers: document.getElementById('license_numbers').value.trim(),
+    license_state: document.getElementById('license_state').value.trim(),
+    standard_split_pct: document.getElementById('standard_split_pct').value,
+    team_name: document.getElementById('team_name').value.trim(),
+    team_leader_or_agent: document.getElementById('team_leader_or_agent').value,
+    mailing_address: document.getElementById('mailing_address').value.trim()
+  };
+
+  if(!payload.name || !payload.email || !payload.office){
+    showError('Please fill in your name, email, and office before saving.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok){
+      throw new Error('Save failed, please try again.');
+    }
+    form.classList.add('hidden');
+    document.getElementById('successAgentId').textContent = data.agent_id || '—';
+    document.getElementById('successName').textContent = data.name || payload.name;
+    document.getElementById('successTag').textContent = data.status === 'updated' ? 'Profile Updated' : 'Profile Saved';
+    successCard.classList.remove('hidden');
+    successCard.scrollIntoView({behavior:'smooth'});
+  } catch (err) {
+    showError('Something went wrong saving your profile. Please try again, or text Tracy if it keeps failing.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Save My Profile';
+  }
+});
+</script>
+</body>
+</html>
