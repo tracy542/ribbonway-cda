@@ -63,6 +63,13 @@
   .row-card{border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px;background:#fbfcfe}
   .row-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .row-card-head strong{font-size:12px;color:var(--navy2)}
+  .agent-suggest{position:absolute;z-index:20;left:0;right:0;top:100%;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(20,40,70,.16);max-height:220px;overflow:auto;margin-top:2px}
+  .agent-suggest-item{padding:7px 10px;font-size:12.5px;cursor:pointer;border-bottom:1px solid #f0f3f7}
+  .agent-suggest-item:last-child{border-bottom:none}
+  .agent-suggest-item:hover{background:#eef4fb}
+  .agent-suggest-item .a-name{font-weight:700;color:var(--navy)}
+  .agent-suggest-item .a-meta{color:var(--muted);font-size:11px}
+  .agent-match-hint{font-size:11px;color:var(--ok);font-weight:600;margin-top:3px;min-height:13px}
   .btn{display:inline-block;border:1px solid var(--navy2);background:#fff;color:var(--navy2);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer}
   .btn:hover{background:#eef4fb}
   .btn.small{padding:5px 10px;font-size:11.5px}
@@ -534,6 +541,19 @@
   <div class="row-card" data-agent-slot style="border-color:#b9c9d9">
     <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
     <div class="grid g3">
+      <div class="field" style="position:relative">
+        <label>Find Agent by Name <span class="required-star">*</span></label>
+        <input type="text" data-f="agent_search" autocomplete="off" placeholder="Start typing the agent name&hellip;">
+        <input type="hidden" data-f="agent_id">
+        <input type="hidden" data-f="cell_phone">
+        <input type="hidden" data-f="license_numbers">
+        <input type="hidden" data-f="license_state">
+        <input type="hidden" data-f="standard_split_pct">
+        <input type="hidden" data-f="team_name">
+        <input type="hidden" data-f="team_leader_or_agent">
+        <div class="agent-suggest" data-agent-suggest style="display:none"></div>
+        <div class="agent-match-hint" data-agent-match-hint></div>
+      </div>
       <div class="field"><label>Agent Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
       <div class="field"><label>Agent Email <span class="required-star">*</span></label><input type="email" data-f="email"></div>
       <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50"></div>
@@ -685,6 +705,70 @@
     return node;
   }
 
+  // ============================================================
+  // Agent Master Data lookup - searchable-by-name dropdown that
+  // auto-fills name/email/MLS ID/company/cell phone/license/team
+  // from the Agent Master Data store (ACB-007). Agents register
+  // themselves once at the self-entry page and their Agent ID
+  // follows their name here - no ID codes to memorize. Directory
+  // is fetched once per page load and cached; if the fetch fails,
+  // the fields stay plain free-text inputs.
+  // ============================================================
+  const AGENT_DIRECTORY_URL = "https://hook.us2.make.com/e3qc9t8ej7awob6t63b7dkk2bzd0umcb";
+  let AGENT_DIRECTORY = [];
+
+  function loadAgentDirectory() {
+    fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then(r => r.json())
+      .then(d => { AGENT_DIRECTORY = Array.isArray(d.agents) ? d.agents : []; })
+      .catch(() => { AGENT_DIRECTORY = []; });
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"\x27]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\x27": "&#39;" }[c]));
+  }
+
+  function renderAgentSuggestions(slot, query) {
+    const box = slot.querySelector("[data-agent-suggest]");
+    if (!box) return;
+    const q = query.trim().toLowerCase();
+    if (!q) { box.style.display = "none"; box.innerHTML = ""; return; }
+    const matches = AGENT_DIRECTORY.filter(a => (a.name || "").toLowerCase().includes(q)).slice(0, 8);
+    if (!matches.length) {
+      box.innerHTML = '<div class="agent-suggest-item" style="color:var(--muted);cursor:default">No matching profile yet &mdash; type the name manually, or have the agent fill out their profile first.</div>';
+      box.style.display = "";
+      return;
+    }
+    box.innerHTML = matches.map(a =>
+      '<div class="agent-suggest-item" data-agent-suggest-item data-agent-json="' + encodeURIComponent(JSON.stringify(a)) + '">' +
+      '<div class="a-name">' + escapeHtml(a.name || "") + '</div>' +
+      '<div class="a-meta">' + escapeHtml(a.agent_id || "") + (a.office ? " &middot; " + escapeHtml(a.office) : "") + '</div>' +
+      '</div>'
+    ).join("");
+    box.style.display = "";
+  }
+
+  function selectAgentForSlot(slot, agent) {
+    const setF = (name, val) => { const el = slot.querySelector('[data-f="' + name + '"]'); if (el) el.value = val == null ? "" : val; };
+    setF("agent_search", agent.name || "");
+    setF("agent_id", agent.agent_id || "");
+    setF("name", agent.name || "");
+    setF("email", agent.email || "");
+    setF("mls_id", agent.mls_agent_id || "");
+    setF("cell_phone", agent.cell_phone || "");
+    setF("license_numbers", agent.license_numbers || "");
+    setF("license_state", agent.license_state || "");
+    setF("standard_split_pct", agent.standard_split_pct != null ? agent.standard_split_pct : "");
+    setF("team_name", agent.team_name || "");
+    setF("team_leader_or_agent", agent.team_leader_or_agent || "");
+    const companyEl = slot.querySelector('[data-f="agent_company"]');
+    if (companyEl) companyEl.value = agent.office === "REF" ? "Blue Ribbon Referral Agency" : "Weichert Blue Ribbon";
+    const box = slot.querySelector("[data-agent-suggest]");
+    if (box) { box.style.display = "none"; box.innerHTML = ""; }
+    const hint = slot.querySelector("[data-agent-match-hint]");
+    if (hint) hint.textContent = "Matched " + (agent.agent_id || "") + (agent.cell_phone ? " \u00b7 " + agent.cell_phone : "") + " \u2014 fields auto-filled, edit any if something\x27s off.";
+  }
+
   function renumberAgentSlots() {
     $$("[data-agent-slot]").forEach((slot, i) => {
       const idx = i + 1;
@@ -737,6 +821,13 @@
         mls_id: slot.querySelector('[data-f="mls_id"]').value.trim(),
         deal_role: slot.querySelector('[data-f="deal_role"]').value,
         agent_company: slot.querySelector('[data-f="agent_company"]').value,
+        agent_id: slot.querySelector('[data-f="agent_id"]').value.trim(),
+        cell_phone: slot.querySelector('[data-f="cell_phone"]').value.trim(),
+        license_numbers: slot.querySelector('[data-f="license_numbers"]').value.trim(),
+        license_state: slot.querySelector('[data-f="license_state"]').value.trim(),
+        standard_split_pct: slot.querySelector('[data-f="standard_split_pct"]').value.trim(),
+        team_name: slot.querySelector('[data-f="team_name"]').value.trim(),
+        team_leader_or_agent: slot.querySelector('[data-f="team_leader_or_agent"]').value.trim(),
         referral_payout_percent: n(slot.querySelector('[data-f="referral_payout_percent"]').value),
         allocation_method: method,
         split_percent: n(slot.querySelector('[data-f="split_percent"]').value),
@@ -1510,6 +1601,23 @@
   // ============================================================
   function bindDelegatedEvents() {
     document.addEventListener("click", e => {
+      if (!e.target.closest('[data-f="agent_search"]') && !e.target.closest("[data-agent-suggest]")) {
+        $("[data-agent-suggest]").forEach(box => { box.style.display = "none"; });
+      }
+
+      const suggestItem = e.target.closest("[data-agent-suggest-item]");
+      if (suggestItem) {
+        const jsonAttr = suggestItem.getAttribute("data-agent-json");
+        if (jsonAttr) {
+          try {
+            const agent = JSON.parse(decodeURIComponent(jsonAttr));
+            selectAgentForSlot(suggestItem.closest("[data-agent-slot]"), agent);
+            recalc();
+          } catch (err) { /* ignore malformed suggestion payload */ }
+        }
+        return;
+      }
+
       const removeRow = e.target.closest("[data-remove]");
       if (removeRow) { removeRow.closest("[data-buyer-row],[data-seller-row],[data-adj-row]").remove(); recalc(); return; }
 
@@ -1551,6 +1659,16 @@
       if (e.target.closest("#cdaForm")) recalc();
     });
     document.addEventListener("input", e => {
+      if (e.target.matches('[data-f="agent_search"]')) {
+        const slot = e.target.closest("[data-agent-slot]");
+        if (slot) {
+          const idEl = slot.querySelector('[data-f="agent_id"]');
+          if (idEl) idEl.value = "";
+          const hint = slot.querySelector("[data-agent-match-hint]");
+          if (hint) hint.textContent = "";
+          renderAgentSuggestions(slot, e.target.value);
+        }
+      }
       if (e.target.closest("#cdaForm")) recalc();
     });
   }
@@ -1622,6 +1740,7 @@
     bindTracyNote();
     bindCdaDocsUpload();
     bindDelegatedEvents();
+    loadAgentDirectory();
     addAgentSlot();
     $("#certificationDate").value = todayISO();
     refreshConditionalUI();
