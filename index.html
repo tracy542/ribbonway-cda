@@ -302,18 +302,9 @@
             <div class="sub-legend">Notes</div>
             <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
           </fieldset>
-
-          <fieldset>
-            <legend>3 &middot; Brokerage-Level Money</legend>
-            <div class="sub-legend">Administrative Fee lines (credits/debits against the brokerage)</div>
-            <div id="adminFeesList"></div>
-            <button type="button" class="btn small add-row-btn" id="addAdminFeeBtn">+ Add administrative fee line</button>
-
-            <div class="sub-legend">Reimbursables</div>
-            <div id="reimbList"></div>
-            <button type="button" class="btn small add-row-btn" id="addReimbBtn">+ Add reimbursable line</button>
-
-            <div class="sub-legend">External Referral (owed to an outside brokerage/agent)</div>
+          <fieldset id="externalReferralSection">
+            <legend>2A &middot; External Referral</legend>
+            <div class="hint" style="margin-bottom:10px">For a referral fee owed to an outside brokerage or agent, separate from the agents listed in Section 4 below. Posts automatically as an Administrative Fee debit in Section 3.</div>
             <div class="grid g3">
               <div class="field">
                 <label for="externalReferralOwed">Is an external referral fee owed? <span class="required-star">*</span></label>
@@ -340,6 +331,18 @@
                 <div class="field"><label for="referralWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="referralWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
               </div>
             </div>
+          </fieldset>
+
+
+          <fieldset>
+            <legend>3 &middot; Brokerage-Level Money</legend>
+            <div class="sub-legend">Administrative Fee lines (credits/debits against the brokerage)</div>
+            <div id="adminFeesList"></div>
+            <button type="button" class="btn small add-row-btn" id="addAdminFeeBtn">+ Add administrative fee line</button>
+
+            <div class="sub-legend">Reimbursables</div>
+            <div id="reimbList"></div>
+            <button type="button" class="btn small add-row-btn" id="addReimbBtn">+ Add reimbursable line</button>
 
             <div class="sub-legend">Brokerage Recap</div>
             <div class="grid g3">
