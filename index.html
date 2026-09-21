@@ -1602,7 +1602,7 @@
   function bindDelegatedEvents() {
     document.addEventListener("click", e => {
       if (!e.target.closest('[data-f="agent_search"]') && !e.target.closest("[data-agent-suggest]")) {
-        $("[data-agent-suggest]").forEach(box => { box.style.display = "none"; });
+        $$("[data-agent-suggest]").forEach(box => { box.style.display = "none"; });
       }
 
       const suggestItem = e.target.closest("[data-agent-suggest-item]");
