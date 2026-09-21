@@ -108,6 +108,11 @@
   .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
   .msg-list li.error{background:#fdeeee;color:var(--err);border:1px solid #f2c9c9}
   .msg-list li.ok{background:#eaf7ee;color:var(--ok);border:1px solid #c6e9cf}
+  .msg-list li.pending{background:#fff8e6;color:#7a5b00;border:1px solid #f0d989}
+  .upload-progress-label{font-weight:800;font-size:13px}
+  .upload-progress-track{background:#f0e0b0;border-radius:6px;height:10px;overflow:hidden;margin-top:7px}
+  .upload-progress-bar{background:#c9a227;height:100%;width:0%;border-radius:6px;transition:width .12s linear}
+  .upload-progress-note{font-size:11px;color:#8a6d00;margin-top:5px}
   #submitStatus{margin-top:10px}
   .required-star{color:var(--err)}
   .checkbox-line{display:flex;gap:8px;align-items:flex-start;font-size:12.5px}
@@ -1465,12 +1470,53 @@
     return fd;
   }
 
-  async function postToWebhook(fd) {
-    const resp = await fetch(WEBHOOK_URL, { method: "POST", body: fd });
-    if (!resp.ok) throw new Error("Server responded with status " + resp.status);
-    let json = null;
-    try { json = await resp.json(); } catch (e) {}
-    return json;
+  // XMLHttpRequest (not fetch) so we get real byte-level upload progress —
+  // fetch has no cross-browser way to report how much of a multipart body
+  // has actually gone out over the wire yet.
+  function postToWebhook(fd, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", WEBHOOK_URL, true);
+      if (onProgress) {
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) onProgress(e.loaded, e.total);
+        };
+      }
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          let json = null;
+          try { json = JSON.parse(xhr.responseText); } catch (e) {}
+          resolve(json);
+        } else {
+          reject(new Error("Server responded with status " + xhr.status));
+        }
+      };
+      xhr.onerror = function () {
+        reject(new Error("A network error interrupted the upload — check your connection"));
+      };
+      xhr.send(fd);
+    });
+  }
+
+  // Live "uploading, please wait" indicator so a big multi-photo attachment
+  // never just sits there looking frozen. bytesTotal is passed in up front
+  // (computed from the actual File objects) since XHR's own e.total can lag
+  // behind on the very first progress tick.
+  function renderUploadProgress(el, fileCount, loaded, total) {
+    const pct = total ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+    const mb = (n) => (n / (1024 * 1024)).toFixed(1);
+    el.innerHTML = '<ul class="msg-list"><li class="pending">' +
+      'Uploading' + (fileCount ? ' ' + fileCount + ' file' + (fileCount === 1 ? '' : 's') : ' your files') + '… ' +
+      '<span class="upload-progress-label">' + pct + '%</span>' +
+      '<div class="upload-progress-track"><div class="upload-progress-bar" style="width:' + pct + '%"></div></div>' +
+      '<div class="upload-progress-note">' + mb(loaded) + ' MB of ' + mb(total) + ' MB sent — this can take a minute on a slow connection. Please keep this tab open.</div>' +
+      '</li></ul>';
+  }
+
+  function countAndSizeFiles(files) {
+    let count = 0, bytes = 0;
+    files.forEach(f => { if (f) { count++; bytes += f.size || 0; } });
+    return { count, bytes };
   }
 
   async function handleSaveStage() {
@@ -1494,7 +1540,14 @@
     try {
       const fd = buildStandardFormData(calc, "projected", "");
       fd.append("deal_stage", stageKey);
-      await postToWebhook(fd);
+      const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
+      if (fileCount) {
+        renderUploadProgress($("#submitStatus"), fileCount, 0, totalBytes);
+        await postToWebhook(fd, (loaded, total) => renderUploadProgress($("#submitStatus"), fileCount, loaded, total));
+      } else {
+        $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="pending">Saving…</li></ul>';
+        await postToWebhook(fd);
+      }
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime, from any device, by entering your code (' + currentRecordId + ') at the top of this page.</li></ul>';
     } catch (e) {
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here — try Save again once you are back online so it can be resumed by code from other devices too.</li></ul>';
@@ -1518,7 +1571,14 @@
     try {
       const fd = buildStandardFormData(calc, "closed", "");
       fd.append("deal_stage", finalStage ? finalStage.key : "closed");
-      await postToWebhook(fd);
+      const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
+      if (fileCount) {
+        renderUploadProgress($("#submitStatus"), fileCount, 0, totalBytes);
+        await postToWebhook(fd, (loaded, total) => renderUploadProgress($("#submitStatus"), fileCount, loaded, total));
+      } else {
+        $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="pending">Submitting…</li></ul>';
+        await postToWebhook(fd);
+      }
       removeDraft(currentRecordId);
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted and Closed. Tracy has been notified with the full recap, and you and Tracy have each been emailed a confirmation with this CDA\'s code (' + currentRecordId + ').</li></ul>';
       $("#saveStageBtn").disabled = true;
@@ -1539,6 +1599,7 @@
     const btn = $("#voidRecordBtn");
     btn.disabled = true;
     try {
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="pending">Submitting…</li></ul>';
       await postToWebhook(buildStandardFormData(calc, "voided", reason));
       removeDraft(currentRecordId);
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Record voided.</li></ul>';
@@ -1587,7 +1648,14 @@
     if (rW) fd.append("referral_w9_doc", rW, rW.name);
     if (rWire) fd.append("referral_wiring_doc", rWire, rWire.name);
     try {
-      await postToWebhook(fd);
+      const { count: fileCount, bytes: totalBytes } = countAndSizeFiles([rA, rW, rWire]);
+      if (fileCount) {
+        renderUploadProgress($("#referralSubmitStatus"), fileCount, 0, totalBytes);
+        await postToWebhook(fd, (loaded, total) => renderUploadProgress($("#referralSubmitStatus"), fileCount, loaded, total));
+      } else {
+        $("#referralSubmitStatus").innerHTML = '<ul class="msg-list"><li class="pending">Submitting…</li></ul>';
+        await postToWebhook(fd);
+      }
       $("#referralSubmitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Referral submitted. Tracy has been notified.</li></ul>';
     } catch (e) {
       $("#referralSubmitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not submit: ' + e.message + '. Please try again.</li></ul>';
