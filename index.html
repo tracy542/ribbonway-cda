@@ -217,7 +217,7 @@
             <div class="field" id="actualDateField">
               <label for="actualClosingDate">Actual Closing Date <span id="actualDateStar" class="required-star" style="display:none">*</span></label>
               <input type="date" id="actualClosingDate">
-              <div class="hint">Required to Mark Closed. Drives the transaction ID year.</div>
+              <div class="hint">Required to submit to broker. Drives the transaction ID year.</div>
             </div>
           </div>
           <div class="grid g3" style="margin-top:10px">
@@ -445,7 +445,7 @@
             <div class="actions-bar">
               <button type="button" class="btn danger conditional" id="voidRecordBtn">Void Record</button>
               <button type="button" class="btn" id="saveStageBtn">Save Progress</button>
-              <button type="button" class="btn primary" id="markClosedBtn">Mark Closed / Submit CDA</button>
+              <button type="button" class="btn primary" id="markClosedBtn">Submit to Broker</button>
             </div>
           </fieldset>
 
@@ -1090,7 +1090,7 @@
     if (!stages) {
       field.classList.remove("show");
       sel.innerHTML = "";
-      markBtn.textContent = "Mark Closed / Submit CDA";
+      markBtn.textContent = "Submit to Broker";
       return;
     }
     const early = stages.filter(s => !s.final);
@@ -1099,7 +1099,7 @@
     sel.innerHTML = early.map(s => '<option value="' + s.key + '">' + s.label + '</option>').join("");
     sel.value = early.some(s => s.key === currentVal) ? currentVal : (early[0] ? early[0].key : "");
     field.classList.add("show");
-    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : "Mark Closed") : "Mark Closed / Submit CDA";
+    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : "Submit to Broker") : "Submit to Broker";
   }
 
   // Rentals conventionally split 80% to the agent (matches the brokerage's
@@ -1314,7 +1314,7 @@
   function validateStandardForClose(calc, errors) {
     const t = $("#transactionType").value;
     const isRental = t === "Rental";
-    requiredMsg($("#actualClosingDate").value, "Actual Closing Date is required to Mark Closed.", errors);
+    requiredMsg($("#actualClosingDate").value, "Actual Closing Date is required to submit to broker.", errors);
     if (!isRental) requiredMsg(n($("#salePrice").value) > 0, "Sale Price is required and must be greater than $0.", errors);
     requiredMsg(n($("#grossCommission").value) > 0, "Gross Commission Due Brokerage is required and must be greater than $0.", errors);
     requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required.", errors);
