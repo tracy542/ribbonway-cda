@@ -190,14 +190,6 @@
           <legend>1 &middot; Office &amp; Transaction</legend>
           <div class="grid g3">
             <div class="field">
-              <label for="submitterName">Your Name <span class="required-star">*</span></label>
-              <input type="text" id="submitterName" required minlength="2" maxlength="100">
-            </div>
-            <div class="field">
-              <label for="submitterEmail">Your Email <span class="required-star">*</span></label>
-              <input type="email" id="submitterEmail" required>
-            </div>
-            <div class="field">
               <label for="officeCode">Office <span class="required-star">*</span></label>
               <select id="officeCode" required>
                 <option value="">Select office…</option>
@@ -206,6 +198,16 @@
                 <option value="Bow">Bow — Bowie, MD</option>
                 <option value="REF">REF — Blue Ribbon Referral Agency</option>
               </select>
+            </div>
+            <div class="field">
+              <label for="submitterPick">Your Name <span class="required-star">*</span></label>
+              <select id="submitterPick" class="agent-pick"><option value="">Loading agents…</option></select>
+              <input type="hidden" id="submitterName">
+              <input type="hidden" id="submitterAgentId">
+            </div>
+            <div class="field">
+              <label for="submitterEmail">Your Email <span class="required-star">*</span></label>
+              <input type="email" id="submitterEmail" required readonly>
             </div>
           </div>
           <div class="grid g3" style="margin-top:10px">
@@ -455,7 +457,7 @@
                 <label for="paymentMethod">Payment Method <span class="required-star">*</span></label>
                 <select id="paymentMethod"><option value="">Select…</option><option value="Wire">Wire</option><option value="Check">Check</option><option value="Paid at Table by Title">Paid at Table by Title</option></select>
               </div>
-              <div class="field"><label for="typedSignature">Typed Signature (must match your name above) <span class="required-star">*</span></label><input type="text" id="typedSignature"></div>
+              <div class="field"><label for="typedSignature">Typed Signature (must match your name above) <span class="required-star">*</span></label><input type="text" id="typedSignature" placeholder="Type your full name as shown above"></div>
               <div class="field"><label for="certificationDate">Certification Date <span class="required-star">*</span></label><input type="date" id="certificationDate"></div>
             </div>
             <div class="banner-note warn conditional" id="checkDelayNote">Checks require prior authorization from the broker before this option is selected, and may delay your payout up to 7 to 10 days depending on bank policies.</div>
@@ -571,8 +573,9 @@
     <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
     <div class="grid g3">
       <div class="field" style="position:relative">
-        <label>Find Agent by Name <span class="required-star">*</span></label>
-        <input type="text" data-f="agent_search" autocomplete="off" placeholder="Start typing the agent name&hellip;">
+        <label>Agent <span class="required-star">*</span></label>
+        <select data-f="agent_pick" class="agent-pick"><option value="">Loading agents…</option></select>
+        <input type="hidden" data-f="agent_search">
         <input type="hidden" data-f="agent_id">
         <input type="hidden" data-f="cell_phone">
         <input type="hidden" data-f="license_numbers">
@@ -583,9 +586,9 @@
         <div class="agent-suggest" data-agent-suggest style="display:none"></div>
         <div class="agent-match-hint" data-agent-match-hint></div>
       </div>
-      <div class="field"><label>Agent Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
-      <div class="field"><label>Agent Email <span class="required-star">*</span></label><input type="email" data-f="email"></div>
-      <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50"></div>
+      <div class="field"><label>Agent Name</label><input type="text" data-f="name" maxlength="100" readonly tabindex="-1"></div>
+      <div class="field"><label>Agent Email</label><input type="email" data-f="email" readonly tabindex="-1"></div>
+      <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50" readonly tabindex="-1"></div>
       <div class="field"><label>Deal Role <span class="required-star">*</span></label>
         <select data-f="deal_role"><option value="Listing">Listing</option><option value="Buyer">Buyer</option><option value="Both">Both</option><option value="Other/In-house">Other/In-house</option></select>
       </div>
@@ -731,6 +734,7 @@
     if (idx === 1) node.querySelector("[data-remove-agent]").style.display = "none";
     updateAddAgentBtn();
     applyAllocationMethodToSlots();
+    const pk = node.querySelector('[data-f="agent_pick"]'); if (pk && AGENT_DIRECTORY.length) fillPicker(pk, "");
     return node;
   }
 
@@ -749,8 +753,51 @@
   function loadAgentDirectory() {
     fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
       .then(r => r.json())
-      .then(d => { AGENT_DIRECTORY = Array.isArray(d.agents) ? d.agents : []; })
-      .catch(() => { AGENT_DIRECTORY = []; });
+      .then(d => { AGENT_DIRECTORY = (Array.isArray(d.agents) ? d.agents : []).filter(a => String(a.active) !== "false" && a.name); AGENT_DIRECTORY.sort((x, y) => String(x.name).localeCompare(String(y.name))); populateAgentPickers(); })
+      .catch(() => { AGENT_DIRECTORY = []; populateAgentPickers(); });
+  }
+
+  // Real dropdowns (Tracy, 10/1/2026): agents are picked from the roster, never typed.
+  const OFFICE_LABEL = { FR: "Front Royal", MBG: "Martinsburg", MRB: "Martinsburg", Bow: "Bowie", BOW: "Bowie", REF: "Referral" };
+  const OFFICE_ALIAS = { MRB: "MBG", BOW: "Bow" };
+  const normOffice = o => OFFICE_ALIAS[o] || o;
+  function fillPicker(sel, want, onlyOffice) {
+    if (!AGENT_DIRECTORY.length) { sel.innerHTML = '<option value="">Agent list unavailable — refresh the page</option>'; return; }
+    const off = $("#officeCode") ? $("#officeCode").value : "";
+    let list = AGENT_DIRECTORY.slice();
+    if (off && onlyOffice) list = list.filter(a => normOffice(a.office) === off);
+    else if (off) list.sort((x, y) => (normOffice(x.office) === off ? 0 : 1) - (normOffice(y.office) === off ? 0 : 1) || String(x.name).localeCompare(String(y.name)));
+    const keep = want && !list.some(a => String(a.agent_id) === String(want)) ? agentById(want) : null;
+    if (keep) list.unshift(keep);
+    const lead = onlyOffice ? (off ? "Select your name…" : "Pick your office first…") : "Select agent…";
+    sel.innerHTML = '<option value="">' + lead + '</option>' + list.map(a =>
+      '<option value="' + escapeHtml(a.agent_id) + '">' + escapeHtml(a.name) + (a.office ? " — " + escapeHtml(OFFICE_LABEL[a.office] || a.office) : "") + '</option>').join("");
+    if (want && AGENT_DIRECTORY.some(a => String(a.agent_id) === String(want))) sel.value = want;
+  }
+  function agentById(id) { return AGENT_DIRECTORY.find(a => String(a.agent_id) === String(id)); }
+  function populateAgentPickers() {
+    const sp = $("#submitterPick");
+    if (sp) fillPicker(sp, sp.value || $("#submitterAgentId").value, true);
+    $$("[data-agent-slot]").forEach(slot => {
+      const sel = slot.querySelector('[data-f="agent_pick"]');
+      if (sel) fillPicker(sel, sel.value || slot.querySelector('[data-f="agent_id"]').value);
+    });
+  }
+  function onSubmitterPicked() {
+    const a = agentById($("#submitterPick").value);
+    $("#submitterAgentId").value = a ? a.agent_id : "";
+    $("#submitterName").value = a ? a.name : "";
+    $("#submitterEmail").value = a ? (a.email || "") : "";
+    if (a && a.office) {
+      const map = { MRB: "MBG", BOW: "Bow" }; const oc = map[a.office] || a.office;
+      if ([...$("#officeCode").options].some(o => o.value === oc)) $("#officeCode").value = oc;
+    }
+    const first = $$("[data-agent-slot]")[0];
+    if (a && first) {
+      const fs = first.querySelector('[data-f="agent_pick"]');
+      if (fs && !fs.value) { fs.value = a.agent_id; selectAgentForSlot(first, a); }
+    }
+    if (typeof recalc === "function") recalc();
   }
 
   function escapeHtml(s) {
@@ -1338,7 +1385,7 @@
   function requiredMsg(cond, msg, errors) { if (!cond) errors.push(msg); }
 
   function validateCommon(errors) {
-    requiredMsg($("#submitterName").value.trim().length >= 2, "Your name is required.", errors);
+    requiredMsg($("#submitterName").value.trim().length >= 2, "Pick your name from the list in Section 1.", errors);
     requiredMsg(/^\S+@\S+\.\S+$/.test($("#submitterEmail").value.trim()), "A valid email is required.", errors);
     requiredMsg($("#officeCode").value, "Office is required.", errors);
     requiredMsg($("#transactionType").value, "Transaction type is required.", errors);
@@ -1397,6 +1444,7 @@
     }
 
     requiredMsg(calc.agents.length >= 1, "At least one commission agent (Agent 1) is required.", errors);
+    $$("[data-agent-slot]").forEach((slot, i) => { const nm = slot.querySelector('[data-f="name"]').value.trim(); const id = slot.querySelector('[data-f="agent_id"]').value.trim(); if (nm && !id) errors.push("Agent " + (i + 1) + ": pick the agent from the list."); });
     if (t === "Dual Side / Both") {
       const roles = calc.agents.map(a => a.deal_role);
       requiredMsg(roles.includes("Listing") && roles.includes("Buyer"), "Dual Side / Both requires at least one Listing-role and one Buyer-role agent.", errors);
@@ -1867,7 +1915,22 @@
     });
   }
 
+  function bindPickers() {
+    document.addEventListener("change", e => {
+      if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
+      if (e.target.id === "officeCode") { populateAgentPickers(); return; }
+      if (e.target.matches('[data-f="agent_pick"]')) {
+        const slot = e.target.closest("[data-agent-slot]");
+        const a = agentById(e.target.value);
+        if (a) selectAgentForSlot(slot, a);
+        else ["agent_id","name","email","mls_id"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
+        recalc();
+      }
+    });
+  }
+
   function init() {
+    bindPickers();
     bindV2();
     bindSponsorBar();
     bindTracyNote();
