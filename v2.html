@@ -87,6 +87,8 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
+  #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
+  #buyersLegend,#buyersList,#addBuyerBtn,#sellersLegend,#sellersList,#addSellerBtn{display:none!important}
   .conditional.show{display:block}
   .banner-note{background:#eef4fb;border:1px solid #cfe0f2;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#234}
   .doc-chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -256,7 +258,7 @@
               <div class="field conditional show" id="salePriceField"><label for="salePrice">Sale Price ($) <span class="required-star">*</span></label><input type="number" id="salePrice" min="0.01" step="0.01"></div>
               <div class="field conditional show" id="grossCommissionMethodField">
                 <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
-                <select id="grossCommissionMethod"><option value="Percent">Percent of Sale Price</option><option value="Flat">Flat Amount</option></select>
+                <select id="grossCommissionMethod"><option value="Flat">Flat Amount</option></select>
               </div>
               <div class="field"><label for="mlsNumber">MLS Number</label><input type="text" id="mlsNumber" maxlength="50">
                 <div class="hint">No MLS #? Leave blank and fill in the address below. After you save, we check the MLS listing and the county tax record against your contract (owner of record, parcel, year built).</div>
@@ -268,8 +270,9 @@
                 <input type="number" id="grossCommissionPercent" min="0.0001" max="100" step="0.0001">
                 <div class="hint">Calculates against Sale Price.</div>
               </div>
-              <div class="field"><label for="grossCommission">Gross Commission Due Brokerage ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01">
+              <div class="field"><label for="grossCommission">Commission on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01" placeholder="e.g. 9000">
                 <div class="hint">Auto-filled when using Percent entry. Switch to Flat Amount to type a dollar figure directly.</div>
+                <div class="hint" style="display:block">The total commission to Blue Ribbon, as it will appear on the closing statement.</div>
               </div>
             </div>
 
@@ -320,19 +323,29 @@
             <div class="sub-legend">Notes</div>
             <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
 
-            <div class="sub-legend">Additional Commission at Closing</div>
-            <div class="grid g3">
+            <div class="sub-legend">Brokerage Admin Fee</div>
+            <div class="grid g2">
               <div class="field">
-                <label for="extraAdminFeeCollected">Additional Commission (Admin Fee) Collected at Closing? <span class="required-star">*</span></label>
-                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
+                <label for="extraAdminFeeCollected">Is the admin fee on the closing statement? <span class="required-star">*</span></label>
+                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
+                <div class="hint">Every deal collects the admin fee at closing unless it's one of the exempt deals below.</div>
+              </div>
+              <div class="field conditional" id="adminFeeExemptField">
+                <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
+                <select id="adminFeeExemptReason">
+                  <option value="">Select…</option>
+                  <option value="owner">A Blue Ribbon owner is the buyer or seller</option>
+                  <option value="own_home">It's my own home (my personal residence)</option>
+                  <option value="investor">Investor client who buys, rehabs and resells with us</option>
+                </select>
               </div>
             </div>
             <div class="conditional" id="extraAdminFeeBlock">
               <div class="grid g3" style="margin-top:8px">
-                <div class="field"><label for="extraAdminFeeAmount">Amount Collected ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
+                <div class="field"><label for="extraAdminFeeAmount">Admin fee amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
                 <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
               </div>
-              <div class="hint">Yes: this amount is on top and flows straight to the brokerage — agents' payouts aren't touched. No: the Administrative Fee comes off the bottom of each agent's payout automatically, proportional to their share of the transaction — you no longer need to enter it under each agent's Additional Closing Fees.</div>
+              <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
             </div>
           </fieldset>
           <fieldset id="externalReferralSection">
@@ -1200,6 +1213,7 @@
   function updateExtraAdminFeeBlock() {
     const v = $("#extraAdminFeeCollected").value;
     $("#extraAdminFeeBlock").classList.toggle("show", v === "true");
+    $("#adminFeeExemptField").classList.toggle("show", v === "false");
     const display = $("#extraAdminFeeHandlingDisplay");
     if (!display) return;
     if (v === "true") display.textContent = "On top — credited to the brokerage, no agent impact.";
@@ -1404,8 +1418,7 @@
     requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required.", errors);
     requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP must be a valid US ZIP.", errors);
 
-    if (t === "Buyer Side" || t === "Dual Side / Both") requiredMsg($$("[data-buyer-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one buyer is required.", errors);
-    if (t === "Listing Side" || t === "Dual Side / Both") requiredMsg($$("[data-seller-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one seller is required.", errors);
+
     $$("[data-buyer-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Tenant" : "Buyer") + " #" + (i + 1) + " phone is required.", errors));
     $$("[data-seller-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Landlord" : "Seller") + " #" + (i + 1) + " phone is required.", errors));
     if (t === "Listing Side" || t === "Dual Side / Both" || isRental) {
@@ -1430,7 +1443,8 @@
       if (loc === "Upload") requiredMsg($("#brReferralAgreementUpload").files.length > 0, "Section 2A: upload the Blue Ribbon referral agreement.", errors);
       requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Section 2A: add the Blue Ribbon Referral agent in Section 4.", errors);
     }
-    requiredMsg($("#extraAdminFeeCollected").value !== "", "Please answer whether additional commission (admin fee) was collected at closing.", errors);
+    requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
+    if ($("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
     if ($("#extraAdminFeeCollected").value === "true") {
       requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
     }
@@ -1517,6 +1531,7 @@
     fd.append("referral_fee_rate", String(calc.referralRate || 0));
     fd.append("referral_partner_payout_percent", String(calc.payoutPct || 80));
     fd.append("extra_admin_fee_collected", $("#extraAdminFeeCollected").value === "true" ? "true" : "false");
+    fd.append("admin_fee_exempt_reason", $("#extraAdminFeeCollected").value === "false" ? $("#adminFeeExemptReason").value : "");
     fd.append("extra_admin_fee_amount", String(n($("#extraAdminFeeAmount").value)));
     fd.append("referral_company", $("#referralCompany").value.trim());
     fd.append("referral_direction", "");
