@@ -207,10 +207,7 @@
               <input type="hidden" id="submitterName">
               <input type="hidden" id="submitterAgentId">
             </div>
-            <div class="field">
-              <label for="submitterEmail">Your Email <span class="required-star">*</span></label>
-              <input type="email" id="submitterEmail" required readonly>
-            </div>
+            <input type="hidden" id="submitterEmail">
           </div>
           <div class="grid g3" style="margin-top:10px">
             <div class="field">
@@ -600,7 +597,7 @@
         <div class="agent-match-hint" data-agent-match-hint></div>
       </div>
       <div class="field"><label>Agent Name</label><input type="text" data-f="name" maxlength="100" readonly tabindex="-1"></div>
-      <div class="field"><label>Agent Email</label><input type="email" data-f="email" readonly tabindex="-1"></div>
+      <input type="hidden" data-f="email">
       <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50" readonly tabindex="-1"></div>
       <div class="field"><label>Deal Role <span class="required-star">*</span></label>
         <select data-f="deal_role"><option value="Listing">Listing</option><option value="Buyer">Buyer</option><option value="Both">Both</option><option value="Other/In-house">Other/In-house</option></select>
