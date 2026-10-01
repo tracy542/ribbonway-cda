@@ -253,7 +253,7 @@
             <legend>2 &middot; Transaction, Parties &amp; Title/Escrow</legend>
             <div class="grid g3">
               <div class="field"><label for="mlsNumber">MLS Number</label><input type="text" id="mlsNumber" maxlength="50">
-                <div class="hint">No MLS #? Leave blank and fill in the address below. After you save, we check the MLS listing and the county tax record against your contract (owner of record, parcel, year built).</div>
+                <div class="hint">Enter the MLS number and you're done with the address. No MLS number? Leave this blank and type the address below.</div>
               </div>
               <div class="field conditional show" id="grossCommissionMethodField">
                 <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
@@ -273,7 +273,8 @@
               </div>
             </div>
 
-            <div class="sub-legend">Property</div>
+            <div id="propertyBlock">
+            <div class="sub-legend">Property address (only needed if there's no MLS number)</div>
             <div class="grid g3">
               <div class="field" style="grid-column:span 2"><label for="propStreet">Street <span class="required-star">*</span></label><input type="text" id="propStreet" maxlength="150"></div>
               <div class="field"><label for="propCity">City <span class="required-star">*</span></label><input type="text" id="propCity" maxlength="80"></div>
@@ -284,6 +285,8 @@
               <div class="field conditional" id="propStateOtherField"><label for="propStateOther">State (specify)</label><input type="text" id="propStateOther" maxlength="40"></div>
               <div class="field"><label for="propZip">ZIP <span class="required-star">*</span></label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
             </div>
+            </div>
+            <div class="hint" id="mlsAddressNote" style="display:none;margin-top:6px">Address not needed. We'll pull it from MLS.</div>
 
             <div class="sub-legend" id="buyersLegend">Buyer(s)</div>
             <div id="buyersList"></div>
@@ -1220,6 +1223,7 @@
   function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check"); }
 
   function refreshConditionalUI() {
+    if (document.getElementById("propertyBlock")) updateMlsAddress();
     if (typeof updateV2Choices === "function" && document.getElementById("brReferralBlock")) { try { updateV2Choices(); } catch (e) {} }
     updateTransactionTypeUI();
     updatePropStateOther();
@@ -1337,7 +1341,7 @@
     // now; this index/blob is never read back through the UI anymore.
     const idx = loadDraftsIndex();
     const updatedAt = new Date().toISOString();
-    idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress(), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
+    idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress() || ("MLS# " + $("#mlsNumber").value.trim()), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
     saveDraftsIndex(idx);
     try { localStorage.setItem("wbr.cda.draftform." + currentRecordId, JSON.stringify(buildSnapshot())); } catch (e) {}
   }
@@ -1411,9 +1415,11 @@
     requiredMsg($("#actualClosingDate").value, "Actual Closing Date is required to submit to broker.", errors);
     if (!isRental) requiredMsg(n($("#salePrice").value) > 0, "Sale Price is required and must be greater than $0.", errors);
     requiredMsg(n($("#grossCommission").value) > 0, "Gross Commission Due Brokerage is required and must be greater than $0.", errors);
-    requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required.", errors);
-    requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required.", errors);
-    requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP must be a valid US ZIP.", errors);
+    if (!$("#mlsNumber").value.trim()) {
+      requiredMsg($("#propStreet").value.trim().length >= 2, "Enter the MLS number, or the property street.", errors);
+      requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required when there's no MLS number.", errors);
+      requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP is required when there's no MLS number.", errors);
+    }
 
 
     $$("[data-buyer-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Tenant" : "Buyer") + " #" + (i + 1) + " phone is required.", errors));
@@ -1927,7 +1933,13 @@
     });
   }
 
+  function updateMlsAddress() {
+    const has = !!$("#mlsNumber").value.trim();
+    $("#propertyBlock").style.display = has ? "none" : "";
+    $("#mlsAddressNote").style.display = has ? "" : "none";
+  }
   function bindPickers() {
+    document.addEventListener("input", e => { if (e.target.id === "mlsNumber") updateMlsAddress(); });
     document.addEventListener("change", e => {
       if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
       if (e.target.id === "officeCode") { populateAgentPickers(); return; }
