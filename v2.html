@@ -332,17 +332,21 @@
             </div>
 
             <div class="conditional show" id="titleEscrowBlock">
-              <div class="sub-legend">Title / Escrow — enter by hand (required before closing)</div>
+              <div class="sub-legend">Title / Escrow — pick from the list or add a new one (required before closing)</div>
               <div class="grid g3">
-                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150"></div>
+                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick from the list or add a new one"><datalist id="titleCompanyList"></datalist></div>
                 <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100"></div>
+              </div>
+              <div class="grid g3" style="margin-top:10px">
                 <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span></label><input type="email" id="titleEmail"></div>
+                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
+              </div>
+              <div class="grid g3" style="margin-top:10px">
                 <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
                 <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
                 <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
                 <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
-                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
-                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span></label><input type="email" id="titleEmail"></div>
               </div>
             </div>
             <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
@@ -1654,6 +1658,7 @@
     $("#voidBlock").classList.add("show");
     $("#voidRecordBtn").classList.add("show");
     try {
+      saveTitleCompany();
       const fd = buildStandardFormData(calc, "projected", "");
       fd.append("deal_stage", stageKey);
       const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
@@ -1685,6 +1690,7 @@
     const stages = stagesForType($("#transactionType").value);
     const finalStage = stages ? stages.find(s => s.final) : null;
     try {
+      saveTitleCompany();
       const fd = buildStandardFormData(calc, "closed", "");
       fd.append("deal_stage", finalStage ? finalStage.key : "closed");
       const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
@@ -1957,7 +1963,41 @@
     });
   }
 
+  // Title company list that builds itself (Tracy, 10/1/2026): every save adds or updates
+  // the company in Make (ACB-008); the form reads the list back (ACB-009).
+  const TITLE_SAVE_URL = "https://hook.us2.make.com/imwu8gpwu1ulhdm5wp52gsj4xtkoh3jn";
+  const TITLE_LIST_URL = "https://hook.us2.make.com/odwws12luw7zl083hckejvjf0aqwduhp";
+  let TITLE_LIST = [];
+  const titleLabel = t => t.company + (t.contact ? " — " + t.contact : "");
+  function loadTitleList() {
+    fetch(TITLE_LIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then(r => r.json()).then(d => {
+        TITLE_LIST = Array.isArray(d.titles) ? d.titles.filter(t => t && t.company) : [];
+        $("#titleCompanyList").innerHTML = TITLE_LIST.map(t => '<option value="' + escapeHtml(titleLabel(t)) + '"></option>').join("");
+      }).catch(() => {});
+  }
+  function onTitlePicked() {
+    const v = $("#titleCompanyName").value.trim();
+    const t = TITLE_LIST.find(x => titleLabel(x) === v);
+    if (!t) return;
+    $("#titleCompanyName").value = t.company;
+    const set = (id, val) => { if (val != null && val !== "") $(id).value = val; };
+    set("#titleContactName", t.contact); set("#titlePhone", t.phone); set("#titleFax", t.fax); set("#titleEmail", t.email);
+    set("#titleStreet", t.street); set("#titleCity", t.city); set("#titleState", t.state); set("#titleZip", t.zip);
+  }
+  function saveTitleCompany() {
+    const company = $("#titleCompanyName").value.trim();
+    if (!company) return;
+    const body = { company, contact: $("#titleContactName").value.trim(), phone: $("#titlePhone").value.trim(), fax: $("#titleFax").value.trim(),
+      email: $("#titleEmail").value.trim(), street: $("#titleStreet").value.trim(), city: $("#titleCity").value.trim(),
+      state: $("#titleState").value.trim(), zip: $("#titleZip").value.trim(), agent: $("#submitterName").value.trim() };
+    try { fetch(TITLE_SAVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true }).catch(() => {}); } catch (e) {}
+  }
+
   function init() {
+    loadTitleList();
+    document.addEventListener("input", e => { if (e.target.id === "titleCompanyName") onTitlePicked(); });
+    document.addEventListener("change", e => { if (e.target.id === "titleCompanyName") onTitlePicked(); });
     bindPickers();
     bindV2();
     bindSponsorBar();
