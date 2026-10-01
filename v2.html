@@ -894,6 +894,10 @@
     const A = sumSignedRows(adminFeesCalc);
     const R = sumSignedRows(reimb);
     const TDB = r2(G + A + R);
+    // Outside referral comes OFF THE TOP (Tracy, 10/1/2026): agent splits are figured on what's left after the referral payout.
+    const B = r2(G - OP);
+    // Admin fees charged to agents exclude the referral line (already taken off the top).
+    const Aagent = r2(A + OP);
 
     $("#adminFeeTotalDisplay").textContent = money(A);
     $("#reimbTotalDisplay").textContent = money(R);
@@ -905,10 +909,10 @@
 
     const method = $("#allocationMethod").value;
     const agents = collectAgents();
-    let cRaw = agents.map(a => method === "Fixed" ? n(a.commission_amount) : r2(G * n(a.split_percent) / 100));
+    let cRaw = agents.map(a => method === "Fixed" ? n(a.commission_amount) : r2(B * n(a.split_percent) / 100));
     if (method !== "Fixed" && agents.length) {
       const sumC = r2(cRaw.reduce((t, x) => t + x, 0));
-      const diff = r2(G - sumC);
+      const diff = r2(B - sumC);
       if (Math.abs(diff) >= 0.01) {
         let maxSplit = -1, idx = -1;
         agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; idx = i; } });
@@ -959,21 +963,21 @@
     // carve-out and applied across ALL active agent slots.
     const adminFeeOffBottom = !extraFeeCollected;
     const rowAdminFees = agents.map(() => 0);
-    if (adminFeeOffBottom && agents.length && Math.abs(A) > 0.0001) {
+    if (adminFeeOffBottom && agents.length && Math.abs(Aagent) > 0.0001) {
       const sumCraw = cRaw.reduce((t, x) => t + x, 0);
       if (agents.length === 1) {
-        rowAdminFees[0] = A;
+        rowAdminFees[0] = Aagent;
       } else if (sumCraw > 0) {
         let allocated = 0;
         let maxSplit = -1, maxIdx = 0;
         agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; maxIdx = i; } });
         agents.forEach((a, i) => {
           if (i === maxIdx) return;
-          const share = r2(A * (cRaw[i] / sumCraw));
+          const share = r2(Aagent * (cRaw[i] / sumCraw));
           rowAdminFees[i] = share;
           allocated = r2(allocated + share);
         });
-        rowAdminFees[maxIdx] = r2(A - allocated);
+        rowAdminFees[maxIdx] = r2(Aagent - allocated);
       }
     }
 
@@ -997,7 +1001,7 @@
 
       const slot = a.slotEl;
       const setComputed = (name, val) => { const el = slot.querySelector('[data-computed="' + name + '"]'); if (el) el.textContent = money(val); };
-      const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(G * n(a.split_percent) / 100)) : 0;
+      const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(B * n(a.split_percent) / 100)) : 0;
       slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = isReferralAgency ? "" : "none"; });
       const titleEl = slot.querySelector("[data-agent-title]");
       if (titleEl) titleEl.textContent = "Agent " + (i + 1) + (i === 0 ? " (required)" : "") + " — " + (a.agent_company || "Weichert Blue Ribbon");
@@ -1029,7 +1033,7 @@
     checkEl.textContent = "Reconciliation check: " + money(check);
     checkEl.className = "recap-check " + (Math.abs(check) < 0.005 ? "ok" : "bad");
 
-    return { G, A, R, TDB, agents, cRaw, ARF, RF, OP, referralOwed, referralRate, payoutPct, adminFeesCalc, reimb, TNA, NB, check };
+    return { G, B, A, R, TDB, agents, cRaw, ARF, RF, OP, referralOwed, referralRate, payoutPct, adminFeesCalc, reimb, TNA, NB, check };
   }
 
   // ============================================================
@@ -1403,7 +1407,7 @@
       requiredMsg(Math.abs(sumPct - 100) < 0.01, "Split percentages across active agents must sum to exactly 100% (currently " + sumPct + "%).", errors);
     } else {
       const sumC = r2(calc.cRaw.reduce((t, x) => t + x, 0));
-      requiredMsg(Math.abs(sumC - calc.G) < 0.01, "Fixed commission amounts across active agents must sum exactly to Gross Commission (currently " + money(sumC) + " vs " + money(calc.G) + ").", errors);
+      requiredMsg(Math.abs(sumC - calc.B) < 0.01, "Fixed commission amounts across active agents must sum exactly to the commission after any outside referral (currently " + money(sumC) + " vs " + money(calc.B) + ").", errors);
     }
     requiredMsg(Math.abs(calc.check) < 0.005, "Reconciliation check must equal $0.00 before this CDA can be Closed.", errors);
 
