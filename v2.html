@@ -51,7 +51,7 @@
 
   fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:0 0 16px}
   legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
-  .sub-legend{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
+  .sub-legend{font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 6px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
   .grid.g2{grid-template-columns:repeat(2,1fr)}
   .grid.g3{grid-template-columns:repeat(3,1fr)}
@@ -268,10 +268,35 @@
                 <div class="hint">Calculates against Sale Price.</div>
               </div>
               <div class="field conditional show" id="salePriceField"><label for="salePrice">Sale Price ($) <span class="required-star">*</span></label><input type="number" id="salePrice" min="0.01" step="0.01"></div>
-              <div class="field"><label for="grossCommission">Expected commission ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01" placeholder="e.g. 9000">
+              <div class="field"><label for="grossCommission">Expected commission on the closing document ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01" placeholder="e.g. 9000">
                 <div class="hint">Auto-filled when using Percent entry. Switch to Flat Amount to type a dollar figure directly.</div>
                 <div class="hint" style="display:block">The total commission to Blue Ribbon, as it will appear on the closing statement.</div>
               </div>
+              <div class="field">
+                <label for="extraAdminFeeCollected">Admin fee on the closing document? <span class="required-star">*</span></label>
+                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
+                <div class="hint">Every deal collects the admin fee at closing unless it's one of the exempt deals below.</div>
+              </div>
+            </div>
+
+            <div class="grid g2">
+              
+              <div class="field conditional" id="adminFeeExemptField">
+                <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
+                <select id="adminFeeExemptReason">
+                  <option value="">Select…</option>
+                  <option value="builder">Builder client (new construction)</option>
+                  <option value="own_home">It's my own home (my personal residence)</option>
+                  <option value="investor">Investor client who buys, rehabs and resells with us</option>
+                </select>
+              </div>
+            </div>
+            <div class="conditional" id="extraAdminFeeBlock">
+              <div class="grid g3" style="margin-top:8px">
+                <div class="field"><label for="extraAdminFeeAmount">Admin fee amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
+                <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
+              </div>
+              <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
             </div>
 
             <div id="propertyBlock">
@@ -324,30 +349,7 @@
             <div class="sub-legend">Notes</div>
             <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
 
-            <div class="sub-legend">Brokerage Admin Fee</div>
-            <div class="grid g2">
-              <div class="field">
-                <label for="extraAdminFeeCollected">Is the admin fee on the closing statement? <span class="required-star">*</span></label>
-                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
-                <div class="hint">Every deal collects the admin fee at closing unless it's one of the exempt deals below.</div>
-              </div>
-              <div class="field conditional" id="adminFeeExemptField">
-                <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
-                <select id="adminFeeExemptReason">
-                  <option value="">Select…</option>
-                  <option value="builder">Builder client (new construction)</option>
-                  <option value="own_home">It's my own home (my personal residence)</option>
-                  <option value="investor">Investor client who buys, rehabs and resells with us</option>
-                </select>
-              </div>
-            </div>
-            <div class="conditional" id="extraAdminFeeBlock">
-              <div class="grid g3" style="margin-top:8px">
-                <div class="field"><label for="extraAdminFeeAmount">Admin fee amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
-                <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
-              </div>
-              <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
-            </div>
+
           </fieldset>
           <fieldset id="externalReferralSection">
             <legend>2A &middot; External Referral</legend>
