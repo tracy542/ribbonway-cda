@@ -88,6 +88,12 @@
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
   body:not(.admin) .admin-only{display:none!important}
+  #addAgentBtn,[data-remove-agent]{display:none!important}
+  [data-agent-slot]:not([data-slot="1"]) .required-star{display:none}
+  [data-agent-slot]{padding:8px 12px;margin-bottom:6px}
+  [data-agent-slot] .row-card-head{margin-bottom:4px}
+  body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:2fr 1.2fr .8fr 1fr;align-items:end}
+  @media (max-width:640px){body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:1fr 1fr}}
   .verify-tag[hidden]{display:none}
   .verify-tag{display:inline-block;background:#fff176;color:#3a2e00;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:4px}
   #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
@@ -418,8 +424,8 @@
           </fieldset>
 
           <fieldset>
-            <legend>4 &middot; Commission Recipients (up to 4 agent slots)</legend>
-            <div class="banner-note">The lead agent on this transaction is responsible for completing this form.</div>
+            <legend>4 &middot; Agents on this deal</legend>
+            <div class="banner-note">Fill in one row per agent on the deal. Leave unused rows blank. To clear a row, pick the blank choice at the top of its name list.</div>
             <div class="grid g3 admin-only" style="margin-bottom:10px">
               <div class="field">
                 <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
@@ -985,7 +991,7 @@
     if (method !== "Fixed" && agents.length) {
       const sumC = r2(cRaw.reduce((t, x) => t + x, 0));
       const diff = r2(B - sumC);
-      if (Math.abs(diff) >= 0.01) {
+      if (Math.abs(diff) >= 0.01 && Math.abs(diff) < 1) {
         let maxSplit = -1, idx = -1;
         agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; idx = i; } });
         if (idx >= 0) cRaw[idx] = r2(cRaw[idx] + diff);
@@ -1055,6 +1061,11 @@
 
     const agentsList = $("#rAgents");
     agentsList.innerHTML = "";
+    // reset every row first so cleared rows don't keep old numbers
+    $$("[data-agent-slot]").forEach((slot, k) => {
+      const t = slot.querySelector("[data-agent-title]"); if (t) t.textContent = "Agent " + (k + 1);
+      slot.querySelectorAll("[data-computed]").forEach(el => { el.textContent = money(0); });
+    });
     let TNA = 0;
     agents.forEach((a, i) => {
       const isReferralAgency = a.agent_company === "Blue Ribbon Referral Agency";
@@ -1076,7 +1087,7 @@
       const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(B * n(a.split_percent) / 100)) : 0;
       slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = isReferralAgency ? "" : "none"; });
       const titleEl = slot.querySelector("[data-agent-title]");
-      if (titleEl) titleEl.textContent = "Agent " + (i + 1) + (i === 0 ? " (required)" : "") + " — " + (a.agent_company || "Weichert Blue Ribbon");
+      if (titleEl) titleEl.textContent = "Agent " + (a.slotEl.dataset.slot || (i + 1)) + (a.agent_company === "Blue Ribbon Referral Agency" ? " — Referral Agency" : "");
       setComputed("commission_amount", CiRaw);
       setComputed("referral_payout_amount", referralPayoutAmt);
       setComputed("closing_fees_total", Fi);
@@ -1335,6 +1346,7 @@
       (a.closing_fees || []).forEach(cf => { addAgentAdjustmentRow(slot, "closing-fees", "Additional Closing Fee"); fillRowFields(slot.querySelector("[data-closing-fees-list] [data-adj-row]:last-child"), cf); });
       (a.post_adjustments || []).forEach(pa => { addAgentAdjustmentRow(slot, "post-adj", "Post-Commission Adjustment"); fillRowFields(slot.querySelector("[data-post-adj-list] [data-adj-row]:last-child"), pa); });
     });
+    while (countAgentSlots() < 4) addAgentSlot();
     renumberAgentSlots();
 
     Object.keys(snap.radios || {}).forEach(nm => { const v = snap.radios[nm]; const el = v && document.querySelector('input[name="' + nm + '"][value="' + v + '"]'); if (el) el.checked = true; });
@@ -1961,7 +1973,7 @@
         const slot = e.target.closest("[data-agent-slot]");
         const a = agentById(e.target.value);
         if (a) selectAgentForSlot(slot, a);
-        else ["agent_id","name","email","mls_id"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
+        else ["agent_id","name","email","mls_id","split_percent","commission_amount_fixed"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
         recalc();
       }
     });
@@ -2023,7 +2035,7 @@
     bindCdaDocsUpload();
     bindDelegatedEvents();
     loadAgentDirectory();
-    addAgentSlot();
+    while (countAgentSlots() < 4) addAgentSlot();
     $("#certificationDate").value = todayISO();
     refreshConditionalUI();
     recalc();
