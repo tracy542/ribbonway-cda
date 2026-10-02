@@ -37,6 +37,8 @@
   body.admin .layout{grid-template-columns:minmax(0,1fr) 320px}
   body:not(.admin) #recapPanel{display:none}
   .choice-list{display:grid;gap:8px;margin-top:6px}
+  .ref-note{margin-top:8px;padding:10px 14px;border-radius:8px;background:#fff176;color:#3a2e00;font-weight:700;font-size:14px;border-left:5px solid #f9a825}
+  .ref-note[hidden]{display:none}
   .choice-list label{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:13px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fbfcfe;cursor:pointer}
   .choice-list input{width:auto;margin-top:3px}
   .choice-list .hint{display:block}
@@ -271,11 +273,22 @@
               <div class="field"><label for="mlsNumber">MLS Number</label><input type="text" id="mlsNumber" maxlength="50">
                 <div class="hint">Enter the MLS number and you're done with the address. No MLS number? Leave this blank and type the address below.</div>
               </div>
+              <div class="field"><label for="referralYN">Referral? <span class="required-star">*</span></label>
+                <select id="referralYN"><option value="">Select…</option><option value="no">No referral</option><option value="yes">Yes — there's a referral</option></select>
+              </div>
               <div class="field conditional show" id="grossCommissionMethodField">
                 <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
                 <select id="grossCommissionMethod"><option value="Flat">Flat Amount</option></select>
               </div>
               
+            </div>
+            <div class="conditional" id="referralChoiceBlock">
+              <div class="choice-list" style="margin-top:4px">
+                <label><input type="radio" name="referralType" value="br"><span>Blue Ribbon Referral agent<span class="hint">Pick them as an agent in Section 4 (office: Referral).</span></span></label>
+                <label><input type="radio" name="referralType" value="outside"><span>Outside brokerage or agent</span></label>
+                <input type="radio" name="referralType" value="none" hidden>
+              </div>
+              <div class="ref-note" id="referralNote" hidden>As part of the compliance process, make sure the referral agreement and W-9 are either in your platform or emailed to <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a>.</div>
             </div>
             <div class="grid g3" style="margin-top:8px">
               <div class="field conditional show" id="grossCommissionPercentField">
@@ -354,16 +367,9 @@
 
 
           
-            <div class="sub-legend">Referral</div>
             <div id="externalReferralSection">
-            <label>Is a referral fee owed on this deal? <span class="required-star">*</span></label>
-            <div class="choice-list">
-              <label><input type="radio" name="referralType" value="none"><span>No referral fee</span></label>
-              <label><input type="radio" name="referralType" value="br"><span>Blue Ribbon Referral agent<span class="hint">Add them as an agent in Section 4 (company: Blue Ribbon Referral Agency). No W-9 needed. The referral agreement is still required.</span></span></label>
-              <label><input type="radio" name="referralType" value="outside"><span>Outside brokerage or agent<span class="hint">Referral fee comes off the top. W-9, wiring instructions and referral agreement are all required. Wiring instructions are verified by phone before any money goes out.</span></span></label>
-            </div>
             <select id="externalReferralOwed" hidden><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
-            <div class="conditional" id="brReferralBlock">
+            <div class="conditional" id="brReferralBlock" style="display:none">
               <div class="grid g3" style="margin-top:10px">
                 <div class="field">
                   <label for="brReferralAgreementLocation">Where is the referral agreement? <span class="required-star">*</span></label>
@@ -372,7 +378,8 @@
                 <div class="field conditional" id="brReferralUploadField"><label for="brReferralAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="brReferralAgreementUpload" accept=".pdf,.jpg,.jpeg,.png"></div>
               </div>
             </div>
-            <div class="conditional" id="referralOwedBlock">
+            <div class="conditional admin-only" id="referralOwedBlock">
+              <div class="sub-legend">Outside referral (admin)</div>
               <div class="grid g3" style="margin-top:8px">
                 <div class="field"><label for="referralCompany">Referral Company <span class="required-star">*</span></label><input type="text" id="referralCompany" maxlength="150"></div>
                 <div class="field"><label for="referralContactName">Contact Name <span class="required-star">*</span></label><input type="text" id="referralContactName" maxlength="100"></div>
@@ -386,7 +393,7 @@
                 <div class="field"><label>Outside Partner Payout (OP)</label><div class="readonly-display" id="referralPartnerPayoutDisplay">$0.00</div></div>
                 <div class="field"><label>Posted as Administrative Fee debit</label><div class="readonly-display">External Referral Fee</div></div>
               </div>
-              <div class="grid g3" style="margin-top:6px">
+              <div class="grid g3" style="margin-top:6px;display:none">
                 <div class="field"><label for="referralAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="referralAgreementUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
                 <div class="field"><label for="referralW9Upload">W-9 <span class="required-star">*</span></label><input type="file" id="referralW9Upload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
                 <div class="field"><label for="referralWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="referralWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
@@ -1490,11 +1497,9 @@
     }
 
     const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
-    requiredMsg(refType, "Referral: tell us whether a referral fee is owed.", errors);
+    requiredMsg($("#referralYN").value, "Referral: tell us whether there's a referral.", errors);
+    if ($("#referralYN").value === "yes") requiredMsg(refType === "br" || refType === "outside", "Referral: pick Blue Ribbon Referral agent or Outside brokerage.", errors);
     if (refType === "br") {
-      const loc = $("#brReferralAgreementLocation").value;
-      requiredMsg(loc, "Referral: tell us where the Blue Ribbon referral agreement is.", errors);
-      if (loc === "Upload") requiredMsg($("#brReferralAgreementUpload").files.length > 0, "Referral: upload the Blue Ribbon referral agreement.", errors);
       requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Referral: add the Blue Ribbon Referral agent in Section 4 (Agents on this deal).", errors);
     }
     requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
@@ -1503,12 +1508,6 @@
       requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
     }
     if ($("#externalReferralOwed").value === "true") {
-      requiredMsg($("#referralCompany").value.trim(), "Referral company is required.", errors);
-      requiredMsg($("#referralContactName").value.trim(), "Referral contact name is required.", errors);
-      requiredMsg(n($("#referralFeeRate").value) > 0, "Referral fee rate is required.", errors);
-      requiredMsg($("#referralAgreementUpload").files.length > 0, "Referral Agreement upload is required.", errors);
-      requiredMsg($("#referralW9Upload").files.length > 0, "Referral W-9 upload is required.", errors);
-      requiredMsg($("#referralWiringUpload").files.length > 0, "Referral Wiring Instructions upload is required.", errors);
     }
 
     requiredMsg(calc.agents.length >= 1, "At least one commission agent (Agent 1) is required.", errors);
@@ -1969,10 +1968,15 @@
   }
 
   function updateV2Choices() {
+    const yn = $("#referralYN").value;
+    $("#referralChoiceBlock").classList.toggle("show", yn === "yes");
+    if (yn === "no") { const r = document.querySelector('input[name="referralType"][value="none"]'); if (r) r.checked = true; }
+    if (yn === "yes") { const r = document.querySelector('input[name="referralType"][value="none"]'); if (r && r.checked) r.checked = false; }
+    if (yn === "") document.querySelectorAll('input[name="referralType"]').forEach(r => { r.checked = false; });
     const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
     $("#externalReferralOwed").value = refType === "outside" ? "true" : (refType ? "false" : "");
     updateReferralOwedBlock();
-    $("#brReferralBlock").classList.toggle("show", refType === "br");
+    $("#referralNote").hidden = !(refType === "br" || refType === "outside");
     $("#brReferralUploadField").classList.toggle("show", refType === "br" && $("#brReferralAgreementLocation").value === "Upload");
     const docsLoc = (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "";
     $("#docsUploadBlock").classList.toggle("show", docsLoc === "Upload");
@@ -1982,7 +1986,7 @@
   function bindV2() {
     if (/[?&]admin=1\b/.test(location.search)) document.body.classList.add("admin");
     document.addEventListener("change", e => {
-      if (e.target.name === "referralType" || e.target.name === "docsLocation" || e.target.id === "brReferralAgreementLocation") updateV2Choices();
+      if (e.target.id === "referralYN" || e.target.name === "referralType" || e.target.name === "docsLocation" || e.target.id === "brReferralAgreementLocation") updateV2Choices();
     });
   }
 
