@@ -169,6 +169,7 @@
   .recap-check.bad{background:#7a1c1c}
 
   .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
+  .top-actions{margin:0 0 14px}
   .msg-list{list-style:none;margin:0;padding:0}
   .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
   .msg-list li.error{background:#fdeeee;color:var(--err);border:1px solid #f2c9c9}
@@ -263,6 +264,10 @@
   <div class="layout">
     <div>
       <form id="cdaForm" autocomplete="off">
+        <div class="actions-bar top-actions" id="topActions">
+          <button type="button" class="btn" id="saveStageBtnTop">Save Progress</button>
+          <button type="button" class="btn primary" id="markClosedBtnTop">Submit to Broker</button>
+        </div>
 
         <fieldset>
           <legend>1 Office &amp; Transaction</legend>
@@ -2223,6 +2228,16 @@
     refreshConditionalUI();
     recalc();
     setBadge();
+    // Top copies of Save / Submit (Tracy 10/2): click the real bottom buttons, mirror their label.
+    $("#saveStageBtnTop").addEventListener("click", () => $("#saveStageBtn").click());
+    $("#markClosedBtnTop").addEventListener("click", () => $("#markClosedBtn").click());
+    const syncTop = () => {
+      $("#markClosedBtnTop").textContent = $("#markClosedBtn").textContent;
+      $("#topActions").style.display = $("#transactionType").value === "Referral Only" ? "none" : "";
+    };
+    new MutationObserver(syncTop).observe($("#markClosedBtn"), { childList: true, characterData: true, subtree: true });
+    document.addEventListener("change", e => { if (e.target.id === "transactionType") setTimeout(syncTop, 0); });
+    syncTop();
     const urlCode = new URLSearchParams(location.search).get("code");
     if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode);
     let dirty = false;
