@@ -262,7 +262,7 @@
         <div id="standardSection">
 
           <fieldset>
-            <legend>2 &middot; Transaction, Parties &amp; Title/Escrow</legend>
+            <legend>2 &middot; Transaction &amp; Referral</legend>
             <div class="grid g3">
               <div class="field"><label for="mlsNumber">MLS Number</label><input type="text" id="mlsNumber" maxlength="50">
                 <div class="hint">Enter the MLS number and you're done with the address. No MLS number? Leave this blank and type the address below.</div>
@@ -343,32 +343,15 @@
               </div>
             </div>
 
-            <div class="conditional show" id="titleEscrowBlock">
-              <div class="sub-legend">Title / Escrow — pick from the list or add a new one (required before closing)</div>
-              <div class="grid g3">
-                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
-                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
-              </div>
-              <div class="grid g3" style="margin-top:10px">
-                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
-                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
-                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
-              </div>
-              <div class="grid g3" style="margin-top:10px">
-                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
-                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
-                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
-                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
-              </div>
-            </div>
-            <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
+            
+            
 
             <input type="hidden" id="transactionNotes">
 
 
-          </fieldset>
-          <fieldset id="externalReferralSection">
-            <legend>3 &middot; Referral</legend>
+          
+            <div class="sub-legend">Referral</div>
+            <div id="externalReferralSection">
             <label>Is a referral fee owed on this deal? <span class="required-star">*</span></label>
             <div class="choice-list">
               <label><input type="radio" name="referralType" value="none"><span>No referral fee</span></label>
@@ -405,6 +388,29 @@
                 <div class="field"><label for="referralWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="referralWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
               </div>
             </div>
+          </div>
+          </fieldset>
+          <fieldset id="titleSection">
+            <legend>3 &middot; Title &amp; Escrow</legend>
+            <div class="conditional show" id="titleEscrowBlock">
+              <div class="hint" style="margin-bottom:8px">Pick from the list or add a new one. Required before closing.</div>
+              <div class="grid g3">
+                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
+                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
+              </div>
+              <div class="grid g3" style="margin-top:10px">
+                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
+                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
+              </div>
+              <div class="grid g3" style="margin-top:10px">
+                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
+                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
+                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
+                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
+              </div>
+            </div>
+            <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
           </fieldset>
 
 
@@ -1471,12 +1477,12 @@
     }
 
     const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
-    requiredMsg(refType, "Section 2A: tell us whether a referral fee is owed.", errors);
+    requiredMsg(refType, "Referral: tell us whether a referral fee is owed.", errors);
     if (refType === "br") {
       const loc = $("#brReferralAgreementLocation").value;
-      requiredMsg(loc, "Section 2A: tell us where the Blue Ribbon referral agreement is.", errors);
-      if (loc === "Upload") requiredMsg($("#brReferralAgreementUpload").files.length > 0, "Section 2A: upload the Blue Ribbon referral agreement.", errors);
-      requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Section 2A: add the Blue Ribbon Referral agent in Section 4.", errors);
+      requiredMsg(loc, "Referral: tell us where the Blue Ribbon referral agreement is.", errors);
+      if (loc === "Upload") requiredMsg($("#brReferralAgreementUpload").files.length > 0, "Referral: upload the Blue Ribbon referral agreement.", errors);
+      requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Referral: add the Blue Ribbon Referral agent in Section 4 (Agents on this deal).", errors);
     }
     requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
     if ($("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
