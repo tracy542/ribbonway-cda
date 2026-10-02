@@ -338,6 +338,7 @@
               <div class="hint">Pick the stage you've just reached, then click Save Progress. The last stage uses the Submit button.</div>
               <div class="hint" id="rentalStageHint" style="display:none;font-weight:700;color:var(--navy)">Last stage: Commission Collected — from the owner or the listing agent.</div>
             </div>
+            <div class="field" id="moveInDateField" style="display:none"><label for="moveInDate">Move-In Date</label><input type="date" id="moveInDate"></div>
           </div>
         </fieldset>
 
@@ -1382,6 +1383,7 @@
     sel.value = early.some(s => s.key === currentVal) ? currentVal : (early[0] ? early[0].key : "");
     field.classList.add("show");
     const rh = $("#rentalStageHint"); if (rh) rh.style.display = t === "Rental" ? "block" : "none";
+    const mi = $("#moveInDateField"); if (mi) mi.style.display = t === "Rental" ? "" : "none";
     markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : finalStage.key === "commission_collected" ? "Commission Collected — Submit" : "Submit to Broker") : "Submit to Broker";
   }
 
@@ -1736,6 +1738,7 @@
     fd.append("transaction_type", $("#transactionType").value);
     fd.append("other_transaction_type", $("#otherTransactionType").value.trim());
     fd.append("dual_agency", $("#dualAgency").checked ? "true" : "false");
+    fd.append("move_in_date", $("#moveInDate").value);
     fd.append("linked_cda_code", $("#linkedCdaCode").value);
     fd.append("property_address", buildPropertyAddress());
     fd.append("submitter_name", $("#submitterName").value.trim());
