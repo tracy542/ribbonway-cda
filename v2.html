@@ -2286,12 +2286,19 @@
       const t = $("#transactionType").value;
       if (t !== "Listing Side" && t !== "Buyer Side") return;
       const other = t === "Listing Side" ? "Buyer Side" : "Listing Side";
+      const sideName = other === "Buyer Side" ? "buyer" : "listing";
+      // Open the new tab now, while we still have the click (pop-up blockers allow it), and fill it in once saved.
+      const win = window.open("", "_blank");
+      if (win) { try { win.document.write('<p style="font:20px Arial;padding:30px">Creating the ' + sideName + '-side CDA…</p>'); } catch (e) {} }
       const newCode = genCode();
       $("#dualAgency").checked = true;
       $("#linkedCdaCode").value = newCode;
       const ok = await handleSaveStage({ noModal: true });
-      if (!ok) { $("#linkedCdaCode").value = ""; syncDual(); return; }
+      if (!ok) { $("#linkedCdaCode").value = ""; syncDual(); if (win) win.close(); return; }
       const firstCode = currentRecordId;
+      const firstSnap = buildSnapshot();
+      const firstSaved = draftSaved;
+      // Build and save the other side, keeping the shared deal facts.
       $("#transactionType").value = other;
       updateTransactionTypeUI();
       $$("[data-agent-slot]").forEach(r => r.remove());
@@ -2302,20 +2309,30 @@
       $("#referralYN").value = "";
       document.querySelectorAll('input[name="referralType"]').forEach(r => { r.checked = false; });
       $("#accuracyAck").checked = false;
-      cdaDocsFiles = []; renderCdaDocsChips();
+      const keepFiles = cdaDocsFiles; cdaDocsFiles = [];
       currentRecordId = newCode;
-      resumedDraft = true;
-      draftSaved = false;
       $("#linkedCdaCode").value = firstCode;
+      refreshConditionalUI();
+      recalc();
+      const ok2 = await handleSaveStage({ noModal: true });
+      // Put this tab back on the side the agent started with.
+      restoreSnapshot(firstSnap);
+      cdaDocsFiles = keepFiles; renderCdaDocsChips();
+      currentRecordId = firstCode;
+      resumedDraft = true;
+      draftSaved = firstSaved;
+      $("#linkedCdaCode").value = ok2 ? newCode : "";
+      $("#dualAgency").checked = true;
       refreshConditionalUI();
       recalc();
       syncDual();
       setBadge();
-      const ok2 = await handleSaveStage();
-      const sideName = other === "Buyer Side" ? "buyer" : "listing";
-      const prevName = other === "Buyer Side" ? "listing" : "buyer";
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="' + (ok2 ? "ok" : "error") + '">' + (ok2 ? "" : "Could not create the second CDA yet — fix the items above and click Save Progress. ") +
-        'You are now on the <strong>' + sideName + '-side</strong> CDA (code ' + newCode + '). The ' + prevName + '-side CDA is saved as code ' + firstCode + '. Pick the ' + sideName + ' agent(s) and this side\'s expected commission.</li></ul>';
+      const link = location.pathname + "?code=" + newCode + (/[?&]admin=1\b/.test(location.search) ? "&admin=1" : "");
+      if (ok2 && win) win.location.href = link;
+      else if (win) win.close();
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="' + (ok2 ? "ok" : "error") + '">' +
+        (ok2 ? 'The ' + sideName + '-side CDA (code ' + newCode + ') is open in a new tab' + (win ? '' : ' — your browser blocked the tab, so <a href="' + link + '" target="_blank">click here to open it</a>') + '. This tab stays on the ' + (sideName === "buyer" ? "listing" : "buyer") + '-side CDA (code ' + firstCode + ').'
+             : 'This side is saved, but the ' + sideName + '-side CDA could not be created (no connection). Try the button again.') + '</li></ul>';
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     const urlCode = new URLSearchParams(location.search).get("code");
