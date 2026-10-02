@@ -277,6 +277,16 @@
     <span id="currentRecordBadge"></span>
   </div>
   <div class="code-bar" id="codeWriteDownNote"></div>
+  <div class="code-modal" id="confirmModal" hidden>
+    <div class="code-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="code-modal-title" id="confirmTitle"></div>
+      <div class="code-modal-note" id="confirmText" style="font-size:16px;margin-bottom:14px"></div>
+      <div class="code-modal-btns">
+        <button type="button" class="btn primary" id="confirmYes">Yes</button>
+        <button type="button" class="btn" id="confirmNo">Cancel</button>
+      </div>
+    </div>
+  </div>
   <div class="code-modal" id="codeModal" hidden>
     <div class="code-modal-card" role="dialog" aria-modal="true" aria-labelledby="codeModalTitle">
       <div class="code-modal-title" id="codeModalTitle">Your CDA is saved. Here's your MAGIC link.</div>
@@ -1597,6 +1607,19 @@
     }
   }
 
+  // On-page confirm (Tracy 10/2): browser pop-ups are easy to miss on phones and freeze automation.
+  function askConfirm(title, text, yesLabel) {
+    return new Promise(resolve => {
+      $("#confirmTitle").textContent = title;
+      $("#confirmText").textContent = text || "";
+      $("#confirmText").style.display = text ? "" : "none";
+      $("#confirmYes").textContent = yesLabel || "Yes";
+      const done = v => { $("#confirmModal").hidden = true; $("#confirmYes").onclick = null; $("#confirmNo").onclick = null; resolve(v); };
+      $("#confirmYes").onclick = () => done(true);
+      $("#confirmNo").onclick = () => done(false);
+      $("#confirmModal").hidden = false;
+    });
+  }
   let draftSaved = false;
   function draftLinks() {
     const link = location.origin + location.pathname + "?code=" + currentRecordId;
@@ -1925,7 +1948,7 @@
     validateStandardForClose(calc, errors);
     showErrors("#submitStatus", errors);
     if (errors.length) return;
-    if (!confirm("Submitting will lock this CDA as Closed and notify Tracy. Continue?")) return;
+    if (!(await askConfirm("Submit this CDA?", "Submitting locks this CDA and sends it to compliance. You can't change it after this.", "Yes, submit"))) return;
     const btn = $("#markClosedBtn");
     btn.disabled = true;
     const stages = stagesForType($("#transactionType").value);
@@ -1957,7 +1980,7 @@
     requiredMsg(reason, "A void reason is required.", errors);
     showErrors("#submitStatus", errors);
     if (errors.length) return;
-    if (!confirm("Voiding is permanent and cannot be undone. Continue?")) return;
+    if (!(await askConfirm("Void this CDA?", "Voiding is permanent and cannot be undone.", "Yes, void it"))) return;
     const calc = recalc();
     const btn = $("#voidRecordBtn");
     btn.disabled = true;
@@ -1978,7 +2001,7 @@
     validateReferralOnly(errors);
     showErrors("#referralSubmitStatus", errors);
     if (errors.length) return;
-    if (!confirm("Submit this referral?")) return;
+    if (!(await askConfirm("Submit this referral?", "", "Yes, submit"))) return;
     const btn = $("#submitReferralBtn");
     btn.disabled = true;
     const fd = new FormData();
@@ -2075,7 +2098,7 @@
         return;
       }
       if (e.target.id === "newDraftBtn") {
-        if (confirm("Start a new blank CDA? Any unsaved changes on this page will be lost.")) { window.__skipLeaveWarn = true; window.location.href = location.pathname + (/[?&]admin=1\b/.test(location.search) ? "?admin=1" : ""); }
+        askConfirm("Start a new blank CDA?", "Any unsaved changes on this page will be lost.", "Yes, start new").then(ok => { if (ok) { window.__skipLeaveWarn = true; window.location.href = location.pathname + (/[?&]admin=1\b/.test(location.search) ? "?admin=1" : ""); } });
         return;
       }
     });
