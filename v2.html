@@ -53,6 +53,11 @@
 
   fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:0 0 16px}
   legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
+  legend.collapsible{cursor:pointer;user-select:none}
+  legend.collapsible::before{content:"▾";display:inline-block;margin-right:6px;transition:transform .15s}
+  fieldset.collapsed > legend.collapsible::before{transform:rotate(-90deg)}
+  fieldset.collapsed > :not(legend){display:none!important}
+  fieldset.collapsed{padding-bottom:4px}
   .sub-legend{font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 6px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
   .grid.g2{grid-template-columns:repeat(2,1fr)}
@@ -1546,6 +1551,7 @@
   function showErrors(targetSel, errors) {
     const el = $(targetSel);
     if (!errors.length) { el.innerHTML = ""; return; }
+    document.querySelectorAll("fieldset.collapsed").forEach(f => f.classList.remove("collapsed"));
     el.innerHTML = '<ul class="msg-list">' + errors.map(e => '<li class="error">' + e + '</li>').join("") + '</ul>';
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -1982,6 +1988,11 @@
     recalc();
   }
   function bindV2() {
+    document.querySelectorAll("fieldset > legend").forEach(lg => {
+      lg.classList.add("collapsible");
+      lg.title = "Click to collapse or expand";
+      lg.addEventListener("click", () => lg.parentElement.classList.toggle("collapsed"));
+    });
     if (/[?&]admin=1\b/.test(location.search)) document.body.classList.add("admin");
     document.addEventListener("change", e => {
       if (e.target.id === "referralYN" || e.target.id === "docsLocationPick" || e.target.name === "referralType" || e.target.name === "docsLocation" || e.target.id === "brReferralAgreementLocation") updateV2Choices();
