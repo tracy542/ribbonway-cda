@@ -440,6 +440,7 @@
                   <option value="builder">Builder client (new construction)</option>
                   <option value="own_home">It's my own home (my personal residence)</option>
                   <option value="investor">Investor client who buys, rehabs and resells with us</option>
+                  <option value="agent_plan">Agent's plan has no admin fee</option>
                 </select>
               </div>
             </div>
@@ -732,6 +733,7 @@
         <input type="hidden" data-f="license_numbers">
         <input type="hidden" data-f="license_state">
         <input type="hidden" data-f="standard_split_pct">
+        <input type="hidden" data-f="arf_pct">
         <input type="hidden" data-f="team_name">
         <input type="hidden" data-f="team_leader_or_agent">
         <div class="agent-suggest" data-agent-suggest style="display:none"></div>
@@ -1012,6 +1014,7 @@
     setF("license_numbers", agent.license_numbers || "");
     setF("license_state", agent.license_state || "");
     setF("standard_split_pct", agent.standard_split_pct != null ? agent.standard_split_pct : "");
+    setF("arf_pct", agent.arf_pct != null ? agent.arf_pct : "");
     setF("team_name", agent.team_name || "");
     setF("team_leader_or_agent", agent.team_leader_or_agent || "");
     const companyEl = slot.querySelector('[data-f="agent_company"]');
@@ -1079,6 +1082,15 @@
         license_numbers: slot.querySelector('[data-f="license_numbers"]').value.trim(),
         license_state: slot.querySelector('[data-f="license_state"]').value.trim(),
         standard_split_pct: slot.querySelector('[data-f="standard_split_pct"]').value.trim(),
+        // ARF % from the Agent Roster (blank = standard 6%, "0" = plan with no
+        // ARF or admin fee). The live directory wins over a value saved in an
+        // older draft, so a roster change applies to drafts already in progress.
+        arf_pct: (function () {
+          const id = slot.querySelector('[data-f="agent_id"]').value.trim();
+          const d = id ? agentById(id) : null;
+          if (d && d.arf_pct != null && String(d.arf_pct).trim() !== "") return String(d.arf_pct).trim();
+          const f = slot.querySelector('[data-f="arf_pct"]'); return f ? f.value.trim() : "";
+        })(),
         team_name: slot.querySelector('[data-f="team_name"]').value.trim(),
         team_leader_or_agent: slot.querySelector('[data-f="team_leader_or_agent"]').value.trim(),
         referral_payout_percent: n(slot.querySelector('[data-f="referral_payout_percent"]').value),
@@ -1183,7 +1195,11 @@
     // Rentals (Tracy, 10/2/2026): each agent gets a flat 80% of their share
     // of the check. No ARF, no admin fee, no lead fee.
     const isRentalDeal = $("#transactionType").value === "Rental";
-    const ARF = isRentalDeal ? 0 : r2(0.06 * (G - OP));
+    // Agents whose roster ARF is 0 (e.g. "80% Pure No ARF or Ad fee" plans)
+    // pay no ARF and no admin fee; their share is left out of the ARF base.
+    const noArf = a => String(a.arf_pct == null ? "" : a.arf_pct).trim() === "0";
+    const exemptShare = r2(agents.reduce((t, a, i) => t + (noArf(a) && a.agent_company !== "Blue Ribbon Referral Agency" ? cRaw[i] : 0), 0));
+    const ARF = isRentalDeal ? 0 : Math.max(0, r2(0.06 * (G - OP - exemptShare)));
 
     // ARF is a single 6% assessment on the WHOLE deal (net of any outside
     // referral payout) — never charged per agent. It's split proportionally
@@ -1194,7 +1210,7 @@
     const arfLiableIdx = [];
     let arfLiableSum = 0;
     agents.forEach((a, i) => {
-      if (a.agent_company !== "Blue Ribbon Referral Agency" && cRaw[i] > 0) {
+      if (a.agent_company !== "Blue Ribbon Referral Agency" && cRaw[i] > 0 && !noArf(a)) {
         arfLiableIdx.push(i);
         arfLiableSum += cRaw[i];
       }
@@ -1242,6 +1258,7 @@
         });
         rowAdminFees[maxIdx] = r2(Aagent - allocated);
       }
+      agents.forEach((a, i) => { if (noArf(a)) rowAdminFees[i] = 0; });
     }
 
     const agentsList = $("#rAgents");
@@ -1827,7 +1844,7 @@
     fd.append("gross_commission", String(calc.G));
     fd.append("agents_json", JSON.stringify(calc.agents.map(a => ({
       name: a.name, email: a.email, mls_id: a.mls_id, deal_role: a.deal_role,
-      agent_company: a.agent_company, referral_payout_percent: a.referral_payout_percent,
+      agent_company: a.agent_company, referral_payout_percent: a.referral_payout_percent, arf_pct: a.arf_pct,
       allocation_method: a.allocation_method, split_percent: a.split_percent, commission_amount: a.commission_amount,
       closing_fees: a.closing_fees, post_adjustments: a.post_adjustments, calculation_note: a.calculation_note
     }))));
