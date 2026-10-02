@@ -171,6 +171,10 @@
 
   .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
   .top-actions{margin:0 0 14px}
+  .next-steps{margin-top:14px;padding:12px 14px;border:2px solid var(--navy);border-radius:6px;background:#f4f8fc;color:var(--navy)}
+  .next-steps-title{font-weight:800;font-size:16px;margin-bottom:4px}
+  .next-steps ul{margin:0;padding-left:20px;font-size:15px}
+  .next-steps li{margin:3px 0}
   .dual-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}
   .dual-row[hidden]{display:none}
   .dual-ack{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:700;color:var(--navy)}
@@ -583,6 +587,18 @@
             <div class="field" style="margin-top:10px">
               <label for="remarks">Remarks</label>
               <textarea id="remarks" maxlength="2000" placeholder="Anything we should know? Required if you are asking for a broker override."></textarea>
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label for="formFeedback">How could this form be better? (optional)</label>
+              <textarea id="formFeedback" maxlength="1000" placeholder="Anything confusing, slow, or missing? Tell us — we read every one."></textarea>
+            </div>
+            <div class="next-steps">
+              <div class="next-steps-title">What happens next</div>
+              <ul>
+                <li><strong>Compliance Bot (coming soon)</strong> reviews your file and emails you "all clear" or a short fix list.</li>
+                <li>The office prepares your payout from your % of the deal.</li>
+                <li>You get a confirmation email with your CDA code.</li>
+              </ul>
             </div>
 
             <div class="conditional" id="voidBlock">
@@ -1775,6 +1791,7 @@
     fd.append("zip_dotloop_id", $("#zipDotloopId").value.trim());
     fd.append("transaction_notes", $("#transactionNotes").value.trim());
     fd.append("remarks", $("#remarks").value.trim());
+    fd.append("form_feedback", $("#formFeedback").value.trim());
     fd.append("title_company_name", $("#titleCompanyName").value.trim());
     fd.append("title_contact_name", $("#titleContactName").value.trim());
     const la = calc.agents.find(a => a.deal_role === "Listing" || a.deal_role === "Both") || {};
