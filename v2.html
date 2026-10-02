@@ -87,6 +87,9 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
+  .flash-5s{border-radius:4px;padding:1px 4px;animation:flash5 1s ease-in-out 5}
+  @keyframes flash5{0%,100%{background:transparent;color:inherit}50%{background:#fff176;color:#3a2e00}}
+  @media (prefers-reduced-motion:reduce){.flash-5s{animation:none}}
   body:not(.admin) .admin-only{display:none!important}
   #addAgentBtn,[data-remove-agent]{display:none!important}
   [data-agent-slot]:not([data-slot="1"]) .required-star{display:none}
@@ -165,7 +168,7 @@
     <div class="tracy-note-mark">TA</div>
     <div class="tracy-note-body">
       <b>A direct note from Tracy</b>
-      Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?
+      <span class="flash-5s">Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?</span>
       <ul>
         <li>Ask every buyer, every time — before the contract, not after.</li>
         <li>The $2,000 credit only applies when the buyer closes their loan with Heather Adams at Revolution Mortgage, NMLS #1940374.</li>
