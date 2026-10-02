@@ -249,15 +249,15 @@
   <div class="code-bar" id="codeWriteDownNote"></div>
   <div class="code-modal" id="codeModal" hidden>
     <div class="code-modal-card" role="dialog" aria-modal="true" aria-labelledby="codeModalTitle">
-      <div class="code-modal-title" id="codeModalTitle">Your CDA is saved. Here's your private link.</div>
+      <div class="code-modal-title" id="codeModalTitle">Your CDA is saved. Here's your MAGIC link.</div>
       <div class="code-modal-code">Code <span id="codeModalCode"></span></div>
       <input type="text" id="codeModalLink" readonly>
       <div class="code-modal-btns">
-        <button type="button" class="btn primary" id="codeModalCopy">Copy link</button>
+        <button type="button" class="btn primary" id="codeModalCopy">Copy MAGIC link</button>
         <a class="btn primary" id="codeModalEmail" href="#">Email it to me</a>
         <button type="button" class="btn" id="codeModalOk">OK, got it</button>
       </div>
-      <div class="code-modal-note">Open this link on any device to pick up where you left off, until you submit. Lost it? Email <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a> with the property address and we'll find it.</div>
+      <div class="code-modal-note">Open this MAGIC link on any device to pick up where you left off, until you submit. Lost it? Email <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a> with the property address and we'll find it.</div>
     </div>
   </div>
 
@@ -1519,7 +1519,7 @@
   function draftLinks() {
     const link = location.origin + location.pathname + "?code=" + currentRecordId;
     const em = $("#submitterEmail") ? $("#submitterEmail").value.trim() : "";
-    const mail = "mailto:" + encodeURIComponent(em) + "?subject=" + encodeURIComponent("My CDA link — code " + currentRecordId) + "&body=" + encodeURIComponent("Open this link to pick up my CDA where I left off:\n" + link);
+    const mail = "mailto:" + encodeURIComponent(em) + "?subject=" + encodeURIComponent("My CDA MAGIC link — code " + currentRecordId) + "&body=" + encodeURIComponent("Open this MAGIC link to pick up my CDA where I left off:\n" + link);
     return { link, mail };
   }
   function showCodeModal() {
@@ -1528,7 +1528,7 @@
     $("#codeModalLink").value = link;
     $("#codeModalEmail").href = mail;
     const cp = $("#codeModalCopy");
-    cp.textContent = "Copy link";
+    cp.textContent = "Copy MAGIC link";
     cp.onclick = () => { try { navigator.clipboard.writeText(link); cp.textContent = "Copied"; } catch (e) { $("#codeModalLink").select(); } };
     $("#codeModalOk").onclick = () => { $("#codeModal").hidden = true; };
     $("#codeModal").hidden = false;
@@ -1543,11 +1543,11 @@
       const { link, mail } = draftLinks();
       if (!draftSaved) {
         note.className = "code-bar pending";
-        note.innerHTML = "<span>Click <strong>Save Progress</strong> at the bottom to get a private link to this CDA.</span>";
+        note.innerHTML = "<span>Click <strong>Save Progress</strong> at the bottom to get your MAGIC link to this CDA.</span>";
       } else {
         note.className = "code-bar";
         note.innerHTML = '<span>Draft saved &nbsp;·&nbsp; code <span class="code-big">' + currentRecordId + '</span></span>' +
-          '<button type="button" class="btn small" id="copyLinkBtn">Copy link</button><a class="btn small" style="text-decoration:none" href="' + mail + '">Email it to me</a>';
+          '<button type="button" class="btn small" id="copyLinkBtn">Copy MAGIC link</button><a class="btn small" style="text-decoration:none" href="' + mail + '">Email it to me</a>';
         const cb = $("#copyLinkBtn");
         if (cb) cb.onclick = () => { try { navigator.clipboard.writeText(link); cb.textContent = "Copied"; } catch (e) {} };
       }
