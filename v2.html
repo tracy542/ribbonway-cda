@@ -72,6 +72,8 @@
     width:100%;padding:8px 9px;border:1px solid #c8d2dc;border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink)
   }
   textarea{resize:vertical;min-height:56px}
+  select{font-size:16px;padding:10px 12px;min-height:46px;font-weight:600}
+  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date]{min-height:46px;font-size:15px}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
   .field{margin-bottom:2px}
   .readonly-display{width:100%;padding:8px 9px;border:1px dashed #c8d2dc;border-radius:7px;background:#f7f9fb;font-weight:700;color:var(--navy)}
@@ -312,6 +314,7 @@
               <div class="field conditional" id="propStateOtherField"><label for="propStateOther">State (specify)</label><input type="text" id="propStateOther" maxlength="40"></div>
               <div class="field"><label for="propZip">ZIP</label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
             </div>
+            </div>
             <div class="grid g3">
               <div></div><div></div>
               <div class="field conditional" id="platformIdField"><label for="zipDotloopId">Transaction ID or loop name</label><input type="text" id="zipDotloopId" maxlength="80">
@@ -374,7 +377,6 @@
               <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
             </div>
 
-            </div>
             <div class="hint" id="mlsAddressNote" style="display:none;margin-top:6px">Address not needed. We'll pull it from MLS.</div>
 
             <div class="sub-legend" id="buyersLegend">Buyer(s)</div>
