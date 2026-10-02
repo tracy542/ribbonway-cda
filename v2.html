@@ -226,7 +226,7 @@
     <span id="currentRecordBadge"></span>
   </div>
   <p class="hint" id="codeWriteDownNote" style="margin:-10px 0 16px 2px;color:var(--navy2);font-weight:600"></p>
-  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">Your code is random and is <strong>not saved anywhere you can look it up</strong> — it only lives in this CDA's record. Write it down now. Any device, any browser, any time before you submit: come back here and enter that code to pick up exactly where you left off.</p>
+  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">After you click <strong>Save Progress</strong>, your private link works from any device until you submit. Lost it? Email <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a> with the property address and we'll find it.</p>
 
   <div class="layout">
     <div>
@@ -747,13 +747,15 @@
   // this check (rarely) finds the code already taken, or if the agent
   // is offline, it fails silently and the badge/note simply update
   // again if a swap happened -- nothing blocks on this.
+  let resumedDraft = false;
   async function ensureUniqueCode() {
     for (let tries = 0; tries < 5; tries++) {
+      if (resumedDraft) return;
       try {
         const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: currentRecordId }) });
         if (!resp.ok) return;
         const json = await resp.json();
-        if (!json || !json.found) return;
+        if (!json || !json.found || resumedDraft) return;
         currentRecordId = genCode();
       } catch (e) { return; }
     }
@@ -815,11 +817,29 @@
   const AGENT_DIRECTORY_URL = "https://hook.us2.make.com/e3qc9t8ej7awob6t63b7dkk2bzd0umcb";
   let AGENT_DIRECTORY = [];
 
-  function loadAgentDirectory() {
-    fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+  // Agent list: show the last good copy instantly, refresh from the office, retry once if it fails.
+  function loadAgentDirectory(attempt) {
+    attempt = attempt || 1;
+    if (attempt === 1) {
+      try { const c = JSON.parse(localStorage.getItem("wbr.cda.agents") || "[]"); if (Array.isArray(c) && c.length) { AGENT_DIRECTORY = c; populateAgentPickers(); } } catch (e) {}
+    }
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : null;
+    fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", signal: ctl ? ctl.signal : undefined })
       .then(r => r.json())
-      .then(d => { AGENT_DIRECTORY = (Array.isArray(d.agents) ? d.agents : []).filter(a => String(a.active) !== "false" && a.name); AGENT_DIRECTORY.sort((x, y) => String(x.name).localeCompare(String(y.name))); populateAgentPickers(); })
-      .catch(() => { AGENT_DIRECTORY = []; populateAgentPickers(); });
+      .then(d => {
+        if (timer) clearTimeout(timer);
+        const list = (Array.isArray(d.agents) ? d.agents : []).filter(a => String(a.active) !== "false" && a.name);
+        if (!list.length) throw new Error("empty");
+        list.sort((x, y) => String(x.name).localeCompare(String(y.name)));
+        AGENT_DIRECTORY = list; populateAgentPickers();
+        try { localStorage.setItem("wbr.cda.agents", JSON.stringify(list)); } catch (e) {}
+      })
+      .catch(() => {
+        if (timer) clearTimeout(timer);
+        if (attempt < 3) { setTimeout(() => loadAgentDirectory(attempt + 1), 2000 * attempt); return; }
+        if (!AGENT_DIRECTORY.length) populateAgentPickers();
+      });
   }
 
   // Real dropdowns (Tracy, 10/1/2026): agents are picked from the roster, never typed.
@@ -854,6 +874,7 @@
     $("#submitterAgentId").value = a ? a.agent_id : "";
     $("#submitterName").value = a ? a.name : "";
     $("#submitterEmail").value = a ? (a.email || "") : "";
+    try { setBadge(); } catch (e) {}
     if (a && a.office) {
       const map = { MRB: "MBG", BOW: "Bow" }; const oc = map[a.office] || a.office;
       if ([...$("#officeCode").options].some(o => o.value === oc)) $("#officeCode").value = oc;
@@ -1440,6 +1461,7 @@
       let snap;
       try { snap = JSON.parse(json.client_snapshot_json || "{}"); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
       restoreSnapshot(snap);
+      resumedDraft = true;
       currentRecordId = code;
       refreshConditionalUI();
       if (snap.simple && snap.simple.dealStage) {
@@ -1465,7 +1487,15 @@
     const stageLabel = d && d.stage_label ? d.stage_label : "";
     $("#currentRecordBadge").innerHTML = '<span class="pill projected">Editing draft — code ' + currentRecordId + (stageLabel ? " · " + stageLabel : "") + '</span>';
     const note = $("#codeWriteDownNote");
-    if (note) note.innerHTML = "Your code for this CDA: <strong style=\"font-size:1.15em\">" + currentRecordId + "</strong> — write it down now.";
+    if (note) {
+      const link = location.origin + location.pathname + "?code=" + currentRecordId;
+      const em = $("#submitterEmail") ? $("#submitterEmail").value.trim() : "";
+      const mail = "mailto:" + encodeURIComponent(em) + "?subject=" + encodeURIComponent("My CDA link — code " + currentRecordId) + "&body=" + encodeURIComponent("Open this link to pick up my CDA where I left off:\n" + link);
+      note.innerHTML = "Your code: <strong style=\"font-size:1.15em\">" + currentRecordId + "</strong> &nbsp;·&nbsp; Your private link: <a href=\"" + link + "\">" + link + "</a> " +
+        '<button type="button" class="btn small" id="copyLinkBtn">Copy link</button> <a class="btn small" style="text-decoration:none" href="' + mail + '">Email it to me</a>';
+      const cb = $("#copyLinkBtn");
+      if (cb) cb.onclick = () => { try { navigator.clipboard.writeText(link); cb.textContent = "Copied"; } catch (e) {} };
+    }
   }
 
   // ============================================================
@@ -1895,7 +1925,7 @@
         return;
       }
       if (e.target.id === "newDraftBtn") {
-        if (confirm("Start a new blank CDA? Any unsaved changes on this page will be lost.")) window.location.reload();
+        if (confirm("Start a new blank CDA? Any unsaved changes on this page will be lost.")) { window.__skipLeaveWarn = true; window.location.href = location.pathname + (/[?&]admin=1\b/.test(location.search) ? "?admin=1" : ""); }
         return;
       }
     });
@@ -2103,6 +2133,13 @@
     refreshConditionalUI();
     recalc();
     setBadge();
+    const urlCode = new URLSearchParams(location.search).get("code");
+    if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode);
+    let dirty = false;
+    document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
+    document.addEventListener("change", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
+    new MutationObserver(() => { if ($("#submitStatus").querySelector(".ok")) dirty = false; }).observe($("#submitStatus"), { childList: true, subtree: true });
+    window.addEventListener("beforeunload", e => { if (dirty && !window.__skipLeaveWarn) { e.preventDefault(); e.returnValue = ""; } });
     const codeInput = $("#resumeCodeInput");
     if (codeInput) codeInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); resumeByCode(codeInput.value); } });
     // Confirm this brand-new code is unique before the agent has had a
