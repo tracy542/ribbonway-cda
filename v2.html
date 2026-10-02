@@ -171,6 +171,10 @@
   .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
   .top-actions{margin:0 0 14px}
   #inMls,#referralYN{width:170px;max-width:100%}
+  .mls-pair{display:flex;gap:10px;align-items:flex-start;min-width:0}
+  .mls-pair > .field:first-child{flex:0 0 auto}
+  .mls-pair > #mlsNumberField{flex:1 1 0;min-width:0}
+  .mls-pair #inMls{width:120px}
   @media (min-width:641px){.docs-col{grid-column:3;grid-row:1 / span 3}}
   .drop-box{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1/1;width:min(100%,210px);border:3px dashed var(--navy);border-radius:10px;background:#f4f8fc;color:var(--navy);text-align:center;padding:14px;cursor:pointer;margin:0}
   .drop-box:hover{background:#e8f0f9}
@@ -329,9 +333,11 @@
           <fieldset>
             <legend>2 Transaction &amp; Referral</legend>
             <div class="grid g3">
-              <div class="field"><label for="inMls">Is it in the MLS? <span class="required-star">*</span></label>
-                <select id="inMls"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select>
-                <div class="conditional" id="mlsNumberField" style="margin-top:8px"><label for="mlsNumber">MLS Number <span class="required-star">*</span></label><input type="text" id="mlsNumber" maxlength="50"></div>
+              <div class="mls-pair">
+                <div class="field"><label for="inMls">In the MLS? <span class="required-star">*</span></label>
+                  <select id="inMls"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select>
+                </div>
+                <div class="field conditional" id="mlsNumberField"><label for="mlsNumber">MLS Number <span class="required-star">*</span></label><input type="text" id="mlsNumber" maxlength="50"></div>
               </div>
               <div class="field"><label for="referralYN">Referral? <span class="required-star">*</span></label>
                 <select id="referralYN"><option value="">Select…</option><option value="no">No</option><option value="yes">Yes</option></select>
