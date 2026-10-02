@@ -15,7 +15,7 @@
   h1,h2,h3{margin:0 0 8px;color:var(--navy)}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
   header.page-head{padding:22px 0 10px;text-align:left}
-  header.page-head h1{font-size:34px;text-align:center}
+  header.page-head h1{font-size:min(34px,5.6vw);text-align:center}
   .tt-head{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
   .tt-head label{margin:0;font-size:16.5px;font-weight:800;color:var(--navy);white-space:nowrap}
   .tt-head select{font-size:20px;width:auto;min-width:0;max-width:420px;flex:1 1 auto;padding:6px 10px}
@@ -244,7 +244,7 @@
 
 <div class="wrap">
   <header class="page-head">
-    <h1>CDA — Deal Intake (v2)</h1>
+    <h1>Compliance &amp; Commission Disbursement Authorization</h1>
     <div class="tt-head">
       <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
       <select id="transactionType" form="cdaForm" required>
