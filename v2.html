@@ -1461,6 +1461,7 @@
   function saveDraftsIndex(idx) { try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(idx)); } catch (e) {} }
 
   function buildPropertyAddress() {
+    if ($("#inMls") && $("#inMls").value === "yes" && $("#mlsNumber").value.trim()) return "MLS# " + $("#mlsNumber").value.trim();
     const street = $("#propStreet").value.trim();
     const city = $("#propCity").value.trim();
     const state = $("#propState").value === "Other" ? $("#propStateOther").value.trim() : $("#propState").value;
