@@ -116,6 +116,8 @@
   #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
   #buyersLegend,#buyersList,#addBuyerBtn,#sellersLegend,#sellersList,#addSellerBtn{display:none!important}
   .conditional.show{display:block}
+  .acc-ack{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#1b7a2f;margin:0 0 8px;cursor:pointer}
+  .acc-ack input{width:18px;height:18px;margin:0}
   .banner-note{background:#eef4fb;border:1px solid #cfe0f2;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#234}
   .doc-chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .doc-chip{display:flex;align-items:center;gap:8px;background:#eef4fb;border:1px solid #cfe0f2;border-radius:999px;padding:5px 8px 5px 12px;font-size:12px;color:#234}
@@ -126,6 +128,8 @@
   .doc-count.limit{color:var(--err);font-weight:600}
   .banner-note.warn{background:#fff8e8;border-color:#f0dfa8;color:#6b5300}
   .fixed-text{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#334}
+  .acc-note{font-size:25px;line-height:1.3;color:#1b7a2f;background:#eef8f0;border-color:#b9dfc2}
+  fieldset:has(.acc-ack input:checked) .acc-note{font-size:12.5px}
 
   .recap{position:sticky;top:16px;background:var(--navy);color:#fff;border-radius:12px;padding:16px}
   .recap h3{color:#fff;font-size:14px;margin-bottom:10px}
@@ -491,7 +495,8 @@
 
           <fieldset>
             <legend>5 &middot; File Accuracy Assessment</legend>
-            <div class="banner-note" style="font-size:25px;line-height:1.3;color:#1b7a2f;background:#eef8f0;border-color:#b9dfc2">
+            <label class="acc-ack"><input type="checkbox" id="accuracyAck"> I've read this</label>
+            <div class="banner-note acc-note">
               File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
               Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
               A <strong>$100 processing fee is deducted from the agent's commission</strong> if the paperwork has 3 or more errors,
@@ -501,10 +506,11 @@
 
           <fieldset>
             <legend>6 &middot; Certification &amp; Final Actions</legend>
-            <div class="fixed-text">"I certify that the information, amounts, and uploaded documents in this Commission
+            <label class="acc-ack"><input type="checkbox" id="certAck"> I've read this</label>
+            <div class="fixed-text acc-note">"I certify that the information, amounts, and uploaded documents in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
               Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
-            <div class="fixed-text" style="margin-top:8px">"I have provided wiring instructions to the title company and
+            <div class="fixed-text acc-note" style="margin-top:8px">"I have provided wiring instructions to the title company and
               have verified the method our firm will receive payment."</div>
             <div class="grid g3" style="margin-top:10px">
               <div class="field">
@@ -732,7 +738,7 @@
   // letters to confuse (O/0, 1/I). Generated fresh per deal (not per
   // agent), so one leaked code only exposes one transaction.
   const genCode = () => String(Math.floor(1000000 + Math.random() * 9000000));
-  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const todayISO = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 
   let currentRecordId = genCode();
 
