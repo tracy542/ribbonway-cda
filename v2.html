@@ -276,11 +276,31 @@
               <div class="field"><label for="referralYN">Referral? <span class="required-star">*</span></label>
                 <select id="referralYN"><option value="">Select…</option><option value="no">No referral</option><option value="yes">Yes — there's a referral</option></select>
               </div>
+              <div class="field"><label for="docsLocationPick">Where are the contract documents? <span class="required-star">*</span></label>
+                <select id="docsLocationPick"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in any platform — I'll upload them</option></select>
+                <div class="hint">We get the docs, run compliance, and email you "all clear" or a short fix list.</div>
+                <div hidden><input type="radio" name="docsLocation" value="zipForm"><input type="radio" name="docsLocation" value="dotloop"><input type="radio" name="docsLocation" value="RibbonWay Platform"><input type="radio" name="docsLocation" value="Upload"></div>
+              </div>
               <div class="field conditional show" id="grossCommissionMethodField">
                 <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
                 <select id="grossCommissionMethod"><option value="Flat">Flat Amount</option></select>
               </div>
               
+            </div>
+            <div class="grid g3">
+              <div></div><div></div>
+              <div class="field conditional" id="platformIdField"><label for="zipDotloopId">Transaction ID or loop name</label><input type="text" id="zipDotloopId" maxlength="80">
+                <div class="hint">Optional — helps us find the right file faster.</div>
+              </div>
+            </div>
+            <div class="conditional" id="docsUploadBlock" style="margin-top:6px">
+              <div class="field">
+                <label for="cdaDocsUpload">Choose Files — listing agreement, ratified contract, and closeout paperwork <span class="required-star">*</span></label>
+                <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
+                <div class="hint">Up to 20 files, 25MB each. PDF, JPG, PNG or TIFF.</div>
+              </div>
+              <div id="cdaDocsChips" class="doc-chip-list"></div>
+              <div id="cdaDocsCount" class="doc-count"></div>
             </div>
             <div class="conditional" id="referralChoiceBlock">
               <div class="choice-list" style="margin-top:4px">
@@ -472,32 +492,7 @@
           </fieldset>
 
           <fieldset>
-            <legend>6 &middot; Where are the contract documents?</legend>
-            <div class="hint" style="margin-bottom:6px">Tell us where the file lives. We go get the documents, file them, run compliance, and email you "all clear" or a short fix list. Pen-and-ink? Email the docs into your zipForm or dotloop file and pick that platform here.</div>
-            <div hidden>
-              <input type="radio" name="docsLocation" value="zipForm"><input type="radio" name="docsLocation" value="dotloop"><input type="radio" name="docsLocation" value="RibbonWay Platform"><input type="radio" name="docsLocation" value="Upload">
-            </div>
-            <div class="grid g2">
-              <div class="field"><label for="docsLocationPick">Platform <span class="required-star">*</span></label>
-                <select id="docsLocationPick"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in any platform — I'll upload them here</option></select>
-              </div>
-              <div class="field conditional" id="platformIdField"><label for="zipDotloopId">Transaction ID or loop name</label><input type="text" id="zipDotloopId" maxlength="80">
-                <div class="hint">Optional — helps us find the right file faster.</div>
-              </div>
-            </div>
-            <div class="conditional" id="docsUploadBlock" style="margin-top:10px">
-              <div class="field">
-                <label for="cdaDocsUpload">Choose Files — listing agreement, ratified contract, and closeout paperwork <span class="required-star">*</span></label>
-                <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
-                <div class="hint">Up to 20 files, 25MB each. PDF, JPG, PNG or TIFF.</div>
-              </div>
-              <div id="cdaDocsChips" class="doc-chip-list"></div>
-              <div id="cdaDocsCount" class="doc-count"></div>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>7 &middot; Certification &amp; Final Actions</legend>
+            <legend>6 &middot; Certification &amp; Final Actions</legend>
             <div class="fixed-text">"I certify that the information, amounts, and uploaded documents in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
               Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
