@@ -87,6 +87,8 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
+  .verify-tag[hidden]{display:none}
+  .verify-tag{display:inline-block;background:#fff176;color:#3a2e00;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:4px}
   #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
   #buyersLegend,#buyersList,#addBuyerBtn,#sellersLegend,#sellersList,#addSellerBtn{display:none!important}
   .conditional.show{display:block}
@@ -334,12 +336,12 @@
             <div class="conditional show" id="titleEscrowBlock">
               <div class="sub-legend">Title / Escrow — pick from the list or add a new one (required before closing)</div>
               <div class="grid g3">
-                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick from the list or add a new one"><datalist id="titleCompanyList"></datalist></div>
-                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100"></div>
+                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
+                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
               </div>
               <div class="grid g3" style="margin-top:10px">
-                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span></label><input type="tel" id="titlePhone"></div>
-                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span></label><input type="email" id="titleEmail"></div>
+                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
                 <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
               </div>
               <div class="grid g3" style="margin-top:10px">
@@ -351,8 +353,7 @@
             </div>
             <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
 
-            <div class="sub-legend">Notes</div>
-            <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
+            <input type="hidden" id="transactionNotes">
 
 
           </fieldset>
@@ -485,7 +486,7 @@
 
             <div class="field" style="margin-top:10px">
               <label for="remarks">Remarks</label>
-              <textarea id="remarks" maxlength="2000" placeholder="Anything you want to convey to compliance, the processor, or the broker."></textarea>
+              <textarea id="remarks" maxlength="2000" placeholder="Anything we should know? Required if you are asking for a broker override."></textarea>
             </div>
 
             <div class="conditional" id="voidBlock">
@@ -1968,22 +1969,37 @@
   const TITLE_SAVE_URL = "https://hook.us2.make.com/imwu8gpwu1ulhdm5wp52gsj4xtkoh3jn";
   const TITLE_LIST_URL = "https://hook.us2.make.com/odwws12luw7zl083hckejvjf0aqwduhp";
   let TITLE_LIST = [];
-  const titleLabel = t => t.company + (t.contact ? " — " + t.contact : "");
+  const norm = v => String(v || "").trim().toLowerCase();
+  function refreshTitleLists() {
+    const companies = [...new Set(TITLE_LIST.map(t => t.company))].sort((x, y) => x.localeCompare(y));
+    $("#titleCompanyList").innerHTML = companies.map(c => '<option value="' + escapeHtml(c) + '"></option>').join("");
+    const co = norm($("#titleCompanyName").value);
+    const contacts = TITLE_LIST.filter(t => norm(t.company) === co && t.contact).map(t => t.contact);
+    $("#titleContactList").innerHTML = [...new Set(contacts)].map(c => '<option value="' + escapeHtml(c) + '"></option>').join("");
+  }
   function loadTitleList() {
     fetch(TITLE_LIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
       .then(r => r.json()).then(d => {
         TITLE_LIST = Array.isArray(d.titles) ? d.titles.filter(t => t && t.company) : [];
-        $("#titleCompanyList").innerHTML = TITLE_LIST.map(t => '<option value="' + escapeHtml(titleLabel(t)) + '"></option>').join("");
+        refreshTitleLists();
       }).catch(() => {});
   }
-  function onTitlePicked() {
-    const v = $("#titleCompanyName").value.trim();
-    const t = TITLE_LIST.find(x => titleLabel(x) === v);
-    if (!t) return;
-    $("#titleCompanyName").value = t.company;
-    const set = (id, val) => { if (val != null && val !== "") $(id).value = val; };
-    set("#titleContactName", t.contact); set("#titlePhone", t.phone); set("#titleFax", t.fax); set("#titleEmail", t.email);
+  function onTitleTyped() {
+    refreshTitleLists();
+    const co = norm($("#titleCompanyName").value), ct = norm($("#titleContactName").value);
+    const t = co && ct ? TITLE_LIST.find(x => norm(x.company) === co && norm(x.contact) === ct) : null;
+    $$(".verify-tag").forEach(el => { el.hidden = !t; });
+    const ids = ["#titlePhone", "#titleFax", "#titleEmail", "#titleStreet", "#titleCity", "#titleState", "#titleZip"];
+    if (!t) {
+      // a different contact was typed: clear anything we filled from the old match
+      if (window.__titlePrefill) ids.forEach(id => { if ($(id).value === window.__titlePrefill[id]) $(id).value = ""; });
+      window.__titlePrefill = null;
+      return;
+    }
+    const set = (id, val) => { $(id).value = (val != null ? val : ""); };
+    set("#titlePhone", t.phone); set("#titleFax", t.fax); set("#titleEmail", t.email);
     set("#titleStreet", t.street); set("#titleCity", t.city); set("#titleState", t.state); set("#titleZip", t.zip);
+    window.__titlePrefill = {}; ids.forEach(id => { window.__titlePrefill[id] = $(id).value; });
   }
   function saveTitleCompany() {
     const company = $("#titleCompanyName").value.trim();
@@ -1996,8 +2012,7 @@
 
   function init() {
     loadTitleList();
-    document.addEventListener("input", e => { if (e.target.id === "titleCompanyName") onTitlePicked(); });
-    document.addEventListener("change", e => { if (e.target.id === "titleCompanyName") onTitlePicked(); });
+    ["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (e.target.id === "titleCompanyName" || e.target.id === "titleContactName") onTitleTyped(); }));
     bindPickers();
     bindV2();
     bindSponsorBar();
