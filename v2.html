@@ -2267,7 +2267,7 @@
   function loadTitleList() {
     fetch(TITLE_LIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
       .then(r => r.json()).then(d => {
-        TITLE_LIST = Array.isArray(d.titles) ? d.titles.filter(t => t && t.company) : [];
+        TITLE_LIST = Array.isArray(d.titles) ? d.titles.filter(t => t && t.company && !/^TEST\b/i.test(t.company)) : [];
         refreshTitleLists();
       }).catch(() => {});
   }
