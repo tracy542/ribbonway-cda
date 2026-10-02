@@ -335,7 +335,8 @@
             <div class="field conditional" id="dealStageField">
               <label for="dealStage">Deal Stage</label>
               <select id="dealStage"></select>
-              <div class="hint">Pick the stage you've just reached, then use "Save Progress" below. The last stage uses the primary button instead.</div>
+              <div class="hint">Pick the stage you've just reached, then click Save Progress. The last stage uses the Submit button.</div>
+              <div class="hint" id="rentalStageHint" style="display:none;font-weight:700;color:var(--navy)">Last stage: Commission Collected — from the owner or the listing agent.</div>
             </div>
           </div>
         </fieldset>
@@ -1347,7 +1348,8 @@
     rental: [
       { key: "listing_taken", label: "Listing Taken" },
       { key: "lease_signed", label: "Lease Signed" },
-      { key: "move_in", label: "Move-In", final: true }
+      { key: "move_in", label: "Move-In" },
+      { key: "commission_collected", label: "Commission Collected", final: true }
     ],
     buyer: [
       { key: "contract", label: "Contract" },
@@ -1379,7 +1381,8 @@
     sel.innerHTML = early.map(s => '<option value="' + s.key + '">' + s.label + '</option>').join("");
     sel.value = early.some(s => s.key === currentVal) ? currentVal : (early[0] ? early[0].key : "");
     field.classList.add("show");
-    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : "Submit to Broker") : "Submit to Broker";
+    const rh = $("#rentalStageHint"); if (rh) rh.style.display = t === "Rental" ? "block" : "none";
+    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : finalStage.key === "commission_collected" ? "Commission Collected — Submit" : "Submit to Broker") : "Submit to Broker";
   }
 
   // Rentals conventionally split 80% to the agent (matches the brokerage's
