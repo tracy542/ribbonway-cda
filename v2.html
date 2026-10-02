@@ -92,7 +92,7 @@
   [data-agent-slot]:not([data-slot="1"]) .required-star{display:none}
   [data-agent-slot]{padding:8px 12px;margin-bottom:6px}
   [data-agent-slot] .row-card-head{margin-bottom:4px}
-  body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:2fr 1.2fr .8fr 1fr;align-items:end}
+  body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:1fr 2fr 1.1fr .7fr 1fr;align-items:end}
   @media (max-width:640px){body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:1fr 1fr}}
   .verify-tag[hidden]{display:none}
   .verify-tag{display:inline-block;background:#fff176;color:#3a2e00;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:4px}
@@ -601,6 +601,10 @@
   <div class="row-card" data-agent-slot style="border-color:#b9c9d9">
     <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
     <div class="grid g3">
+      <div class="field">
+        <label>Office</label>
+        <select data-f="slot_office"><option value="">All offices</option><option value="FR">Front Royal</option><option value="MBG">Martinsburg</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select>
+      </div>
       <div class="field" style="position:relative">
         <label>Agent <span class="required-star">*</span></label>
         <select data-f="agent_pick" class="agent-pick"><option value="">Loading agents…</option></select>
@@ -792,15 +796,16 @@
   const OFFICE_LABEL = { FR: "Front Royal", MBG: "Martinsburg", MRB: "Martinsburg", Bow: "Bowie", BOW: "Bowie", REF: "Referral" };
   const OFFICE_ALIAS = { MRB: "MBG", BOW: "Bow" };
   const normOffice = o => OFFICE_ALIAS[o] || o;
-  function fillPicker(sel, want, onlyOffice) {
+  function fillPicker(sel, want, onlyOffice, forceOffice) {
     if (!AGENT_DIRECTORY.length) { sel.innerHTML = '<option value="">Agent list unavailable — refresh the page</option>'; return; }
-    const off = $("#officeCode") ? $("#officeCode").value : "";
+    const off = forceOffice ? forceOffice : ($("#officeCode") ? $("#officeCode").value : "");
+    if (forceOffice) onlyOffice = true;
     let list = AGENT_DIRECTORY.slice();
     if (off && onlyOffice) list = list.filter(a => normOffice(a.office) === off);
     else if (off) list.sort((x, y) => (normOffice(x.office) === off ? 0 : 1) - (normOffice(y.office) === off ? 0 : 1) || String(x.name).localeCompare(String(y.name)));
     const keep = want && !list.some(a => String(a.agent_id) === String(want)) ? agentById(want) : null;
     if (keep) list.unshift(keep);
-    const lead = onlyOffice ? (off ? "Select your name…" : "Pick your office first…") : "Select agent…";
+    const lead = forceOffice ? "Select agent…" : (onlyOffice ? (off ? "Select your name…" : "Pick your office first…") : "Select agent…");
     sel.innerHTML = '<option value="">' + lead + '</option>' + list.map(a =>
       '<option value="' + escapeHtml(a.agent_id) + '">' + escapeHtml(a.name) + (a.office ? " — " + escapeHtml(OFFICE_LABEL[a.office] || a.office) : "") + '</option>').join("");
     if (want && AGENT_DIRECTORY.some(a => String(a.agent_id) === String(want))) sel.value = want;
@@ -811,7 +816,7 @@
     if (sp) fillPicker(sp, sp.value || $("#submitterAgentId").value, true);
     $$("[data-agent-slot]").forEach(slot => {
       const sel = slot.querySelector('[data-f="agent_pick"]');
-      if (sel) fillPicker(sel, sel.value || slot.querySelector('[data-f="agent_id"]').value);
+      if (sel) fillPicker(sel, sel.value || slot.querySelector('[data-f="agent_id"]').value, false, (slot.querySelector('[data-f="slot_office"]') || {}).value || "");
     });
   }
   function onSubmitterPicked() {
@@ -826,7 +831,7 @@
     const first = $$("[data-agent-slot]")[0];
     if (a && first) {
       const fs = first.querySelector('[data-f="agent_pick"]');
-      if (fs && !fs.value) { fs.value = a.agent_id; selectAgentForSlot(first, a); }
+      if (fs && !fs.value) { const so = first.querySelector('[data-f="slot_office"]'); if (so) so.value = normOffice(a.office) || ""; fillPicker(fs, a.agent_id, false, so ? so.value : ""); fs.value = a.agent_id; selectAgentForSlot(first, a); }
     }
     if (typeof recalc === "function") recalc();
   }
@@ -1969,11 +1974,15 @@
     document.addEventListener("change", e => {
       if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
       if (e.target.id === "officeCode") { populateAgentPickers(); return; }
+      if (e.target.matches('[data-f="slot_office"]')) {
+        const slot = e.target.closest("[data-agent-slot]"); const sel = slot.querySelector('[data-f="agent_pick"]');
+        fillPicker(sel, sel.value, false, e.target.value); return;
+      }
       if (e.target.matches('[data-f="agent_pick"]')) {
         const slot = e.target.closest("[data-agent-slot]");
         const a = agentById(e.target.value);
-        if (a) selectAgentForSlot(slot, a);
-        else ["agent_id","name","email","mls_id","split_percent","commission_amount_fixed"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
+        if (a) { selectAgentForSlot(slot, a); const so = slot.querySelector('[data-f="slot_office"]'); if (so && !so.value) so.value = normOffice(a.office) || ""; }
+        else ["agent_id","name","email","mls_id","split_percent","commission_amount_fixed","slot_office"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
         recalc();
       }
     });
