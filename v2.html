@@ -87,6 +87,10 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
+  .pct-warn{margin-top:6px;padding:8px 12px;border-radius:8px;font-weight:800;font-size:14px;color:#fff;background:#b00020;animation:pctflash 1s ease-in-out infinite}
+  .pct-warn[hidden]{display:none}
+  @keyframes pctflash{0%,100%{opacity:1}50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){.pct-warn{animation:none}}
   .flash-5s{border-radius:4px;padding:1px 4px;animation:flash5 1s ease-in-out 5}
   @keyframes flash5{0%,100%{background:transparent;color:inherit}50%{background:#fff176;color:#3a2e00}}
   @media (prefers-reduced-motion:reduce){.flash-5s{animation:none}}
@@ -445,6 +449,7 @@
               </div>
             </div>
             <div id="agentsList"></div>
+            <div id="pctTotalWarn" class="pct-warn" hidden></div>
             <button type="button" class="btn small add-row-btn" id="addAgentBtn">+ Add commission agent</button>
           </fieldset>
 
@@ -1122,6 +1127,14 @@
       agentsList.appendChild(row);
     });
 
+    const warn = $("#pctTotalWarn");
+    if (warn) {
+      const usedRows = agents.filter(a => a.name);
+      const pctSum = r2(usedRows.reduce((t, a) => t + n(a.split_percent), 0));
+      const show = $("#allocationMethod").value !== "Fixed" && usedRows.length > 0 && Math.abs(pctSum - 100) >= 0.01;
+      warn.hidden = !show;
+      if (show) warn.textContent = "Total: " + pctSum + "% — the % of the deal must add up to 100%";
+    }
     const NB = r2(TDB - TNA);
     const check = r2(TDB - (NB + TNA));
     $("#rTNA").textContent = money(TNA);
