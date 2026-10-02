@@ -110,7 +110,11 @@
   @keyframes flash5{0%,100%{color:#ffeb3b}50%{color:rgba(255,235,59,.15)}}
   @media (prefers-reduced-motion:reduce){.flash-5s{animation:none}}
   body:not(.admin) .admin-only{display:none!important}
-  #addAgentBtn,[data-remove-agent]{display:none!important}
+  #addAgentBtn{display:none!important}
+  [data-agent-slot] .row-card-head{justify-content:flex-start;gap:8px}
+  [data-remove-agent]{background:none;border:0;padding:2px 4px;cursor:pointer;color:#b00020;line-height:0;border-radius:6px;min-height:0}
+  [data-remove-agent]:hover{background:#fdecee}
+  [data-remove-agent] svg{width:18px;height:18px}
   [data-agent-slot]:not([data-slot="1"]) .required-star{display:none}
   [data-agent-slot]{padding:8px 12px;margin-bottom:6px}
   [data-agent-slot] .row-card-head{margin-bottom:4px}
@@ -441,7 +445,7 @@
           </fieldset>
           <fieldset>
             <legend>3 &middot; Agents on this deal</legend>
-            <div class="banner-note">Fill in one row per agent on the deal. Leave unused rows blank. To clear a row, pick the blank choice at the top of its name list.</div>
+            <div class="banner-note">Fill in one row per agent on the deal. Row not needed? Click the red trash can beside it.</div>
             <div class="grid g3 admin-only" style="margin-bottom:10px">
               <div class="field">
                 <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
@@ -632,7 +636,7 @@
 
 <template id="agentSlotTpl">
   <div class="row-card" data-agent-slot style="border-color:#b9c9d9">
-    <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
+    <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" data-remove-agent title="Remove this agent row" aria-label="Remove this agent row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>
     <div class="grid g3">
       <div class="field">
         <label>Office</label>
