@@ -1344,6 +1344,11 @@
       { key: "clear_to_close", label: "Clear to Close" },
       { key: "closed", label: "Closed", final: true }
     ],
+    rental: [
+      { key: "listing_taken", label: "Listing Taken" },
+      { key: "lease_signed", label: "Lease Signed" },
+      { key: "move_in", label: "Move-In", final: true }
+    ],
     buyer: [
       { key: "contract", label: "Contract" },
       { key: "clear_to_close", label: "Clear to Close" },
@@ -1351,7 +1356,8 @@
     ]
   };
   function stagesForType(t) {
-    if (t === "Listing Side" || t === "Dual Side / Both" || t === "Rental") return STAGE_DEFS.listing;
+    if (t === "Rental") return STAGE_DEFS.rental;
+    if (t === "Listing Side" || t === "Dual Side / Both") return STAGE_DEFS.listing;
     if (t === "Buyer Side") return STAGE_DEFS.buyer;
     return null;
   }
