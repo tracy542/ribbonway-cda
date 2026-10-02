@@ -16,6 +16,9 @@
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
   header.page-head{padding:22px 0 10px;text-align:left}
   header.page-head h1{font-size:22px}
+  .tt-head{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
+  .tt-head label{margin:0;font-size:16.5px;font-weight:800;color:var(--navy);white-space:nowrap}
+  .tt-head select{font-size:16.5px;width:auto;min-width:240px;padding:6px 10px}
   header.page-head p{margin:0;color:var(--muted)}
 
   /* ===== Sponsor banner (site-wide standard pattern) ===== */
@@ -193,6 +196,18 @@
 <div class="wrap">
   <header class="page-head">
     <h1>CDA — Deal Intake (v2)</h1>
+    <div class="tt-head">
+      <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
+      <select id="transactionType" form="cdaForm" required>
+        <option value="">Select type…</option>
+        <option value="Listing Side">Listing Side</option>
+        <option value="Buyer Side">Buyer Side</option>
+        <option value="Dual Side / Both">Dual Side / Both</option>
+        <option value="Rental">Rental</option>
+        <option value="Referral Only">Referral Only</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
     <p style="color:var(--navy2);font-weight:600;margin:4px 0 6px">Start this the day the listing is taken or the buyer contract is ratified. Save as the deal moves. Submit at closing.</p>
     <p>Weichert, Realtors - Blue Ribbon — Front Royal VA · Martinsburg WV · Bowie MD · Blue Ribbon Referral Agency</p>
   </header>
@@ -233,18 +248,6 @@
             <input type="hidden" id="submitterEmail">
           </div>
           <div class="grid g3" style="margin-top:10px">
-            <div class="field">
-              <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
-              <select id="transactionType" required>
-                <option value="">Select type…</option>
-                <option value="Listing Side">Listing Side</option>
-                <option value="Buyer Side">Buyer Side</option>
-                <option value="Dual Side / Both">Dual Side / Both</option>
-                <option value="Rental">Rental</option>
-                <option value="Referral Only">Referral Only</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
             <div class="field" id="projectedDateField">
               <label for="projectedClosingDate">Projected Closing Date</label>
               <input type="date" id="projectedClosingDate">
@@ -1316,7 +1319,7 @@
   // ------------------------------------------------------------
   function serializeSimpleFields() {
     const out = {};
-    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id]").forEach(el => {
+    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id], #transactionType").forEach(el => {
       if (el.type === "file") return;
       out[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
     });
