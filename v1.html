@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blue Ribbon CDA</title>
+<title>Blue Ribbon CDA Form</title>
 <style>
   :root{
     --navy:#0b2540; --navy2:#123a63; --gold:#c9a227; --ink:#111; --muted:#5b6b7c;
@@ -14,11 +14,8 @@
   a{color:var(--navy2)}
   h1,h2,h3{margin:0 0 8px;color:var(--navy)}
   .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
-  header.page-head{padding:22px 0 10px;text-align:left}
-  header.page-head h1{font-size:min(34px,5.6vw);text-align:center}
-  .tt-head{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
-  .tt-head label{margin:0;font-size:16.5px;font-weight:800;color:var(--navy);white-space:nowrap}
-  .tt-head select{font-size:20px;width:auto;min-width:0;max-width:420px;flex:1 1 auto;padding:6px 10px}
+  header.page-head{padding:22px 20px 10px;text-align:center}
+  header.page-head h1{font-size:22px}
   header.page-head p{margin:0;color:var(--muted)}
 
   /* ===== Sponsor banner (site-wide standard pattern) ===== */
@@ -36,37 +33,19 @@
   @media (max-width: 900px) { .sponsor-bar-logo-wrap img { height: 24px; } }
   @media (max-width: 640px) { .sponsor-bar { grid-template-columns: 1fr; text-align: center; padding: 10px 14px; } .sponsor-bar-right { justify-content: center; } }
 
-  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;margin-top:16px}
-  body.admin .layout{grid-template-columns:minmax(0,1fr) 320px}
-  body:not(.admin) #recapPanel{display:none}
-  .choice-list{display:grid;gap:8px;margin-top:6px}
-  .ref-note{margin-top:8px;padding:10px 14px;border-radius:8px;background:#fff176;color:#3a2e00;font-weight:700;font-size:14px;border-left:5px solid #f9a825}
-  .ref-note[hidden]{display:none}
-  .choice-list label{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:13px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fbfcfe;cursor:pointer}
-  .choice-list input{width:auto;margin-top:3px}
-  .choice-list .hint{display:block}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start;margin-top:16px}
   @media (max-width:980px){.layout{grid-template-columns:1fr}}
 
   .drafts-bar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .drafts-bar select{flex:1;min-width:220px}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em}
   .pill.projected{background:#fff4d6;color:#8a6100}
-  #currentRecordBadge .pill{font-size:13.75px;padding:3px 11px}
   .pill.closed{background:#d9f2e3;color:var(--ok)}
   .pill.voided{background:#f3d9d9;color:var(--err)}
 
-  fieldset{border:2px solid var(--navy);border-radius:6px;background:var(--card);padding:16px 18px 18px;margin:0 0 20px}
+  fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:0 0 16px}
   legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
-  legend.collapsible{cursor:pointer;user-select:none}
-  .sec-check{margin-left:10px;padding:2px 8px;border-radius:999px;background:#1b7a2f;color:#fff;font-size:12px;font-weight:800;vertical-align:2px}
-  .sec-check[hidden]{display:none}
-  legend.collapsible::before,legend.collapsible::after{content:"▼";display:inline-block;font-size:1em;vertical-align:0;transition:transform .15s}
-  legend.collapsible::before{margin-right:8px}
-  legend.collapsible::after{margin-left:8px}
-  fieldset.collapsed > legend.collapsible::before,fieldset.collapsed > legend.collapsible::after{transform:rotate(-90deg)}
-  fieldset.collapsed > :not(legend){display:none!important}
-  fieldset.collapsed{padding-bottom:4px}
-  .sub-legend{font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;margin:16px 0 6px}
+  .sub-legend{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
   .grid.g2{grid-template-columns:repeat(2,1fr)}
   .grid.g3{grid-template-columns:repeat(3,1fr)}
@@ -77,9 +56,6 @@
     width:100%;padding:8px 9px;border:1px solid #c8d2dc;border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink)
   }
   textarea{resize:vertical;min-height:56px}
-  select{font-size:20px;padding:12px 14px;min-height:56px;font-weight:600}
-  select option{font-size:20px}
-  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date]{min-height:56px;font-size:20px}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0;border-color:var(--gold)}
   .field{margin-bottom:2px}
   .readonly-display{width:100%;padding:8px 9px;border:1px dashed #c8d2dc;border-radius:7px;background:#f7f9fb;font-weight:700;color:var(--navy)}
@@ -105,45 +81,7 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
-  .pct-warn{margin-top:6px;padding:8px 12px;border-radius:8px;font-weight:800;font-size:14px;color:#fff;background:#b00020;animation:pctflash 1s ease-in-out infinite}
-  .pct-warn[hidden]{display:none}
-  @keyframes pctflash{0%,100%{opacity:1}50%{opacity:.35}}
-  @media (prefers-reduced-motion:reduce){.pct-warn{animation:none}}
-  .flash-5s{display:block;font-size:26px;font-weight:800;line-height:1.25;color:#ffeb3b;animation:flash5 1s ease-in-out 10}
-  @keyframes flash5{0%,100%{color:#ffeb3b}50%{color:rgba(255,235,59,.15)}}
-  @media (prefers-reduced-motion:reduce){.flash-5s{animation:none}}
-  body:not(.admin) .admin-only{display:none!important}
-  #addAgentBtn{display:none!important}
-  [data-agent-slot] .row-card-head{justify-content:flex-start;gap:8px}
-  [data-remove-agent]{background:none;border:0;padding:2px 4px;cursor:pointer;color:#b00020;line-height:0;border-radius:6px;min-height:0}
-  [data-remove-agent]:hover{background:#fdecee}
-  [data-remove-agent] svg{width:18px;height:18px}
-  [data-agent-slot]:not([data-slot="1"]) .required-star{display:none}
-  [data-agent-slot]{padding:8px 12px;margin-bottom:6px}
-  [data-agent-slot] .row-card-head{margin-bottom:4px}
-  body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:1fr 2fr 1.1fr .7fr 1fr;align-items:end}
-  @media (max-width:640px){body:not(.admin) [data-agent-slot] > .grid.g3{grid-template-columns:1fr 1fr}}
-  .verify-tag[hidden]{display:none}
-  .verify-tag{display:inline-block;background:#fff176;color:#3a2e00;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:4px}
-  #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
-  #buyersLegend,#buyersList,#addBuyerBtn,#sellersLegend,#sellersList,#addSellerBtn{display:none!important}
   .conditional.show{display:block}
-  .acc-ack{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#b00020;margin:0 0 8px;cursor:pointer}
-  .acc-ack input{width:22px;height:22px;margin:0;accent-color:#b00020}
-  .code-bar{margin:-6px 0 16px;padding:10px 14px;border-radius:10px;border:2px solid #c9a227;background:#fff8e1;color:var(--navy);font-weight:700;font-size:15px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-  .code-bar.pending{border-style:dashed;background:#fffdf5;font-weight:600}
-  .code-bar .code-big{font-size:20px;letter-spacing:.06em}
-  .code-bar .btn{font-size:14px}
-  .code-modal{position:fixed;inset:0;background:rgba(10,25,45,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
-  .code-modal[hidden]{display:none}
-  .code-modal-card{background:#fff;border:3px solid #c9a227;border-radius:14px;max-width:560px;width:100%;padding:22px;text-align:left}
-  .code-modal-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:10px}
-  .code-modal-code{font-size:18px;font-weight:700;color:var(--navy2);margin-bottom:8px}
-  .code-modal-code span{font-size:30px;letter-spacing:.08em;color:var(--navy);margin-left:6px}
-  .code-modal-card input{width:100%;margin-bottom:12px}
-  .code-modal-btns{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
-  .code-modal-btns .btn{font-size:16px;padding:10px 16px;text-decoration:none}
-  .code-modal-note{font-size:13px;color:#445}
   .banner-note{background:#eef4fb;border:1px solid #cfe0f2;border-radius:9px;padding:10px 12px;font-size:12.5px;color:#234}
   .doc-chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .doc-chip{display:flex;align-items:center;gap:8px;background:#eef4fb;border:1px solid #cfe0f2;border-radius:999px;padding:5px 8px 5px 12px;font-size:12px;color:#234}
@@ -154,10 +92,6 @@
   .doc-count.limit{color:var(--err);font-weight:600}
   .banner-note.warn{background:#fff8e8;border-color:#f0dfa8;color:#6b5300}
   .fixed-text{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#334}
-  .fee-warn{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4e0;border:1px solid #f0c27a;color:#7a4a00;line-height:1.3}
-  .acc-note{font-size:25px;line-height:1.3;color:#1b7a2f;background:#eef8f0;border-color:#b9dfc2}
-  fieldset:has(.acc-ack input:checked) .acc-note{font-size:12.5px}
-  .acc-note.fee-warn{color:#7a4a00;background:#fff4e0;border:1px solid #f0c27a}
 
   .recap{position:sticky;top:16px;background:var(--navy);color:#fff;border-radius:12px;padding:16px}
   .recap h3{color:#fff;font-size:14px;margin-bottom:10px}
@@ -170,30 +104,6 @@
   .recap-check.bad{background:#7a1c1c}
 
   .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
-  .top-actions{margin:0 0 14px}
-  .next-steps{margin-top:14px;padding:12px 14px;border:2px solid var(--navy);border-radius:6px;background:#f4f8fc;color:var(--navy)}
-  .next-steps-title{font-weight:800;font-size:16px;margin-bottom:4px}
-  .next-steps ul{margin:0;padding-left:20px;font-size:15px}
-  .next-steps li{margin:3px 0}
-  .dual-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}
-  .dual-row[hidden]{display:none}
-  .dual-ack{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:700;color:var(--navy)}
-  .dual-ack input{width:18px;height:18px;margin:0}
-  #otherSideBtn{font-size:15px;border:2px solid var(--navy)}
-  .linked-note{font-size:15px;font-weight:700;color:var(--navy2)}
-  #inMls,#referralYN{width:170px;max-width:100%}
-  .mls-pair{display:flex;gap:10px;align-items:flex-start;min-width:0}
-  .mls-pair > .field:first-child{flex:0 0 auto}
-  .mls-pair > #mlsNumberField{flex:1 1 0;min-width:0}
-  .mls-pair #inMls{width:120px}
-  @media (min-width:641px){.docs-col{grid-column:3;grid-row:1 / span 3}}
-  .drop-box{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1/1;width:min(100%,210px);border:3px dashed var(--navy);border-radius:10px;background:#f4f8fc;color:var(--navy);text-align:center;padding:14px;cursor:pointer;margin:0}
-  .drop-box:hover{background:#e8f0f9}
-  .drop-box-icon{font-size:40px;line-height:1}
-  .drop-box-title{font-size:20px;font-weight:800}
-  .drop-box-sub{font-size:14px;font-weight:600}
-  .drop-box-hint{font-size:12px;font-weight:400;color:#445}
-  .drop-box input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;min-height:0}
   .msg-list{list-style:none;margin:0;padding:0}
   .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
   .msg-list li.error{background:#fdeeee;color:var(--err);border:1px solid #f2c9c9}
@@ -213,12 +123,10 @@
   .tracy-note-mark{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#3a2e00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
   .tracy-note-body b{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
   .tracy-note-body ul{margin:4px 0 0;padding-left:18px}
-  .tracy-note-call{margin-top:4px;font-size:15px;font-weight:600}
-  .tracy-note-call a{color:#ffeb3b;font-weight:800;text-decoration:none;white-space:nowrap}
   .tracy-note-body li{margin:2px 0}
   .tracy-note-close{border:0;background:transparent;color:#9fb3c9;width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;flex:0 0 auto;cursor:pointer}
   .tracy-note-close:hover{background:rgba(255,255,255,.12);color:#fff}
-  @media (max-width:640px){.tracy-note{gap:10px;padding:10px 12px;align-items:start;text-align:left}.flash-5s{font-size:22px}}
+  @media (max-width:640px){.tracy-note{grid-template-columns:1fr;text-align:center}.tracy-note-mark{justify-self:center}}
 </style>
 </head>
 <body>
@@ -240,78 +148,48 @@
     <div class="tracy-note-mark">TA</div>
     <div class="tracy-note-body">
       <b>A direct note from Tracy</b>
-      <span class="flash-5s">Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?</span>
-      <div class="tracy-note-call">Call Heather Adams at Revolution Mortgage for details: <a href="tel:+16812429967">681-242-9967</a> &nbsp;·&nbsp; NMLS #1940374</div>
+      Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?
+      <ul>
+        <li>Ask every buyer, every time — before the contract, not after.</li>
+        <li>The $2,000 credit only applies when the buyer closes their loan with Heather Adams at Revolution Mortgage, NMLS #1940374.</li>
+        <li>On a typical loan, that's often $2,000+ back in their pocket.</li>
+        <li>Costs you nothing. Takes one text.</li>
+      </ul>
     </div>
     <button class="tracy-note-close" id="tracyNoteClose" type="button" aria-label="Dismiss">×</button>
   </div>
 
 <div class="wrap">
   <header class="page-head">
-    <h1>Compliance &amp; Commission Disbursement Authorization</h1>
-    <div class="tt-head">
-      <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
-      <select id="transactionType" form="cdaForm" required>
-        <option value="">Select type…</option>
-        <option value="Listing Side">Listing Side</option>
-        <option value="Buyer Side">Buyer Side</option>
-        <option value="Dual Side / Both" hidden>Dual Side / Both</option>
-        <option value="Rental">Rental</option>
-        <option value="Referral Only">Referral Only</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-    <div class="dual-row" id="dualRow" hidden>
-      <label class="dual-ack"><input type="checkbox" id="dualAgency"> Dual agency — our brokerage had both sides</label>
-      <button type="button" class="btn" id="otherSideBtn">I had both sides — create the buyer-side CDA</button>
-      <input type="hidden" id="linkedCdaCode">
-      <span class="linked-note" id="linkedNote"></span>
-    </div>
+    <h1>Commission Disbursement Authorization (CDA)</h1>
+    <p>Weichert, Realtors - Blue Ribbon — Front Royal VA · Martinsburg WV · Bowie MD · Blue Ribbon Referral Agency</p>
   </header>
 
   <div class="drafts-bar">
-    <label for="resumeCodeInput" style="margin:0;font-weight:800;font-size:min(24px,4.2vw);white-space:nowrap;color:var(--navy)">Resume a saved CDA — enter your code:</label>
+    <label for="resumeCodeInput" style="margin:0;white-space:nowrap">Resume a saved CDA — enter your code:</label>
     <input type="text" id="resumeCodeInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7 digits" style="width:100px">
     <button type="button" class="btn small" id="resumeCodeBtn">Resume</button>
     <button type="button" class="btn small" id="newDraftBtn">Start New CDA</button>
     <span id="currentRecordBadge"></span>
   </div>
-  <div class="code-bar" id="codeWriteDownNote"></div>
-  <div class="code-modal" id="confirmModal" hidden>
-    <div class="code-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-      <div class="code-modal-title" id="confirmTitle"></div>
-      <div class="code-modal-note" id="confirmText" style="font-size:16px;margin-bottom:14px"></div>
-      <div class="code-modal-btns">
-        <button type="button" class="btn primary" id="confirmYes">Yes</button>
-        <button type="button" class="btn" id="confirmNo">Cancel</button>
-      </div>
-    </div>
-  </div>
-  <div class="code-modal" id="codeModal" hidden>
-    <div class="code-modal-card" role="dialog" aria-modal="true" aria-labelledby="codeModalTitle">
-      <div class="code-modal-title" id="codeModalTitle">Your CDA is saved. Here's your MAGIC link.</div>
-      <div class="code-modal-code">Code <span id="codeModalCode"></span></div>
-      <input type="text" id="codeModalLink" readonly>
-      <div class="code-modal-btns">
-        <button type="button" class="btn primary" id="codeModalCopy">Copy MAGIC link</button>
-        <a class="btn primary" id="codeModalEmail" href="#">Email it to me</a>
-        <button type="button" class="btn" id="codeModalOk">OK, got it</button>
-      </div>
-      <div class="code-modal-note">Open this MAGIC link on any device to pick up where you left off, until you submit. Lost it? Email <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a> with the property address and we'll find it.</div>
-    </div>
-  </div>
+  <p class="hint" id="codeWriteDownNote" style="margin:-10px 0 16px 2px;color:var(--navy2);font-weight:600"></p>
+  <p class="hint" style="margin:-10px 0 16px 2px;color:var(--navy2)">Your code is random and is <strong>not saved anywhere you can look it up</strong> — it only lives in this CDA's record. Write it down now. Any device, any browser, any time before you submit: come back here and enter that code to pick up exactly where you left off.</p>
 
   <div class="layout">
     <div>
       <form id="cdaForm" autocomplete="off">
-        <div class="actions-bar top-actions" id="topActions">
-          <button type="button" class="btn" id="saveStageBtnTop">Save Progress</button>
-          <button type="button" class="btn primary" id="markClosedBtnTop">Submit to Broker</button>
-        </div>
 
         <fieldset>
-          <legend>1 Office &amp; Transaction</legend>
+          <legend>1 &middot; Office &amp; Transaction</legend>
           <div class="grid g3">
+            <div class="field">
+              <label for="submitterName">Your Name <span class="required-star">*</span></label>
+              <input type="text" id="submitterName" required minlength="2" maxlength="100">
+            </div>
+            <div class="field">
+              <label for="submitterEmail">Your Email <span class="required-star">*</span></label>
+              <input type="email" id="submitterEmail" required>
+            </div>
             <div class="field">
               <label for="officeCode">Office <span class="required-star">*</span></label>
               <select id="officeCode" required>
@@ -322,18 +200,24 @@
                 <option value="REF">REF — Blue Ribbon Referral Agency</option>
               </select>
             </div>
-            <div class="field">
-              <label for="submitterPick">Your Name <span class="required-star">*</span></label>
-              <select id="submitterPick" class="agent-pick"><option value="">Loading agents…</option></select>
-              <input type="hidden" id="submitterName">
-              <input type="hidden" id="submitterAgentId">
-            </div>
-            <input type="hidden" id="submitterEmail">
           </div>
           <div class="grid g3" style="margin-top:10px">
+            <div class="field">
+              <label for="transactionType">Transaction Type <span class="required-star">*</span></label>
+              <select id="transactionType" required>
+                <option value="">Select type…</option>
+                <option value="Listing Side">Listing Side</option>
+                <option value="Buyer Side">Buyer Side</option>
+                <option value="Dual Side / Both">Dual Side / Both</option>
+                <option value="Rental">Rental</option>
+                <option value="Referral Only">Referral Only</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
             <div class="field" id="projectedDateField">
               <label for="projectedClosingDate">Projected Closing Date</label>
               <input type="date" id="projectedClosingDate">
+              <div class="hint">Planning only — no fee math depends on this date.</div>
             </div>
             <div class="field" id="actualDateField">
               <label for="actualClosingDate">Actual Closing Date <span id="actualDateStar" class="required-star" style="display:none">*</span></label>
@@ -349,10 +233,8 @@
             <div class="field conditional" id="dealStageField">
               <label for="dealStage">Deal Stage</label>
               <select id="dealStage"></select>
-              <div class="hint">Pick the stage you've just reached, then click Save Progress. The last stage uses the Submit button.</div>
-              <div class="hint" id="rentalStageHint" style="display:none;font-weight:700;color:var(--navy)">Last stage: Commission Collected — from the owner or the listing agent.</div>
+              <div class="hint">Pick the stage you've just reached, then use "Save Progress" below. The last stage uses the primary button instead.</div>
             </div>
-            <div class="field" id="moveInDateField" style="display:none"><label for="moveInDate">Move-In Date</label><input type="date" id="moveInDate"></div>
           </div>
         </fieldset>
 
@@ -360,98 +242,42 @@
         <div id="standardSection">
 
           <fieldset>
-            <legend>2 Transaction &amp; Referral</legend>
+            <legend>2 &middot; Transaction, Parties &amp; Title/Escrow</legend>
             <div class="grid g3">
-              <div class="mls-pair">
-                <div class="field"><label for="inMls">In the MLS? <span class="required-star">*</span></label>
-                  <select id="inMls"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-                <div class="field conditional" id="mlsNumberField"><label for="mlsNumber">MLS Number <span class="required-star">*</span></label><input type="text" id="mlsNumber" maxlength="50"></div>
+              <div class="field conditional show" id="salePriceField"><label for="salePrice">Sale Price ($) <span class="required-star">*</span></label><input type="number" id="salePrice" min="0.01" step="0.01"></div>
+              <div class="field conditional show" id="grossCommissionMethodField">
+                <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
+                <select id="grossCommissionMethod"><option value="Percent">Percent of Sale Price</option><option value="Flat">Flat Amount</option></select>
               </div>
-              <div class="field"><label for="referralYN">Referral? <span class="required-star">*</span></label>
-                <select id="referralYN"><option value="">Select…</option><option value="no">No</option><option value="yes">Yes</option></select>
+              <div class="field"><label for="mlsNumber">MLS / Reference Number</label><input type="text" id="mlsNumber" maxlength="50">
+                <div class="hint">Mandatory unless this property was not listed in MLS.</div>
               </div>
-              <div class="field docs-col"><label for="docsLocationPick">Where are the contract documents? <span class="required-star">*</span></label>
-                <select id="docsLocationPick"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in any platform — I'll upload them</option></select>
-                <div hidden><input type="radio" name="docsLocation" value="zipForm"><input type="radio" name="docsLocation" value="dotloop"><input type="radio" name="docsLocation" value="RibbonWay Platform"><input type="radio" name="docsLocation" value="Upload"></div>
-                <div class="conditional" id="platformIdField" style="margin-top:8px"><label for="zipDotloopId">Transaction ID or loop name (optional)</label><input type="text" id="zipDotloopId" maxlength="80"></div>
-                <div class="conditional" id="docsUploadBlock" style="margin-top:8px">
-                  <div class="field">
-                    <label for="cdaDocsUpload" class="drop-box">
-                      <span class="drop-box-icon">&#8679;</span>
-                      <span class="drop-box-title">Choose files <span class="required-star">*</span></span>
-                      <span class="drop-box-sub">or drag them here</span>
-                      <span class="drop-box-hint">Listing agreement, ratified contract, closeout paperwork. PDF, JPG, PNG or TIFF.</span>
-                      <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
-                    </label>
-                  </div>
-                  <div id="cdaDocsChips" class="doc-chip-list"></div>
-                  <div id="cdaDocsCount" class="doc-count"></div>
-                </div>
-              </div>
+            </div>
+            <div class="grid g3" style="margin-top:8px">
               <div class="field conditional show" id="grossCommissionPercentField">
                 <label for="grossCommissionPercent">Gross Commission (%) <span class="required-star">*</span></label>
                 <input type="number" id="grossCommissionPercent" min="0.0001" max="100" step="0.0001">
                 <div class="hint">Calculates against Sale Price.</div>
               </div>
-              <div class="field conditional show" id="salePriceField"><label for="salePrice">Sale Price ($) <span class="required-star">*</span></label><input type="number" id="salePrice" min="0.01" step="0.01"></div>
-              <div class="field"><label for="grossCommission">Expected commission on the closing document ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01" placeholder="e.g. 9000">
+              <div class="field"><label for="grossCommission">Gross Commission Due Brokerage ($) <span class="required-star">*</span></label><input type="number" id="grossCommission" min="0.01" step="0.01">
                 <div class="hint">Auto-filled when using Percent entry. Switch to Flat Amount to type a dollar figure directly.</div>
-                <div class="hint" style="display:block">The total commission to Blue Ribbon, as it will appear on the closing statement.</div>
               </div>
-              <div class="field conditional show" id="grossCommissionMethodField">
-                <label for="grossCommissionMethod">Gross Commission Entry <span class="required-star">*</span></label>
-                <select id="grossCommissionMethod"><option value="Flat">Flat Amount</option></select>
+              <div class="field"><label for="zipDotloopId">ZipForm / Dotloop Transaction ID</label><input type="text" id="zipDotloopId" maxlength="80">
+                <div class="hint">So we can pull the file directly if needed.</div>
               </div>
-              
             </div>
-            <div id="propertyBlock" style="display:none">
-            <div class="sub-legend">Property address</div>
+
+            <div class="sub-legend">Property</div>
             <div class="grid g3">
-              <div class="field" style="grid-column:span 2"><label for="propStreet">Street</label><input type="text" id="propStreet" maxlength="150"></div>
-              <div class="field"><label for="propCity">City</label><input type="text" id="propCity" maxlength="80"></div>
+              <div class="field" style="grid-column:span 2"><label for="propStreet">Street <span class="required-star">*</span></label><input type="text" id="propStreet" maxlength="150"></div>
+              <div class="field"><label for="propCity">City <span class="required-star">*</span></label><input type="text" id="propCity" maxlength="80"></div>
               <div class="field">
-                <label for="propState">State</label>
+                <label for="propState">State <span class="required-star">*</span></label>
                 <select id="propState"><option value="VA">VA</option><option value="WV">WV</option><option value="MD">MD</option><option value="Other">Other</option></select>
               </div>
               <div class="field conditional" id="propStateOtherField"><label for="propStateOther">State (specify)</label><input type="text" id="propStateOther" maxlength="40"></div>
-              <div class="field"><label for="propZip">ZIP</label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
+              <div class="field"><label for="propZip">ZIP <span class="required-star">*</span></label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
             </div>
-            </div>
-            <div class="conditional" id="referralChoiceBlock">
-              <div class="choice-list" style="margin-top:4px">
-                <label><input type="radio" name="referralType" value="br"><span>Blue Ribbon Referral agent<span class="hint">Pick them as an agent in Section 3 (office: Referral).</span></span></label>
-                <label><input type="radio" name="referralType" value="outside"><span>Outside brokerage or agent</span></label>
-                <input type="radio" name="referralType" value="none" hidden>
-              </div>
-              <div class="ref-note" id="referralNote" hidden>As part of the compliance process, make sure the referral agreement and W-9 are either in your platform or emailed to <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a>.</div>
-            </div>
-
-            <div class="grid g2">
-              
-              <div class="field">
-                <label for="extraAdminFeeCollected">Admin fee on the closing document? <span class="required-star">*</span></label>
-                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
-              </div>
-              <div class="field conditional" id="adminFeeExemptField">
-                <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
-                <select id="adminFeeExemptReason">
-                  <option value="">Select…</option>
-                  <option value="builder">Builder client (new construction)</option>
-                  <option value="own_home">It's my own home (my personal residence)</option>
-                  <option value="investor">Investor client who buys, rehabs and resells with us</option>
-                </select>
-              </div>
-            </div>
-            <div class="conditional" id="extraAdminFeeBlock">
-              <div class="grid g3" style="margin-top:8px">
-                <div class="field"><label for="extraAdminFeeAmount">Admin fee amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
-                <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
-              </div>
-              <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
-            </div>
-
-            <div class="hint" id="mlsAddressNote" style="display:none;margin-top:6px">Address not needed. We'll pull it from MLS.</div>
 
             <div class="sub-legend" id="buyersLegend">Buyer(s)</div>
             <div id="buyersList"></div>
@@ -461,7 +287,7 @@
             <div id="sellersList"></div>
             <button type="button" class="btn small add-row-btn" id="addSellerBtn">+ Add seller</button>
 
-            <div class="conditional" id="listingAgentBlock" style="display:none!important">
+            <div class="conditional" id="listingAgentBlock">
               <div class="sub-legend" id="listingAgentLegend">Listing Agent of Record</div>
               <div class="grid g2">
                 <div class="field"><label for="listingAgentName" id="listingAgentNameLabel">Listing Agent Name <span class="required-star">*</span></label><input type="text" id="listingAgentName" maxlength="100"></div>
@@ -469,26 +295,50 @@
               </div>
             </div>
 
-            
-            
-
-            <input type="hidden" id="transactionNotes">
-
-
-          
-            <div id="externalReferralSection">
-            <select id="externalReferralOwed" hidden><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
-            <div class="conditional" id="brReferralBlock" style="display:none">
-              <div class="grid g3" style="margin-top:10px">
-                <div class="field">
-                  <label for="brReferralAgreementLocation">Where is the referral agreement? <span class="required-star">*</span></label>
-                  <select id="brReferralAgreementLocation"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in a platform — I'll upload it</option></select>
-                </div>
-                <div class="field conditional" id="brReferralUploadField"><label for="brReferralAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="brReferralAgreementUpload" accept=".pdf,.jpg,.jpeg,.png"></div>
+            <div class="conditional show" id="titleEscrowBlock">
+              <div class="sub-legend">Title / Escrow (Information is REQUIRED)</div>
+              <div class="grid g3">
+                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100"></div>
+                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150"></div>
+                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
+                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
+                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
+                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
+                <div class="field"><label for="titleFax">Title Fax</label><input type="tel" id="titleFax"></div>
+                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span></label><input type="email" id="titleEmail"></div>
               </div>
             </div>
-            <div class="conditional admin-only" id="referralOwedBlock">
-              <div class="sub-legend">Outside referral (admin)</div>
+            <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
+
+            <div class="sub-legend">Notes</div>
+            <div class="field"><textarea id="transactionNotes" maxlength="2000" placeholder="Optional — required if you are requesting a broker override."></textarea></div>
+
+            <div class="sub-legend">Additional Commission at Closing</div>
+            <div class="grid g3">
+              <div class="field">
+                <label for="extraAdminFeeCollected">Additional Commission (Admin Fee) Collected at Closing? <span class="required-star">*</span></label>
+                <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
+              </div>
+            </div>
+            <div class="conditional" id="extraAdminFeeBlock">
+              <div class="grid g3" style="margin-top:8px">
+                <div class="field"><label for="extraAdminFeeAmount">Amount Collected ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
+                <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
+              </div>
+              <div class="hint">Yes: this amount is on top and flows straight to the brokerage — agents' payouts aren't touched. No: the Administrative Fee comes off the bottom of each agent's payout automatically, proportional to their share of the transaction — you no longer need to enter it under each agent's Additional Closing Fees.</div>
+            </div>
+          </fieldset>
+          <fieldset id="externalReferralSection">
+            <legend>2A &middot; External Referral</legend>
+            <div class="hint" style="margin-bottom:10px">For a referral fee owed to an outside brokerage or agent, separate from the agents listed in Section 4 below. Posts automatically as an Administrative Fee debit in Section 3.</div>
+            <div class="grid g3">
+              <div class="field">
+                <label for="externalReferralOwed">Is an external referral fee owed? <span class="required-star">*</span></label>
+                <select id="externalReferralOwed"><option value="">Select…</option><option value="true">Yes</option><option value="false">No</option></select>
+              </div>
+            </div>
+            <div class="conditional" id="referralOwedBlock">
               <div class="grid g3" style="margin-top:8px">
                 <div class="field"><label for="referralCompany">Referral Company <span class="required-star">*</span></label><input type="text" id="referralCompany" maxlength="150"></div>
                 <div class="field"><label for="referralContactName">Contact Name <span class="required-star">*</span></label><input type="text" id="referralContactName" maxlength="100"></div>
@@ -502,34 +352,17 @@
                 <div class="field"><label>Outside Partner Payout (OP)</label><div class="readonly-display" id="referralPartnerPayoutDisplay">$0.00</div></div>
                 <div class="field"><label>Posted as Administrative Fee debit</label><div class="readonly-display">External Referral Fee</div></div>
               </div>
-              <div class="grid g3" style="margin-top:6px;display:none">
+              <div class="grid g3" style="margin-top:6px">
                 <div class="field"><label for="referralAgreementUpload">Referral Agreement <span class="required-star">*</span></label><input type="file" id="referralAgreementUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
                 <div class="field"><label for="referralW9Upload">W-9 <span class="required-star">*</span></label><input type="file" id="referralW9Upload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
                 <div class="field"><label for="referralWiringUpload">Wiring Instructions <span class="required-star">*</span></label><input type="file" id="referralWiringUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff"></div>
               </div>
             </div>
-          </div>
           </fieldset>
+
+
           <fieldset>
-            <legend>3 Agents on this deal</legend>
-            <div class="banner-note">Fill in one row per agent on the deal. Row not needed? Click the red trash can beside it.</div>
-            <div class="grid g3 admin-only" style="margin-bottom:10px">
-              <div class="field">
-                <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
-                <select id="allocationMethod">
-                  <option value="Percent">Percent of Gross Commission</option>
-                  <option value="Fixed">Fixed Commission Amount</option>
-                </select>
-              </div>
-            </div>
-            <div id="agentsList"></div>
-            <div id="pctTotalWarn" class="pct-warn" hidden></div>
-            <button type="button" class="btn small add-row-btn" id="addAgentBtn">+ Add commission agent</button>
-          </fieldset>
-
-
-          <fieldset class="admin-only">
-            <legend>Admin &middot; Brokerage-Level Money</legend>
+            <legend>3 &middot; Brokerage-Level Money</legend>
             <div class="sub-legend">Administrative Fee lines (credits/debits against the brokerage)</div>
             <div id="adminFeesList"></div>
             <button type="button" class="btn small add-row-btn" id="addAdminFeeBtn">+ Add administrative fee line</button>
@@ -546,69 +379,66 @@
             </div>
           </fieldset>
 
-          <fieldset id="titleSection">
-            <legend>4 Title &amp; Escrow</legend>
-            <div id="titleMoneyBanner"><mark style="background:#fff176;color:#3a2e00;padding:4px 10px;border-radius:4px;font-weight:700;display:inline-block;margin-bottom:8px">So we know who will be sending the commission. It's your job to make sure title sends it to us.</mark></div>
-            <div class="conditional show" id="titleEscrowBlock">
-              <div class="grid g3">
-                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
-                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
-              </div>
-              <div class="grid g3" style="margin-top:10px">
-                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
-                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
-                <input type="hidden" id="titleFax">
-              </div>
-              <div class="grid g3" style="margin-top:10px">
-                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
-                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
-                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
-                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
+          <fieldset>
+            <legend>4 &middot; Commission Recipients (up to 4 agent slots)</legend>
+            <div class="banner-note">The lead agent on this transaction is responsible for completing this form.</div>
+            <div class="grid g3" style="margin-bottom:10px">
+              <div class="field">
+                <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
+                <select id="allocationMethod">
+                  <option value="Percent">Percent of Gross Commission</option>
+                  <option value="Fixed">Fixed Commission Amount</option>
+                </select>
               </div>
             </div>
-            <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
+            <div id="agentsList"></div>
+            <button type="button" class="btn small add-row-btn" id="addAgentBtn">+ Add commission agent</button>
           </fieldset>
 
           <fieldset>
-            <legend>5 File Accuracy &amp; Certification</legend>
-            <div class="banner-note acc-note">
+            <legend>5 &middot; File Accuracy Assessment</legend>
+            <div class="banner-note">
               File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
               Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
+              A <strong>$100 processing fee is deducted from the agent's commission</strong> if the paperwork has 3 or more errors,
+              or if any required form is missing. Goal: complete, accurate paperwork on the first pass.
             </div>
-            <div class="acc-note fee-warn"><strong>Deliver a clean file and avoid the fee.</strong> A $100 processing fee is deducted from the agent's commission
-              if the paperwork has 3 or more errors, or if any required form is missing.</div>
+          </fieldset>
 
-            <div class="fixed-text acc-note" style="margin-top:8px">"I certify that the information, amounts, and uploaded documents in this Commission
+          <fieldset>
+            <legend>6 &middot; Required Uploads</legend>
+            <div class="field">
+              <label for="cdaDocsUpload">Choose Files — Listing Agreement, ALL Ratified Contract Paperwork, and ALL Closeout Paperwork <span class="required-star">*</span></label>
+              <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
+              <div class="hint">Select everything at once — up to 20 files (hold Ctrl/Cmd, or Shift for a range, to pick several).
+                Include the listing agreement (if applicable), the full ratified contract, and all closeout paperwork together.</div>
+            </div>
+            <div id="cdaDocsChips" class="doc-chip-list"></div>
+            <div id="cdaDocsCount" class="doc-count"></div>
+            <div class="hint">Accepted: PDF, JPG/JPEG, PNG, TIFF. Max 25MB per file, up to 20 files total. TIFF files are archived but cannot be
+              read by the automatic evidence review — they'll be flagged for human review instead.</div>
+          </fieldset>
+
+          <fieldset>
+            <legend>7 &middot; Certification &amp; Final Actions</legend>
+            <div class="fixed-text">"I certify that the information, amounts, and uploaded documents in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
               Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
-            <div class="fixed-text acc-note" style="margin-top:8px">"I have provided wiring instructions to the title company and
+            <div class="fixed-text" style="margin-top:8px">"I have provided wiring instructions to the title company and
               have verified the method our firm will receive payment."</div>
-            <label class="acc-ack" style="margin-top:10px"><input type="checkbox" id="accuracyAck"> I have read and agree to the certification above. <span class="required-star">*</span></label>
             <div class="grid g3" style="margin-top:10px">
               <div class="field">
                 <label for="paymentMethod">Payment Method <span class="required-star">*</span></label>
                 <select id="paymentMethod"><option value="">Select…</option><option value="Wire">Wire</option><option value="Check">Check</option><option value="Paid at Table by Title">Paid at Table by Title</option></select>
               </div>
-              <div class="field"><label for="typedSignature">Typed Signature (must match your name above) <span class="required-star">*</span></label><input type="text" id="typedSignature" placeholder="Type your full name as shown above"></div>
+              <div class="field"><label for="typedSignature">Typed Signature (must match your name above) <span class="required-star">*</span></label><input type="text" id="typedSignature"></div>
               <div class="field"><label for="certificationDate">Certification Date <span class="required-star">*</span></label><input type="date" id="certificationDate"></div>
             </div>
             <div class="banner-note warn conditional" id="checkDelayNote">Checks require prior authorization from the broker before this option is selected, and may delay your payout up to 7 to 10 days depending on bank policies.</div>
 
             <div class="field" style="margin-top:10px">
               <label for="remarks">Remarks</label>
-              <textarea id="remarks" maxlength="2000" placeholder="Anything we should know? Required if you are asking for a broker override."></textarea>
-            </div>
-            <div class="field" style="margin-top:10px">
-              <label for="formFeedback">How could this form be better? (optional)</label>
-              <textarea id="formFeedback" maxlength="1000" placeholder="Anything confusing, slow, or missing? Tell us — we read every one."></textarea>
-            </div>
-            <div class="next-steps">
-              <div class="next-steps-title">What happens next</div>
-              <ul>
-                <li><strong>Compliance Bot (coming soon)</strong> reviews your file and emails you "all clear" or a short fix list.</li>
-                <li>The office prepares your payout from your % of the deal.</li>
-                <li>You get a confirmation email with your CDA code.</li>
-              </ul>
+              <textarea id="remarks" maxlength="2000" placeholder="Anything you want to convey to compliance, the processor, or the broker."></textarea>
             </div>
 
             <div class="conditional" id="voidBlock">
@@ -630,7 +460,7 @@
         <!-- =========================== REFERRAL ONLY =========================== -->
         <div id="referralOnlySection" class="conditional">
           <fieldset>
-            <legend>2 Referral Details</legend>
+            <legend>Referral Only — Simplified Submission</legend>
             <div class="banner-note">Referral Only records skip transaction pricing, commission-agent math, and the
               standard closeout uploads entirely. Just the referral paperwork below.</div>
             <div class="grid g3" style="margin-top:10px">
@@ -714,16 +544,11 @@
 
 <template id="agentSlotTpl">
   <div class="row-card" data-agent-slot style="border-color:#b9c9d9">
-    <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" data-remove-agent title="Remove this agent row" aria-label="Remove this agent row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button></div>
+    <div class="row-card-head"><strong data-agent-title>Agent</strong><button type="button" class="btn small danger" data-remove-agent>Remove agent</button></div>
     <div class="grid g3">
-      <div class="field">
-        <label>Office</label>
-        <select data-f="slot_office"><option value="">All offices</option><option value="FR">Front Royal</option><option value="MBG">Martinsburg</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select>
-      </div>
       <div class="field" style="position:relative">
-        <label>Agent <span class="required-star">*</span></label>
-        <select data-f="agent_pick" class="agent-pick"><option value="">Loading agents…</option></select>
-        <input type="hidden" data-f="agent_search">
+        <label>Find Agent by Name <span class="required-star">*</span></label>
+        <input type="text" data-f="agent_search" autocomplete="off" placeholder="Start typing the agent name&hellip;">
         <input type="hidden" data-f="agent_id">
         <input type="hidden" data-f="cell_phone">
         <input type="hidden" data-f="license_numbers">
@@ -732,25 +557,24 @@
         <input type="hidden" data-f="team_name">
         <input type="hidden" data-f="team_leader_or_agent">
         <div class="agent-suggest" data-agent-suggest style="display:none"></div>
-        <div class="agent-match-hint" data-agent-match-hint style="display:none"></div>
+        <div class="agent-match-hint" data-agent-match-hint></div>
       </div>
-      <div class="field admin-only"><label>Agent Name</label><input type="text" data-f="name" maxlength="100" readonly tabindex="-1"></div>
-      <input type="hidden" data-f="email">
-      <div class="field admin-only"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50" readonly tabindex="-1"></div>
+      <div class="field"><label>Agent Name <span class="required-star">*</span></label><input type="text" data-f="name" maxlength="100"></div>
+      <div class="field"><label>Agent Email <span class="required-star">*</span></label><input type="email" data-f="email"></div>
+      <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50"></div>
       <div class="field"><label>Deal Role <span class="required-star">*</span></label>
         <select data-f="deal_role"><option value="Listing">Listing</option><option value="Buyer">Buyer</option><option value="Both">Both</option><option value="Other/In-house">Other/In-house</option></select>
       </div>
-      <div class="field admin-only"><label>Company <span class="required-star">*</span></label>
+      <div class="field"><label>Company <span class="required-star">*</span></label>
         <select data-f="agent_company"><option value="Weichert Blue Ribbon">Weichert Blue Ribbon</option><option value="Blue Ribbon Referral Agency">Blue Ribbon Referral Agency</option></select>
       </div>
-      <div class="field" data-method-percent><label>% of the deal <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
+      <div class="field" data-method-percent><label>Share of Transaction Percent (%) <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
       <div class="field" data-method-fixed style="display:none"><label>Fixed Commission Amount ($) <span class="required-star">*</span></label><input type="number" data-f="commission_amount_fixed" min="0.01" step="0.01" data-calc-trigger></div>
-      <div class="field"><label>Your gross share (before fees)</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
-      <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
-      <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
+      <div class="field"><label>Commission Amount (computed)</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
+      <div class="field" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
+      <div class="field" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
     </div>
 
-    <div class="admin-only">
     <div class="sub-legend">Additional Closing Fees</div>
     <div data-closing-fees-list></div>
     <button type="button" class="btn small add-row-btn" data-add-closing-fee>+ Add closing fee line</button>
@@ -769,7 +593,6 @@
       <div class="field"><label>Rounding Difference</label><div class="readonly-display" data-computed="rounding_difference">$0.00</div></div>
     </div>
     <div class="field" style="margin-top:6px"><label>Calculation Note (required for fixed amounts, manual adjustments, rounding, zero-floor, or overrides)</label><textarea data-f="calculation_note" maxlength="1000"></textarea></div>
-    </div>
   </div>
 </template>
 
@@ -822,7 +645,7 @@
   // letters to confuse (O/0, 1/I). Generated fresh per deal (not per
   // agent), so one leaked code only exposes one transaction.
   const genCode = () => String(Math.floor(1000000 + Math.random() * 9000000));
-  const todayISO = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  const todayISO = () => new Date().toISOString().slice(0, 10);
 
   let currentRecordId = genCode();
 
@@ -832,15 +655,13 @@
   // this check (rarely) finds the code already taken, or if the agent
   // is offline, it fails silently and the badge/note simply update
   // again if a swap happened -- nothing blocks on this.
-  let resumedDraft = false;
   async function ensureUniqueCode() {
     for (let tries = 0; tries < 5; tries++) {
-      if (resumedDraft) return;
       try {
         const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: currentRecordId }) });
         if (!resp.ok) return;
         const json = await resp.json();
-        if (!json || !json.found || resumedDraft) return;
+        if (!json || !json.found) return;
         currentRecordId = genCode();
       } catch (e) { return; }
     }
@@ -886,7 +707,6 @@
     if (idx === 1) node.querySelector("[data-remove-agent]").style.display = "none";
     updateAddAgentBtn();
     applyAllocationMethodToSlots();
-    const pk = node.querySelector('[data-f="agent_pick"]'); if (pk && AGENT_DIRECTORY.length) fillPicker(pk, "");
     return node;
   }
 
@@ -902,74 +722,11 @@
   const AGENT_DIRECTORY_URL = "https://hook.us2.make.com/e3qc9t8ej7awob6t63b7dkk2bzd0umcb";
   let AGENT_DIRECTORY = [];
 
-  // Agent list: show the last good copy instantly, refresh from the office, retry once if it fails.
-  function loadAgentDirectory(attempt) {
-    attempt = attempt || 1;
-    if (attempt === 1) {
-      try { const c = JSON.parse(localStorage.getItem("wbr.cda.agents") || "[]"); if (Array.isArray(c) && c.length) { AGENT_DIRECTORY = c; populateAgentPickers(); } } catch (e) {}
-    }
-    const ctl = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : null;
-    fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", signal: ctl ? ctl.signal : undefined })
+  function loadAgentDirectory() {
+    fetch(AGENT_DIRECTORY_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
       .then(r => r.json())
-      .then(d => {
-        if (timer) clearTimeout(timer);
-        const list = (Array.isArray(d.agents) ? d.agents : []).filter(a => String(a.active) !== "false" && a.name);
-        if (!list.length) throw new Error("empty");
-        list.sort((x, y) => String(x.name).localeCompare(String(y.name)));
-        AGENT_DIRECTORY = list; populateAgentPickers();
-        try { localStorage.setItem("wbr.cda.agents", JSON.stringify(list)); } catch (e) {}
-      })
-      .catch(() => {
-        if (timer) clearTimeout(timer);
-        if (attempt < 3) { setTimeout(() => loadAgentDirectory(attempt + 1), 2000 * attempt); return; }
-        if (!AGENT_DIRECTORY.length) populateAgentPickers();
-      });
-  }
-
-  // Real dropdowns (Tracy, 10/1/2026): agents are picked from the roster, never typed.
-  const OFFICE_LABEL = { FR: "Front Royal", MBG: "Martinsburg", MRB: "Martinsburg", Bow: "Bowie", BOW: "Bowie", REF: "Referral" };
-  const OFFICE_ALIAS = { MRB: "MBG", BOW: "Bow" };
-  const normOffice = o => OFFICE_ALIAS[o] || o;
-  function fillPicker(sel, want, onlyOffice, forceOffice) {
-    if (!AGENT_DIRECTORY.length) { sel.innerHTML = '<option value="">Agent list unavailable — refresh the page</option>'; return; }
-    const off = forceOffice ? forceOffice : ($("#officeCode") ? $("#officeCode").value : "");
-    if (forceOffice) onlyOffice = true;
-    let list = AGENT_DIRECTORY.slice();
-    if (off && onlyOffice) list = list.filter(a => normOffice(a.office) === off);
-    else if (off) list.sort((x, y) => (normOffice(x.office) === off ? 0 : 1) - (normOffice(y.office) === off ? 0 : 1) || String(x.name).localeCompare(String(y.name)));
-    const keep = want && !list.some(a => String(a.agent_id) === String(want)) ? agentById(want) : null;
-    if (keep) list.unshift(keep);
-    const lead = forceOffice ? "Select agent…" : (onlyOffice ? (off ? "Select your name…" : "Pick your office first…") : "Select agent…");
-    sel.innerHTML = '<option value="">' + lead + '</option>' + list.map(a =>
-      '<option value="' + escapeHtml(a.agent_id) + '">' + escapeHtml(a.name) + (a.office ? " — " + escapeHtml(OFFICE_LABEL[a.office] || a.office) : "") + '</option>').join("");
-    if (want && AGENT_DIRECTORY.some(a => String(a.agent_id) === String(want))) sel.value = want;
-  }
-  function agentById(id) { return AGENT_DIRECTORY.find(a => String(a.agent_id) === String(id)); }
-  function populateAgentPickers() {
-    const sp = $("#submitterPick");
-    if (sp) fillPicker(sp, sp.value || $("#submitterAgentId").value, true);
-    $$("[data-agent-slot]").forEach(slot => {
-      const sel = slot.querySelector('[data-f="agent_pick"]');
-      if (sel) fillPicker(sel, sel.value || slot.querySelector('[data-f="agent_id"]').value, false, (slot.querySelector('[data-f="slot_office"]') || {}).value || "");
-    });
-  }
-  function onSubmitterPicked() {
-    const a = agentById($("#submitterPick").value);
-    $("#submitterAgentId").value = a ? a.agent_id : "";
-    $("#submitterName").value = a ? a.name : "";
-    $("#submitterEmail").value = a ? (a.email || "") : "";
-    try { setBadge(); } catch (e) {}
-    if (a && a.office) {
-      const map = { MRB: "MBG", BOW: "Bow" }; const oc = map[a.office] || a.office;
-      if ([...$("#officeCode").options].some(o => o.value === oc)) $("#officeCode").value = oc;
-    }
-    const first = $$("[data-agent-slot]")[0];
-    if (a && first) {
-      const fs = first.querySelector('[data-f="agent_pick"]');
-      if (fs && !fs.value) { const so = first.querySelector('[data-f="slot_office"]'); if (so) so.value = normOffice(a.office) || ""; fillPicker(fs, a.agent_id, false, so ? so.value : ""); fs.value = a.agent_id; selectAgentForSlot(first, a); }
-    }
-    if (typeof recalc === "function") recalc();
+      .then(d => { AGENT_DIRECTORY = Array.isArray(d.agents) ? d.agents : []; })
+      .catch(() => { AGENT_DIRECTORY = []; });
   }
 
   function escapeHtml(s) {
@@ -1090,43 +847,7 @@
   // ============================================================
   // Live reconciliation — mirrors Make module 3 ("Reconcile CDA") exactly
   // ============================================================
-  function sectionShown(el, fs) {
-    for (let n = el; n && n !== fs; n = n.parentElement) {
-      if (n.parentElement === fs && fs.classList.contains("collapsed")) continue;
-      if (n.hidden || getComputedStyle(n).display === "none") return false;
-    }
-    return true;
-  }
-  function updateSectionChecks() {
-    $$("#cdaForm fieldset").forEach(fs => {
-      const lg = fs.querySelector(":scope > legend");
-      if (!lg || fs.classList.contains("admin-only") || !sectionShown(fs, fs.parentElement)) return;
-      let done = true, any = false;
-      fs.querySelectorAll(".field").forEach(f => {
-        const lab = f.querySelector("label");
-        const star = lab && lab.querySelector(".required-star");
-        if (!star || getComputedStyle(star).display === "none" || !sectionShown(f, fs)) return;
-        const inp = f.querySelector("select, input:not([type=hidden]), textarea");
-        if (!inp || !sectionShown(inp, fs)) return;
-        any = true;
-        if (inp.type === "file" ? !inp.files.length : !String(inp.value).trim()) done = false;
-      });
-      if (fs.querySelector("#agentsList")) { any = true; const w = $("#pctTotalWarn"); if (w && !w.hidden) done = false; }
-      if (fs.querySelector("#accuracyAck")) { any = true; if (!$("#accuracyAck").checked) done = false; }
-      if (fs.querySelector("#referralYN") && $("#referralYN").value === "yes" && !document.querySelector('input[name="referralType"]:checked')) done = false;
-      let mark = lg.querySelector(".sec-check");
-      if (!mark) { mark = document.createElement("span"); mark.className = "sec-check"; mark.textContent = "✓ done"; lg.appendChild(mark); }
-      mark.hidden = !(any && done);
-    });
-  }
-  function relabelDealRoles() {
-    const rental = $("#transactionType").value === "Rental";
-    const lbl = { Listing: rental ? "Landlord" : "Listing", Buyer: rental ? "Tenant" : "Buyer", Both: rental ? "Both (landlord + tenant)" : "Both" };
-    $$('[data-f="deal_role"] option').forEach(o => { if (lbl[o.value]) o.textContent = lbl[o.value]; });
-  }
   function recalc() {
-    relabelDealRoles();
-    try { setTimeout(updateSectionChecks, 0); } catch (e) {}
     syncGrossCommissionMethod();
     const G = n($("#grossCommission").value);
 
@@ -1168,7 +889,7 @@
     if (method !== "Fixed" && agents.length) {
       const sumC = r2(cRaw.reduce((t, x) => t + x, 0));
       const diff = r2(B - sumC);
-      if (Math.abs(diff) >= 0.01 && Math.abs(diff) < 1) {
+      if (Math.abs(diff) >= 0.01) {
         let maxSplit = -1, idx = -1;
         agents.forEach((a, i) => { const sp = n(a.split_percent); if (sp > maxSplit) { maxSplit = sp; idx = i; } });
         if (idx >= 0) cRaw[idx] = r2(cRaw[idx] + diff);
@@ -1238,11 +959,6 @@
 
     const agentsList = $("#rAgents");
     agentsList.innerHTML = "";
-    // reset every row first so cleared rows don't keep old numbers
-    $$("[data-agent-slot]").forEach((slot, k) => {
-      const t = slot.querySelector("[data-agent-title]"); if (t) t.textContent = "Agent " + (k + 1);
-      slot.querySelectorAll("[data-computed]").forEach(el => { el.textContent = money(0); });
-    });
     let TNA = 0;
     agents.forEach((a, i) => {
       const isReferralAgency = a.agent_company === "Blue Ribbon Referral Agency";
@@ -1264,7 +980,7 @@
       const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(B * n(a.split_percent) / 100)) : 0;
       slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = isReferralAgency ? "" : "none"; });
       const titleEl = slot.querySelector("[data-agent-title]");
-      if (titleEl) titleEl.textContent = "Agent " + (a.slotEl.dataset.slot || (i + 1)) + (a.agent_company === "Blue Ribbon Referral Agency" ? " — Referral Agency" : "");
+      if (titleEl) titleEl.textContent = "Agent " + (i + 1) + (i === 0 ? " (required)" : "") + " — " + (a.agent_company || "Weichert Blue Ribbon");
       setComputed("commission_amount", CiRaw);
       setComputed("referral_payout_amount", referralPayoutAmt);
       setComputed("closing_fees_total", Fi);
@@ -1285,14 +1001,6 @@
       agentsList.appendChild(row);
     });
 
-    const warn = $("#pctTotalWarn");
-    if (warn) {
-      const usedRows = agents.filter(a => a.name);
-      const pctSum = r2(usedRows.reduce((t, a) => t + n(a.split_percent), 0));
-      const show = $("#allocationMethod").value !== "Fixed" && usedRows.length > 0 && Math.abs(pctSum - 100) >= 0.01;
-      warn.hidden = !show;
-      if (show) warn.textContent = "Total: " + pctSum + "% — the % of the deal must add up to 100%";
-    }
     const NB = r2(TDB - TNA);
     const check = r2(TDB - (NB + TNA));
     $("#rTNA").textContent = money(TNA);
@@ -1322,7 +1030,6 @@
     $("#salePriceField").classList.toggle("show", !isRental);
     $("#titleEscrowBlock").classList.toggle("show", !isRental);
     $("#rentalTitleNote").classList.toggle("show", isRental);
-    $("#titleMoneyBanner").style.display = isRental ? "none" : "";
     $("#buyersLegend").textContent = isRental ? "Tenant(s)" : "Buyer(s)";
     $("#sellersLegend").textContent = isRental ? "Landlord(s)" : "Seller(s)";
     $("#listingAgentLegend").textContent = isRental ? "Property Manager / Landlord Agent of Record" : "Listing Agent of Record";
@@ -1372,12 +1079,6 @@
       { key: "clear_to_close", label: "Clear to Close" },
       { key: "closed", label: "Closed", final: true }
     ],
-    rental: [
-      { key: "listing_taken", label: "Listing Taken" },
-      { key: "lease_signed", label: "Lease Signed" },
-      { key: "move_in", label: "Move-In" },
-      { key: "commission_collected", label: "Commission Collected", final: true }
-    ],
     buyer: [
       { key: "contract", label: "Contract" },
       { key: "clear_to_close", label: "Clear to Close" },
@@ -1385,8 +1086,7 @@
     ]
   };
   function stagesForType(t) {
-    if (t === "Rental") return STAGE_DEFS.rental;
-    if (t === "Listing Side" || t === "Dual Side / Both") return STAGE_DEFS.listing;
+    if (t === "Listing Side" || t === "Dual Side / Both" || t === "Rental") return STAGE_DEFS.listing;
     if (t === "Buyer Side") return STAGE_DEFS.buyer;
     return null;
   }
@@ -1408,9 +1108,7 @@
     sel.innerHTML = early.map(s => '<option value="' + s.key + '">' + s.label + '</option>').join("");
     sel.value = early.some(s => s.key === currentVal) ? currentVal : (early[0] ? early[0].key : "");
     field.classList.add("show");
-    const rh = $("#rentalStageHint"); if (rh) rh.style.display = t === "Rental" ? "block" : "none";
-    const mi = $("#moveInDateField"); if (mi) mi.style.display = t === "Rental" ? "" : "none";
-    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : finalStage.key === "commission_collected" ? "Commission Collected — Submit" : "Submit to Broker") : "Submit to Broker";
+    markBtn.textContent = finalStage ? (finalStage.key === "closeout" ? "Submit Closeout" : "Submit to Broker") : "Submit to Broker";
   }
 
   // Rentals conventionally split 80% to the agent (matches the brokerage's
@@ -1431,7 +1129,6 @@
   function updateExtraAdminFeeBlock() {
     const v = $("#extraAdminFeeCollected").value;
     $("#extraAdminFeeBlock").classList.toggle("show", v === "true");
-    $("#adminFeeExemptField").classList.toggle("show", v === "false");
     const display = $("#extraAdminFeeHandlingDisplay");
     if (!display) return;
     if (v === "true") display.textContent = "On top — credited to the brokerage, no agent impact.";
@@ -1441,8 +1138,6 @@
   function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check"); }
 
   function refreshConditionalUI() {
-    if (document.getElementById("propertyBlock")) updateMlsAddress();
-    if (typeof updateV2Choices === "function" && document.getElementById("brReferralBlock")) { try { updateV2Choices(); } catch (e) {} }
     updateTransactionTypeUI();
     updatePropStateOther();
     updateReferralOwedBlock();
@@ -1461,7 +1156,6 @@
   function saveDraftsIndex(idx) { try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(idx)); } catch (e) {} }
 
   function buildPropertyAddress() {
-    if ($("#inMls") && $("#inMls").value === "yes" && $("#mlsNumber").value.trim()) return "MLS# " + $("#mlsNumber").value.trim();
     const street = $("#propStreet").value.trim();
     const city = $("#propCity").value.trim();
     const state = $("#propState").value === "Other" ? $("#propStateOther").value.trim() : $("#propState").value;
@@ -1477,7 +1171,7 @@
   // ------------------------------------------------------------
   function serializeSimpleFields() {
     const out = {};
-    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id], #transactionType, #dualAgency, #linkedCdaCode").forEach(el => {
+    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id]").forEach(el => {
       if (el.type === "file") return;
       out[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
     });
@@ -1513,8 +1207,7 @@
       sellers: serializeSimpleRows($("#sellersList")),
       adminFees: serializeAdjRows($("#adminFeesList")),
       reimb: serializeAdjRows($("#reimbList")),
-      agents: serializeAgentSlots(),
-      radios: { referralType: (document.querySelector('input[name="referralType"]:checked') || {}).value || "", docsLocation: (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "" }
+      agents: serializeAgentSlots()
     };
   }
   function fillRowFields(row, data) {
@@ -1542,10 +1235,8 @@
       (a.closing_fees || []).forEach(cf => { addAgentAdjustmentRow(slot, "closing-fees", "Additional Closing Fee"); fillRowFields(slot.querySelector("[data-closing-fees-list] [data-adj-row]:last-child"), cf); });
       (a.post_adjustments || []).forEach(pa => { addAgentAdjustmentRow(slot, "post-adj", "Post-Commission Adjustment"); fillRowFields(slot.querySelector("[data-post-adj-list] [data-adj-row]:last-child"), pa); });
     });
-    while (countAgentSlots() < 4) addAgentSlot();
     renumberAgentSlots();
 
-    Object.keys(snap.radios || {}).forEach(nm => { const v = snap.radios[nm]; const el = v && document.querySelector('input[name="' + nm + '"][value="' + v + '"]'); if (el) el.checked = true; });
     // simple fields last, after every dynamic id-bearing field exists
     Object.keys(snap.simple || {}).forEach(id => {
       const el = document.getElementById(id);
@@ -1561,7 +1252,7 @@
     // now; this index/blob is never read back through the UI anymore.
     const idx = loadDraftsIndex();
     const updatedAt = new Date().toISOString();
-    idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress() || ("MLS# " + $("#mlsNumber").value.trim()), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
+    idx[currentRecordId] = { updated_at: updatedAt, office_code: $("#officeCode").value, property_address: buildPropertyAddress(), record_status: "projected", stage_key: stageKey || "", stage_label: stageLabel || "" };
     saveDraftsIndex(idx);
     try { localStorage.setItem("wbr.cda.draftform." + currentRecordId, JSON.stringify(buildSnapshot())); } catch (e) {}
   }
@@ -1586,9 +1277,6 @@
       let snap;
       try { snap = JSON.parse(json.client_snapshot_json || "{}"); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
       restoreSnapshot(snap);
-      resumedDraft = true;
-      setTimeout(() => { if (window.__syncDual) window.__syncDual(); }, 0);
-      draftSaved = true;
       currentRecordId = code;
       refreshConditionalUI();
       if (snap.simple && snap.simple.dealStage) {
@@ -1608,56 +1296,13 @@
     }
   }
 
-  // On-page confirm (Tracy 10/2): browser pop-ups are easy to miss on phones and freeze automation.
-  function askConfirm(title, text, yesLabel) {
-    return new Promise(resolve => {
-      $("#confirmTitle").textContent = title;
-      $("#confirmText").textContent = text || "";
-      $("#confirmText").style.display = text ? "" : "none";
-      $("#confirmYes").textContent = yesLabel || "Yes";
-      const done = v => { $("#confirmModal").hidden = true; $("#confirmYes").onclick = null; $("#confirmNo").onclick = null; resolve(v); };
-      $("#confirmYes").onclick = () => done(true);
-      $("#confirmNo").onclick = () => done(false);
-      $("#confirmModal").hidden = false;
-    });
-  }
-  let draftSaved = false;
-  function draftLinks() {
-    const link = location.origin + location.pathname + "?code=" + currentRecordId;
-    const em = $("#submitterEmail") ? $("#submitterEmail").value.trim() : "";
-    const mail = "mailto:" + encodeURIComponent(em) + "?subject=" + encodeURIComponent("My CDA MAGIC link — code " + currentRecordId) + "&body=" + encodeURIComponent("Open this MAGIC link to pick up my CDA where I left off:\n" + link);
-    return { link, mail };
-  }
-  function showCodeModal() {
-    const { link, mail } = draftLinks();
-    $("#codeModalCode").textContent = currentRecordId;
-    $("#codeModalLink").value = link;
-    $("#codeModalEmail").href = mail;
-    const cp = $("#codeModalCopy");
-    cp.textContent = "Copy MAGIC link";
-    cp.onclick = () => { try { navigator.clipboard.writeText(link); cp.textContent = "Copied"; } catch (e) { $("#codeModalLink").select(); } };
-    $("#codeModalOk").onclick = () => { $("#codeModal").hidden = true; };
-    $("#codeModal").hidden = false;
-  }
   function setBadge() {
     const idx = loadDraftsIndex();
     const d = idx[currentRecordId];
     const stageLabel = d && d.stage_label ? d.stage_label : "";
     $("#currentRecordBadge").innerHTML = '<span class="pill projected">Editing draft — code ' + currentRecordId + (stageLabel ? " · " + stageLabel : "") + '</span>';
     const note = $("#codeWriteDownNote");
-    if (note) {
-      const { link, mail } = draftLinks();
-      if (!draftSaved) {
-        note.className = "code-bar pending";
-        note.innerHTML = "<span>Click <strong>Save Progress</strong> to get your MAGIC link to this CDA.</span>";
-      } else {
-        note.className = "code-bar";
-        note.innerHTML = '<span>Draft saved &nbsp;·&nbsp; code <span class="code-big">' + currentRecordId + '</span></span>' +
-          '<button type="button" class="btn small" id="copyLinkBtn">Copy MAGIC link</button><a class="btn small" style="text-decoration:none" href="' + mail + '">Email it to me</a>';
-        const cb = $("#copyLinkBtn");
-        if (cb) cb.onclick = () => { try { navigator.clipboard.writeText(link); cb.textContent = "Copied"; } catch (e) {} };
-      }
-    }
+    if (note) note.innerHTML = "Your code for this CDA: <strong style=\"font-size:1.15em\">" + currentRecordId + "</strong> — write it down now.";
   }
 
   // ============================================================
@@ -1666,7 +1311,7 @@
   function requiredMsg(cond, msg, errors) { if (!cond) errors.push(msg); }
 
   function validateCommon(errors) {
-    requiredMsg($("#submitterName").value.trim().length >= 2, "Pick your name from the list in Section 1.", errors);
+    requiredMsg($("#submitterName").value.trim().length >= 2, "Your name is required.", errors);
     requiredMsg(/^\S+@\S+\.\S+$/.test($("#submitterEmail").value.trim()), "A valid email is required.", errors);
     requiredMsg($("#officeCode").value, "Office is required.", errors);
     requiredMsg($("#transactionType").value, "Transaction type is required.", errors);
@@ -1680,20 +1325,18 @@
     const isRental = t === "Rental";
     requiredMsg($("#actualClosingDate").value, "Actual Closing Date is required to submit to broker.", errors);
     if (!isRental) requiredMsg(n($("#salePrice").value) > 0, "Sale Price is required and must be greater than $0.", errors);
-    requiredMsg(n($("#grossCommission").value) > 0, "Expected commission on the closing document is required.", errors);
-    requiredMsg($("#inMls").value, "Section 2: tell us whether it's in the MLS.", errors);
-    if ($("#inMls").value === "yes") requiredMsg($("#mlsNumber").value.trim(), "Section 2: enter the MLS number.", errors);
-    if ($("#inMls").value === "no") {
-      requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required when it is not in the MLS.", errors);
-      requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required when it is not in the MLS.", errors);
-      requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP is required when it is not in the MLS.", errors);
-    }
+    requiredMsg(n($("#grossCommission").value) > 0, "Gross Commission Due Brokerage is required and must be greater than $0.", errors);
+    requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required.", errors);
+    requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required.", errors);
+    requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP must be a valid US ZIP.", errors);
 
-
+    if (t === "Buyer Side" || t === "Dual Side / Both") requiredMsg($$("[data-buyer-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one buyer is required.", errors);
+    if (t === "Listing Side" || t === "Dual Side / Both") requiredMsg($$("[data-seller-row]").some(r => r.querySelector('[data-f="name"]').value.trim()), "At least one seller is required.", errors);
     $$("[data-buyer-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Tenant" : "Buyer") + " #" + (i + 1) + " phone is required.", errors));
     $$("[data-seller-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Landlord" : "Seller") + " #" + (i + 1) + " phone is required.", errors));
-    if (t === "Listing Side") {
-      requiredMsg(calc.agents.some(a => a.deal_role === "Listing" || a.deal_role === "Both"), "Section 3: set the Deal Role to Listing for the listing agent.", errors);
+    if (t === "Listing Side" || t === "Dual Side / Both" || isRental) {
+      requiredMsg($("#listingAgentName").value.trim().length >= 2, (isRental ? "Landlord Agent Name" : "Listing Agent Name") + " is required.", errors);
+      requiredMsg(/^\S+@\S+\.\S+$/.test($("#listingAgentEmail").value.trim()), (isRental ? "Landlord Agent Email" : "Listing Agent Email") + " is required.", errors);
     }
     if (!isRental) {
       requiredMsg($("#titleContactName").value.trim(), "Title contact name is required.", errors);
@@ -1705,25 +1348,24 @@
       requiredMsg(/^\S+@\S+\.\S+$/.test($("#titleEmail").value.trim()), "A valid title email is required.", errors);
     }
 
-    const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
-    requiredMsg($("#referralYN").value, "Referral: tell us whether there's a referral.", errors);
-    if ($("#referralYN").value === "yes") requiredMsg(refType === "br" || refType === "outside", "Referral: pick Blue Ribbon Referral agent or Outside brokerage.", errors);
-    if (refType === "br") {
-      requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Referral: add the Blue Ribbon Referral agent in Section 3 (Agents on this deal).", errors);
-    }
-    requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
-    if ($("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
+    requiredMsg($("#externalReferralOwed").value !== "", "Please answer whether an external referral fee is owed.", errors);
+    requiredMsg($("#extraAdminFeeCollected").value !== "", "Please answer whether additional commission (admin fee) was collected at closing.", errors);
     if ($("#extraAdminFeeCollected").value === "true") {
       requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
     }
     if ($("#externalReferralOwed").value === "true") {
+      requiredMsg($("#referralCompany").value.trim(), "Referral company is required.", errors);
+      requiredMsg($("#referralContactName").value.trim(), "Referral contact name is required.", errors);
+      requiredMsg(n($("#referralFeeRate").value) > 0, "Referral fee rate is required.", errors);
+      requiredMsg($("#referralAgreementUpload").files.length > 0, "Referral Agreement upload is required.", errors);
+      requiredMsg($("#referralW9Upload").files.length > 0, "Referral W-9 upload is required.", errors);
+      requiredMsg($("#referralWiringUpload").files.length > 0, "Referral Wiring Instructions upload is required.", errors);
     }
 
     requiredMsg(calc.agents.length >= 1, "At least one commission agent (Agent 1) is required.", errors);
-    $$("[data-agent-slot]").forEach((slot, i) => { const nm = slot.querySelector('[data-f="name"]').value.trim(); const id = slot.querySelector('[data-f="agent_id"]').value.trim(); if (nm && !id) errors.push("Agent " + (i + 1) + ": pick the agent from the list."); });
     if (t === "Dual Side / Both") {
       const roles = calc.agents.map(a => a.deal_role);
-      requiredMsg(roles.includes("Both") || (roles.includes("Listing") && roles.includes("Buyer")), "Dual Side / Both: set Deal Role to Both, or have one Listing and one Buyer agent.", errors);
+      requiredMsg(roles.includes("Listing") && roles.includes("Buyer"), "Dual Side / Both requires at least one Listing-role and one Buyer-role agent.", errors);
     }
     const method = $("#allocationMethod").value;
     if (method === "Percent") {
@@ -1735,11 +1377,8 @@
     }
     requiredMsg(Math.abs(calc.check) < 0.005, "Reconciliation check must equal $0.00 before this CDA can be Closed.", errors);
 
-    const docsLoc = (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "";
-    requiredMsg(docsLoc, "Section 2: tell us where the contract documents are.", errors);
-    if (docsLoc === "Upload") requiredMsg(cdaDocsFiles.length > 0, "Section 2: attach the documents, or pick the platform they're in.", errors);
+    requiredMsg(cdaDocsFiles.length > 0, "At least one document (listing, contract, and/or closeout paperwork) must be attached.", errors);
 
-    requiredMsg($("#accuracyAck").checked, "Section 5: check the box that you have read and agree to the certification.", errors);
     requiredMsg($("#paymentMethod").value, "Payment method is required.", errors);
     const typed = $("#typedSignature").value.trim().toLowerCase().replace(/\s+/g, " ");
     const named = $("#submitterName").value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -1760,7 +1399,6 @@
   function showErrors(targetSel, errors) {
     const el = $(targetSel);
     if (!errors.length) { el.innerHTML = ""; return; }
-    document.querySelectorAll("fieldset.collapsed").forEach(f => f.classList.remove("collapsed"));
     el.innerHTML = '<ul class="msg-list">' + errors.map(e => '<li class="error">' + e + '</li>').join("") + '</ul>';
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -1777,9 +1415,6 @@
     fd.append("office_code", $("#officeCode").value);
     fd.append("transaction_type", $("#transactionType").value);
     fd.append("other_transaction_type", $("#otherTransactionType").value.trim());
-    fd.append("dual_agency", $("#dualAgency").checked ? "true" : "false");
-    fd.append("move_in_date", $("#moveInDate").value);
-    fd.append("linked_cda_code", $("#linkedCdaCode").value);
     fd.append("property_address", buildPropertyAddress());
     fd.append("submitter_name", $("#submitterName").value.trim());
     fd.append("submitter_email", $("#submitterEmail").value.trim());
@@ -1798,7 +1433,6 @@
     fd.append("referral_fee_rate", String(calc.referralRate || 0));
     fd.append("referral_partner_payout_percent", String(calc.payoutPct || 80));
     fd.append("extra_admin_fee_collected", $("#extraAdminFeeCollected").value === "true" ? "true" : "false");
-    fd.append("admin_fee_exempt_reason", $("#extraAdminFeeCollected").value === "false" ? $("#adminFeeExemptReason").value : "");
     fd.append("extra_admin_fee_amount", String(n($("#extraAdminFeeAmount").value)));
     fd.append("referral_company", $("#referralCompany").value.trim());
     fd.append("referral_direction", "");
@@ -1815,24 +1449,16 @@
     fd.append("zip_dotloop_id", $("#zipDotloopId").value.trim());
     fd.append("transaction_notes", $("#transactionNotes").value.trim());
     fd.append("remarks", $("#remarks").value.trim());
-    fd.append("form_feedback", $("#formFeedback").value.trim());
     fd.append("title_company_name", $("#titleCompanyName").value.trim());
     fd.append("title_contact_name", $("#titleContactName").value.trim());
-    const la = calc.agents.find(a => a.deal_role === "Listing" || a.deal_role === "Both") || {};
-    fd.append("listing_agent_name", la.name || "");
-    fd.append("listing_agent_email", la.email || "");
+    fd.append("listing_agent_name", $("#listingAgentName").value.trim());
+    fd.append("listing_agent_email", $("#listingAgentEmail").value.trim());
     fd.append("typed_signature", $("#typedSignature").value.trim());
     fd.append("certification_date", $("#certificationDate").value);
     // Full field-level snapshot (same shape used for the local safety-net
     // copy) so a "projected" save can be pulled back down whole by code,
     // on any device — not just the ~24 fields the Reconcile step maps.
     fd.append("client_snapshot_json", JSON.stringify(buildSnapshot()));
-    fd.append("form_version", "v2");
-    fd.append("referral_type", (document.querySelector('input[name="referralType"]:checked') || {}).value || "");
-    fd.append("br_referral_agreement_location", $("#brReferralAgreementLocation").value);
-    fd.append("docs_location", (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "");
-    const brA = $("#brReferralAgreementUpload").files[0];
-    if (brA) fd.append("br_referral_agreement_doc", brA, brA.name);
 
     cdaDocsFiles.slice(0, CDA_DOCS_MAX).forEach((f, i) => {
       fd.append("doc_" + (i + 1), f, f.name);
@@ -1897,13 +1523,12 @@
     return { count, bytes };
   }
 
-  async function handleSaveStage(opts) {
-    opts = opts || {};
+  async function handleSaveStage() {
     const errors = [];
     validateCommon(errors);
     const calc = recalc();
     showErrors("#submitStatus", errors);
-    if (errors.length) return false;
+    if (errors.length) return;
     const stages = stagesForType($("#transactionType").value);
     const stageKey = stages ? $("#dealStage").value : "";
     const stageLabel = stages ? ((stages.find(s => s.key === stageKey) || {}).label || "") : "";
@@ -1917,7 +1542,6 @@
     $("#voidBlock").classList.add("show");
     $("#voidRecordBtn").classList.add("show");
     try {
-      saveTitleCompany();
       const fd = buildStandardFormData(calc, "projected", "");
       fd.append("deal_stage", stageKey);
       const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
@@ -1928,15 +1552,9 @@
         $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="pending">Saving…</li></ul>';
         await postToWebhook(fd);
       }
-      const firstSave = !draftSaved;
-      draftSaved = true;
-      setBadge();
-      if (firstSave && !opts.noModal) showCodeModal();
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime, from any device, by entering your code (' + currentRecordId + ') at the top of this page.</li></ul>';
-      return true;
     } catch (e) {
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here — try Save again once you are back online so it can be resumed by code from other devices too.</li></ul>';
-      return false;
     } finally {
       btn.disabled = false;
     }
@@ -1949,13 +1567,12 @@
     validateStandardForClose(calc, errors);
     showErrors("#submitStatus", errors);
     if (errors.length) return;
-    if (!(await askConfirm("Submit this CDA?", "Submitting locks this CDA and sends it to compliance. You can't change it after this.", "Yes, submit"))) return;
+    if (!confirm("Submitting will lock this CDA as Closed and notify Tracy. Continue?")) return;
     const btn = $("#markClosedBtn");
     btn.disabled = true;
     const stages = stagesForType($("#transactionType").value);
     const finalStage = stages ? stages.find(s => s.final) : null;
     try {
-      saveTitleCompany();
       const fd = buildStandardFormData(calc, "closed", "");
       fd.append("deal_stage", finalStage ? finalStage.key : "closed");
       const { count: fileCount, bytes: totalBytes } = countAndSizeFiles(cdaDocsFiles);
@@ -1967,7 +1584,7 @@
         await postToWebhook(fd);
       }
       removeDraft(currentRecordId);
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted. You\'ll get an email with this CDA\'s code (' + currentRecordId + '). We\'ll pull the documents, run compliance, and email you either all clear or a short list of what to fix.</li></ul>';
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">CDA submitted and Closed. Tracy has been notified with the full recap, and you and Tracy have each been emailed a confirmation with this CDA\'s code (' + currentRecordId + ').</li></ul>';
       $("#saveStageBtn").disabled = true;
     } catch (e) {
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Could not submit: ' + e.message + '. Nothing was lost — please try again.</li></ul>';
@@ -1981,7 +1598,7 @@
     requiredMsg(reason, "A void reason is required.", errors);
     showErrors("#submitStatus", errors);
     if (errors.length) return;
-    if (!(await askConfirm("Void this CDA?", "Voiding is permanent and cannot be undone.", "Yes, void it"))) return;
+    if (!confirm("Voiding is permanent and cannot be undone. Continue?")) return;
     const calc = recalc();
     const btn = $("#voidRecordBtn");
     btn.disabled = true;
@@ -2002,7 +1619,7 @@
     validateReferralOnly(errors);
     showErrors("#referralSubmitStatus", errors);
     if (errors.length) return;
-    if (!(await askConfirm("Submit this referral?", "", "Yes, submit"))) return;
+    if (!confirm("Submit this referral?")) return;
     const btn = $("#submitReferralBtn");
     btn.disabled = true;
     const fd = new FormData();
@@ -2099,7 +1716,7 @@
         return;
       }
       if (e.target.id === "newDraftBtn") {
-        askConfirm("Start a new blank CDA?", "Any unsaved changes on this page will be lost.", "Yes, start new").then(ok => { if (ok) { window.__skipLeaveWarn = true; window.location.href = location.pathname + (/[?&]admin=1\b/.test(location.search) ? "?admin=1" : ""); } });
+        if (confirm("Start a new blank CDA? Any unsaved changes on this page will be lost.")) window.location.reload();
         return;
       }
     });
@@ -2190,211 +1807,17 @@
     note.hidden = false;
   }
 
-  function updateV2Choices() {
-    const dlp = $("#docsLocationPick");
-    if (dlp) document.querySelectorAll('input[name="docsLocation"]').forEach(r => { r.checked = r.value === dlp.value; });
-    const yn = $("#referralYN").value;
-    $("#referralChoiceBlock").classList.toggle("show", yn === "yes");
-    if (yn === "no") { const r = document.querySelector('input[name="referralType"][value="none"]'); if (r) r.checked = true; }
-    if (yn === "yes") { const r = document.querySelector('input[name="referralType"][value="none"]'); if (r && r.checked) r.checked = false; }
-    if (yn === "") document.querySelectorAll('input[name="referralType"]').forEach(r => { r.checked = false; });
-    const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
-    $("#externalReferralOwed").value = refType === "outside" ? "true" : (refType ? "false" : "");
-    updateReferralOwedBlock();
-    $("#referralNote").hidden = !(refType === "br" || refType === "outside");
-    $("#brReferralUploadField").classList.toggle("show", refType === "br" && $("#brReferralAgreementLocation").value === "Upload");
-    const docsLoc = (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "";
-    $("#docsUploadBlock").classList.toggle("show", docsLoc === "Upload");
-    $("#platformIdField").classList.toggle("show", !!docsLoc && docsLoc !== "Upload");
-    recalc();
-  }
-  function bindV2() {
-    document.querySelectorAll("fieldset > legend").forEach(lg => {
-      lg.classList.add("collapsible");
-      lg.title = "Click to collapse or expand";
-      lg.addEventListener("click", () => lg.parentElement.classList.toggle("collapsed"));
-    });
-    if (/[?&]admin=1\b/.test(location.search)) document.body.classList.add("admin");
-    document.addEventListener("change", e => {
-      if (e.target.id === "referralYN" || e.target.id === "docsLocationPick" || e.target.name === "referralType" || e.target.name === "docsLocation" || e.target.id === "brReferralAgreementLocation") updateV2Choices();
-    });
-  }
-
-  function updateMlsAddress() {
-    if (!$("#inMls").value && $("#mlsNumber").value.trim()) $("#inMls").value = "yes";
-    const v = $("#inMls").value;
-    $("#mlsNumberField").classList.toggle("show", v === "yes");
-    $("#propertyBlock").style.display = v === "no" ? "" : "none";
-    $("#mlsAddressNote").style.display = "none";
-  }
-  function bindPickers() {
-    document.addEventListener("change", e => { if (e.target.id === "inMls") updateMlsAddress(); });
-    document.addEventListener("change", e => {
-      if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
-      if (e.target.id === "officeCode") {
-        const st = { MBG: "WV", FR: "VA", Bow: "MD" }[e.target.value];
-        const ts = $("#titleState");
-        if (ts) { if (st) ts.placeholder = st; if (st && !ts.value.trim()) ts.value = st; }
-        populateAgentPickers(); return;
-      }
-      if (e.target.matches('[data-f="slot_office"]')) {
-        const slot = e.target.closest("[data-agent-slot]"); const sel = slot.querySelector('[data-f="agent_pick"]');
-        fillPicker(sel, sel.value, false, e.target.value); return;
-      }
-      if (e.target.matches('[data-f="agent_pick"]')) {
-        const slot = e.target.closest("[data-agent-slot]");
-        const a = agentById(e.target.value);
-        if (a) { selectAgentForSlot(slot, a); const so = slot.querySelector('[data-f="slot_office"]'); if (so && !so.value) so.value = normOffice(a.office) || ""; }
-        else ["agent_id","name","email","mls_id","split_percent","commission_amount_fixed","slot_office"].forEach(f => { const el = slot.querySelector('[data-f="' + f + '"]'); if (el) el.value = ""; });
-        recalc();
-      }
-    });
-  }
-
-  // Title company list that builds itself (Tracy, 10/1/2026): every save adds or updates
-  // the company in Make (ACB-008); the form reads the list back (ACB-009).
-  const TITLE_SAVE_URL = "https://hook.us2.make.com/imwu8gpwu1ulhdm5wp52gsj4xtkoh3jn";
-  const TITLE_LIST_URL = "https://hook.us2.make.com/odwws12luw7zl083hckejvjf0aqwduhp";
-  let TITLE_LIST = [];
-  const norm = v => String(v || "").trim().toLowerCase();
-  function refreshTitleLists() {
-    const companies = [...new Set(TITLE_LIST.map(t => t.company))].sort((x, y) => x.localeCompare(y));
-    $("#titleCompanyList").innerHTML = companies.map(c => '<option value="' + escapeHtml(c) + '"></option>').join("");
-    const co = norm($("#titleCompanyName").value);
-    const contacts = TITLE_LIST.filter(t => norm(t.company) === co && t.contact).map(t => t.contact);
-    $("#titleContactList").innerHTML = [...new Set(contacts)].map(c => '<option value="' + escapeHtml(c) + '"></option>').join("");
-  }
-  function loadTitleList() {
-    fetch(TITLE_LIST_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
-      .then(r => r.json()).then(d => {
-        TITLE_LIST = Array.isArray(d.titles) ? d.titles.filter(t => t && t.company && !/^TEST\b/i.test(t.company)) : [];
-        refreshTitleLists();
-      }).catch(() => {});
-  }
-  function onTitleTyped() {
-    refreshTitleLists();
-    const co = norm($("#titleCompanyName").value), ct = norm($("#titleContactName").value);
-    const t = co && ct ? TITLE_LIST.find(x => norm(x.company) === co && norm(x.contact) === ct) : null;
-    $$(".verify-tag").forEach(el => { el.hidden = !t; });
-    const ids = ["#titlePhone", "#titleFax", "#titleEmail", "#titleStreet", "#titleCity", "#titleState", "#titleZip"];
-    if (!t) {
-      // a different contact was typed: clear anything we filled from the old match
-      if (window.__titlePrefill) ids.forEach(id => { if ($(id).value === window.__titlePrefill[id]) $(id).value = ""; });
-      window.__titlePrefill = null;
-      return;
-    }
-    const set = (id, val) => { $(id).value = (val != null ? val : ""); };
-    set("#titlePhone", t.phone); set("#titleFax", t.fax); set("#titleEmail", t.email);
-    set("#titleStreet", t.street); set("#titleCity", t.city); set("#titleState", t.state); set("#titleZip", t.zip);
-    window.__titlePrefill = {}; ids.forEach(id => { window.__titlePrefill[id] = $(id).value; });
-  }
-  function saveTitleCompany() {
-    const company = $("#titleCompanyName").value.trim();
-    if (!company) return;
-    const body = { company, contact: $("#titleContactName").value.trim(), phone: $("#titlePhone").value.trim(), fax: $("#titleFax").value.trim(),
-      email: $("#titleEmail").value.trim(), street: $("#titleStreet").value.trim(), city: $("#titleCity").value.trim(),
-      state: $("#titleState").value.trim(), zip: $("#titleZip").value.trim(), agent: $("#submitterName").value.trim() };
-    try { fetch(TITLE_SAVE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true }).catch(() => {}); } catch (e) {}
-  }
-
   function init() {
-    loadTitleList();
-    ["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (e.target.id === "titleCompanyName" || e.target.id === "titleContactName") onTitleTyped(); }));
-    bindPickers();
-    bindV2();
     bindSponsorBar();
     bindTracyNote();
     bindCdaDocsUpload();
     bindDelegatedEvents();
     loadAgentDirectory();
-    while (countAgentSlots() < 4) addAgentSlot();
+    addAgentSlot();
     $("#certificationDate").value = todayISO();
     refreshConditionalUI();
     recalc();
     setBadge();
-    // Top copies of Save / Submit (Tracy 10/2): click the real bottom buttons, mirror their label.
-    $("#saveStageBtnTop").addEventListener("click", () => $("#saveStageBtn").click());
-    $("#markClosedBtnTop").addEventListener("click", () => $("#markClosedBtn").click());
-    const syncTop = () => {
-      $("#markClosedBtnTop").textContent = $("#markClosedBtn").textContent;
-      $("#topActions").style.display = $("#transactionType").value === "Referral Only" ? "none" : "";
-    };
-    new MutationObserver(syncTop).observe($("#markClosedBtn"), { childList: true, characterData: true, subtree: true });
-    document.addEventListener("change", e => { if (e.target.id === "transactionType") setTimeout(syncTop, 0); });
-    syncTop();
-    // Dual agency (Tracy 10/2): one CDA per side, linked by code. Admin fee is collected on each side.
-    const syncDual = () => {
-      const t = $("#transactionType").value;
-      const sided = t === "Listing Side" || t === "Buyer Side";
-      $("#dualRow").hidden = !sided;
-      $("#otherSideBtn").textContent = "I had both sides — create the " + (t === "Buyer Side" ? "listing" : "buyer") + "-side CDA";
-      $("#otherSideBtn").style.display = $("#linkedCdaCode").value ? "none" : "";
-      const lc = $("#linkedCdaCode").value;
-      $("#linkedNote").innerHTML = lc ? 'Other side: <a href="' + location.pathname + '?code=' + lc + '">CDA ' + lc + '</a>' : "";
-    };
-    document.addEventListener("change", e => { if (e.target.id === "transactionType") setTimeout(syncDual, 0); });
-    syncDual();
-    window.__syncDual = syncDual;
-    $("#otherSideBtn").addEventListener("click", async () => {
-      const t = $("#transactionType").value;
-      if (t !== "Listing Side" && t !== "Buyer Side") return;
-      const other = t === "Listing Side" ? "Buyer Side" : "Listing Side";
-      const sideName = other === "Buyer Side" ? "buyer" : "listing";
-      // Open the new tab now, while we still have the click (pop-up blockers allow it), and fill it in once saved.
-      const win = window.open("", "_blank");
-      if (win) { try { win.document.write('<p style="font:20px Arial;padding:30px">Creating the ' + sideName + '-side CDA…</p>'); } catch (e) {} }
-      const newCode = genCode();
-      $("#dualAgency").checked = true;
-      $("#linkedCdaCode").value = newCode;
-      const ok = await handleSaveStage({ noModal: true });
-      if (!ok) { $("#linkedCdaCode").value = ""; syncDual(); if (win) win.close(); return; }
-      const firstCode = currentRecordId;
-      const firstSnap = buildSnapshot();
-      const firstSaved = draftSaved;
-      // Build and save the other side, keeping the shared deal facts.
-      $("#transactionType").value = other;
-      updateTransactionTypeUI();
-      $$("[data-agent-slot]").forEach(r => r.remove());
-      while (countAgentSlots() < 4) addAgentSlot();
-      renumberAgentSlots();
-      populateAgentPickers();
-      ["#grossCommission", "#typedSignature", "#remarks"].forEach(id => { const el = $(id); if (el) el.value = ""; });
-      $("#referralYN").value = "";
-      document.querySelectorAll('input[name="referralType"]').forEach(r => { r.checked = false; });
-      $("#accuracyAck").checked = false;
-      const keepFiles = cdaDocsFiles; cdaDocsFiles = [];
-      currentRecordId = newCode;
-      $("#linkedCdaCode").value = firstCode;
-      refreshConditionalUI();
-      recalc();
-      const ok2 = await handleSaveStage({ noModal: true });
-      // Put this tab back on the side the agent started with.
-      restoreSnapshot(firstSnap);
-      cdaDocsFiles = keepFiles; renderCdaDocsChips();
-      currentRecordId = firstCode;
-      resumedDraft = true;
-      draftSaved = firstSaved;
-      $("#linkedCdaCode").value = ok2 ? newCode : "";
-      $("#dualAgency").checked = true;
-      refreshConditionalUI();
-      recalc();
-      syncDual();
-      setBadge();
-      const link = location.pathname + "?code=" + newCode + (/[?&]admin=1\b/.test(location.search) ? "&admin=1" : "");
-      if (ok2 && win) win.location.href = link;
-      else if (win) win.close();
-      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="' + (ok2 ? "ok" : "error") + '">' +
-        (ok2 ? 'The ' + sideName + '-side CDA (code ' + newCode + ') is open in a new tab' + (win ? '' : ' — your browser blocked the tab, so <a href="' + link + '" target="_blank">click here to open it</a>') + '. This tab stays on the ' + (sideName === "buyer" ? "listing" : "buyer") + '-side CDA (code ' + firstCode + ').'
-             : 'This side is saved, but the ' + sideName + '-side CDA could not be created (no connection). Try the button again.') + '</li></ul>';
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-    const urlCode = new URLSearchParams(location.search).get("code");
-    if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode);
-    let dirty = false;
-    document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
-    document.addEventListener("change", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
-    new MutationObserver(() => { if ($("#submitStatus").querySelector(".ok")) dirty = false; }).observe($("#submitStatus"), { childList: true, subtree: true });
-    window.addEventListener("beforeunload", e => { if (dirty && !window.__skipLeaveWarn) { e.preventDefault(); e.returnValue = ""; } });
     const codeInput = $("#resumeCodeInput");
     if (codeInput) codeInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); resumeByCode(codeInput.value); } });
     // Confirm this brand-new code is unique before the agent has had a
