@@ -359,7 +359,7 @@
 
           </fieldset>
           <fieldset id="externalReferralSection">
-            <legend>2A &middot; External Referral</legend>
+            <legend>3 &middot; Referral</legend>
             <label>Is a referral fee owed on this deal? <span class="required-star">*</span></label>
             <div class="choice-list">
               <label><input type="radio" name="referralType" value="none"><span>No referral fee</span></label>
@@ -399,8 +399,8 @@
           </fieldset>
 
 
-          <fieldset>
-            <legend>3 &middot; Brokerage-Level Money</legend>
+          <fieldset class="admin-only">
+            <legend>Admin &middot; Brokerage-Level Money</legend>
             <div class="sub-legend">Administrative Fee lines (credits/debits against the brokerage)</div>
             <div id="adminFeesList"></div>
             <button type="button" class="btn small add-row-btn" id="addAdminFeeBtn">+ Add administrative fee line</button>
