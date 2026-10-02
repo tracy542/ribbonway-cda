@@ -87,6 +87,7 @@
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .add-row-btn{margin-top:4px}
   .conditional{display:none}
+  body:not(.admin) .admin-only{display:none!important}
   .verify-tag[hidden]{display:none}
   .verify-tag{display:inline-block;background:#fff176;color:#3a2e00;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px;margin-left:4px}
   #grossCommissionMethodField,#grossCommissionPercentField,#grossCommission + .hint{display:none!important}
@@ -419,7 +420,7 @@
           <fieldset>
             <legend>4 &middot; Commission Recipients (up to 4 agent slots)</legend>
             <div class="banner-note">The lead agent on this transaction is responsible for completing this form.</div>
-            <div class="grid g3" style="margin-bottom:10px">
+            <div class="grid g3 admin-only" style="margin-bottom:10px">
               <div class="field">
                 <label for="allocationMethod">Allocation Method (applies to all active slots) <span class="required-star">*</span></label>
                 <select id="allocationMethod">
@@ -606,24 +607,25 @@
         <input type="hidden" data-f="team_name">
         <input type="hidden" data-f="team_leader_or_agent">
         <div class="agent-suggest" data-agent-suggest style="display:none"></div>
-        <div class="agent-match-hint" data-agent-match-hint></div>
+        <div class="agent-match-hint" data-agent-match-hint style="display:none"></div>
       </div>
-      <div class="field"><label>Agent Name</label><input type="text" data-f="name" maxlength="100" readonly tabindex="-1"></div>
+      <div class="field admin-only"><label>Agent Name</label><input type="text" data-f="name" maxlength="100" readonly tabindex="-1"></div>
       <input type="hidden" data-f="email">
-      <div class="field"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50" readonly tabindex="-1"></div>
+      <div class="field admin-only"><label>MLS ID</label><input type="text" data-f="mls_id" maxlength="50" readonly tabindex="-1"></div>
       <div class="field"><label>Deal Role <span class="required-star">*</span></label>
         <select data-f="deal_role"><option value="Listing">Listing</option><option value="Buyer">Buyer</option><option value="Both">Both</option><option value="Other/In-house">Other/In-house</option></select>
       </div>
-      <div class="field"><label>Company <span class="required-star">*</span></label>
+      <div class="field admin-only"><label>Company <span class="required-star">*</span></label>
         <select data-f="agent_company"><option value="Weichert Blue Ribbon">Weichert Blue Ribbon</option><option value="Blue Ribbon Referral Agency">Blue Ribbon Referral Agency</option></select>
       </div>
-      <div class="field" data-method-percent><label>Share of Transaction Percent (%) <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
+      <div class="field" data-method-percent><label>% of the deal <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
       <div class="field" data-method-fixed style="display:none"><label>Fixed Commission Amount ($) <span class="required-star">*</span></label><input type="number" data-f="commission_amount_fixed" min="0.01" step="0.01" data-calc-trigger></div>
-      <div class="field"><label>Commission Amount (computed)</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
-      <div class="field" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
-      <div class="field" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
+      <div class="field"><label>Your share of the commission</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
+      <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
+      <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
     </div>
 
+    <div class="admin-only">
     <div class="sub-legend">Additional Closing Fees</div>
     <div data-closing-fees-list></div>
     <button type="button" class="btn small add-row-btn" data-add-closing-fee>+ Add closing fee line</button>
@@ -642,6 +644,7 @@
       <div class="field"><label>Rounding Difference</label><div class="readonly-display" data-computed="rounding_difference">$0.00</div></div>
     </div>
     <div class="field" style="margin-top:6px"><label>Calculation Note (required for fixed amounts, manual adjustments, rounding, zero-floor, or overrides)</label><textarea data-f="calculation_note" maxlength="1000"></textarea></div>
+    </div>
   </div>
 </template>
 
