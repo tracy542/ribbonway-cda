@@ -1601,15 +1601,25 @@
     try { localStorage.removeItem("wbr.cda.draftform." + id); } catch (e) {}
   }
 
-  async function resumeByCode(code) {
+  async function resumeByCode(code, opts) {
+    opts = opts || {};
     code = (code || "").trim();
     if (!/^\d{7}$/.test(code)) { alert("Enter the 7-digit code exactly as you wrote it down — numbers only."); return; }
     const btn = $("#resumeCodeBtn");
     if (btn) btn.disabled = true;
     try {
-      const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code }) });
-      if (!resp.ok) throw new Error("Server responded with status " + resp.status);
-      const json = await resp.json();
+      // A just-created draft (e.g. the other side of a dual) can take a few
+      // seconds to land in the office's records after the save is acknowledged,
+      // so a link that opens it right away retries before saying "not found".
+      const tries = opts.retries || 1;
+      let json = null;
+      for (let i = 0; i < tries; i++) {
+        if (i) await new Promise(r => setTimeout(r, 2000));
+        const resp = await fetch(RESUME_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code }) });
+        if (!resp.ok) throw new Error("Server responded with status " + resp.status);
+        json = await resp.json();
+        if (json && json.found) break;
+      }
       if (!json || !json.found) { alert("No CDA was found for that code. Double-check the digits and try again."); return; }
       if (!json.resumable) { alert("That code belongs to a CDA that has already been " + (json.record_status || "processed") + " — it can no longer be resumed."); return; }
       let snap;
@@ -2423,7 +2433,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     const urlCode = new URLSearchParams(location.search).get("code");
-    if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode);
+    if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode, { retries: 5 });
     let dirty = false;
     document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
     document.addEventListener("change", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
