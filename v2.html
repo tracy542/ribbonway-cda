@@ -171,6 +171,12 @@
 
   .actions-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:6px}
   .top-actions{margin:0 0 14px}
+  .dual-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}
+  .dual-row[hidden]{display:none}
+  .dual-ack{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:700;color:var(--navy)}
+  .dual-ack input{width:18px;height:18px;margin:0}
+  #otherSideBtn{font-size:15px;border:2px solid var(--navy)}
+  .linked-note{font-size:15px;font-weight:700;color:var(--navy2)}
   #inMls,#referralYN{width:170px;max-width:100%}
   .mls-pair{display:flex;gap:10px;align-items:flex-start;min-width:0}
   .mls-pair > .field:first-child{flex:0 0 auto}
@@ -245,11 +251,17 @@
         <option value="">Select type…</option>
         <option value="Listing Side">Listing Side</option>
         <option value="Buyer Side">Buyer Side</option>
-        <option value="Dual Side / Both">Dual Side / Both</option>
+        <option value="Dual Side / Both" hidden>Dual Side / Both</option>
         <option value="Rental">Rental</option>
         <option value="Referral Only">Referral Only</option>
         <option value="Other">Other</option>
       </select>
+    </div>
+    <div class="dual-row" id="dualRow" hidden>
+      <label class="dual-ack"><input type="checkbox" id="dualAgency"> Dual agency — our brokerage had both sides</label>
+      <button type="button" class="btn" id="otherSideBtn">I had both sides — create the buyer-side CDA</button>
+      <input type="hidden" id="linkedCdaCode">
+      <span class="linked-note" id="linkedNote"></span>
     </div>
   </header>
 
@@ -1427,7 +1439,7 @@
   // ------------------------------------------------------------
   function serializeSimpleFields() {
     const out = {};
-    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id], #transactionType").forEach(el => {
+    $$("#cdaForm input[id], #cdaForm select[id], #cdaForm textarea[id], #transactionType, #dualAgency, #linkedCdaCode").forEach(el => {
       if (el.type === "file") return;
       out[el.id] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
     });
@@ -1537,6 +1549,7 @@
       try { snap = JSON.parse(json.client_snapshot_json || "{}"); } catch (e) { alert("That saved draft is corrupted and could not be loaded."); return; }
       restoreSnapshot(snap);
       resumedDraft = true;
+      setTimeout(() => { if (window.__syncDual) window.__syncDual(); }, 0);
       draftSaved = true;
       currentRecordId = code;
       refreshConditionalUI();
@@ -1713,6 +1726,8 @@
     fd.append("office_code", $("#officeCode").value);
     fd.append("transaction_type", $("#transactionType").value);
     fd.append("other_transaction_type", $("#otherTransactionType").value.trim());
+    fd.append("dual_agency", $("#dualAgency").checked ? "true" : "false");
+    fd.append("linked_cda_code", $("#linkedCdaCode").value);
     fd.append("property_address", buildPropertyAddress());
     fd.append("submitter_name", $("#submitterName").value.trim());
     fd.append("submitter_email", $("#submitterEmail").value.trim());
@@ -1829,12 +1844,13 @@
     return { count, bytes };
   }
 
-  async function handleSaveStage() {
+  async function handleSaveStage(opts) {
+    opts = opts || {};
     const errors = [];
     validateCommon(errors);
     const calc = recalc();
     showErrors("#submitStatus", errors);
-    if (errors.length) return;
+    if (errors.length) return false;
     const stages = stagesForType($("#transactionType").value);
     const stageKey = stages ? $("#dealStage").value : "";
     const stageLabel = stages ? ((stages.find(s => s.key === stageKey) || {}).label || "") : "";
@@ -1862,10 +1878,12 @@
       const firstSave = !draftSaved;
       draftSaved = true;
       setBadge();
-      if (firstSave) showCodeModal();
+      if (firstSave && !opts.noModal) showCodeModal();
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="ok">Saved' + (stageLabel ? " — " + stageLabel : " as Projected Closing") + '. Resume it anytime, from any device, by entering your code (' + currentRecordId + ') at the top of this page.</li></ul>';
+      return true;
     } catch (e) {
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here — try Save again once you are back online so it can be resumed by code from other devices too.</li></ul>';
+      return false;
     } finally {
       btn.disabled = false;
     }
@@ -2251,6 +2269,55 @@
     new MutationObserver(syncTop).observe($("#markClosedBtn"), { childList: true, characterData: true, subtree: true });
     document.addEventListener("change", e => { if (e.target.id === "transactionType") setTimeout(syncTop, 0); });
     syncTop();
+    // Dual agency (Tracy 10/2): one CDA per side, linked by code. Admin fee is collected on each side.
+    const syncDual = () => {
+      const t = $("#transactionType").value;
+      const sided = t === "Listing Side" || t === "Buyer Side";
+      $("#dualRow").hidden = !sided;
+      $("#otherSideBtn").textContent = "I had both sides — create the " + (t === "Buyer Side" ? "listing" : "buyer") + "-side CDA";
+      $("#otherSideBtn").style.display = $("#linkedCdaCode").value ? "none" : "";
+      const lc = $("#linkedCdaCode").value;
+      $("#linkedNote").innerHTML = lc ? 'Other side: <a href="' + location.pathname + '?code=' + lc + '">CDA ' + lc + '</a>' : "";
+    };
+    document.addEventListener("change", e => { if (e.target.id === "transactionType") setTimeout(syncDual, 0); });
+    syncDual();
+    window.__syncDual = syncDual;
+    $("#otherSideBtn").addEventListener("click", async () => {
+      const t = $("#transactionType").value;
+      if (t !== "Listing Side" && t !== "Buyer Side") return;
+      const other = t === "Listing Side" ? "Buyer Side" : "Listing Side";
+      const newCode = genCode();
+      $("#dualAgency").checked = true;
+      $("#linkedCdaCode").value = newCode;
+      const ok = await handleSaveStage({ noModal: true });
+      if (!ok) { $("#linkedCdaCode").value = ""; syncDual(); return; }
+      const firstCode = currentRecordId;
+      $("#transactionType").value = other;
+      updateTransactionTypeUI();
+      $$("[data-agent-slot]").forEach(r => r.remove());
+      while (countAgentSlots() < 4) addAgentSlot();
+      renumberAgentSlots();
+      populateAgentPickers();
+      ["#grossCommission", "#typedSignature", "#remarks"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+      $("#referralYN").value = "";
+      document.querySelectorAll('input[name="referralType"]').forEach(r => { r.checked = false; });
+      $("#accuracyAck").checked = false;
+      cdaDocsFiles = []; renderCdaDocsChips();
+      currentRecordId = newCode;
+      resumedDraft = true;
+      draftSaved = false;
+      $("#linkedCdaCode").value = firstCode;
+      refreshConditionalUI();
+      recalc();
+      syncDual();
+      setBadge();
+      const ok2 = await handleSaveStage();
+      const sideName = other === "Buyer Side" ? "buyer" : "listing";
+      const prevName = other === "Buyer Side" ? "listing" : "buyer";
+      $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="' + (ok2 ? "ok" : "error") + '">' + (ok2 ? "" : "Could not create the second CDA yet — fix the items above and click Save Progress. ") +
+        'You are now on the <strong>' + sideName + '-side</strong> CDA (code ' + newCode + '). The ' + prevName + '-side CDA is saved as code ' + firstCode + '. Pick the ' + sideName + ' agent(s) and this side\'s expected commission.</li></ul>';
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
     const urlCode = new URLSearchParams(location.search).get("code");
     if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode);
     let dirty = false;
