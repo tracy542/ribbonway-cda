@@ -371,7 +371,7 @@
               <div class="field"><label for="referralYN">Referral? <span class="required-star">*</span></label>
                 <select id="referralYN"><option value="">Select…</option><option value="no">No</option><option value="yes">Yes</option></select>
               </div>
-              <div class="field docs-col"><label for="docsLocationPick">Where are the contract documents? <span class="required-star">*</span></label>
+              <div class="field docs-col"><label for="docsLocationPick" id="docsLocationLabel">Where are the contract documents? <span class="required-star">*</span></label>
                 <select id="docsLocationPick"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in any platform — I'll upload them</option></select>
                 <div hidden><input type="radio" name="docsLocation" value="zipForm"><input type="radio" name="docsLocation" value="dotloop"><input type="radio" name="docsLocation" value="RibbonWay Platform"><input type="radio" name="docsLocation" value="Upload"></div>
                 <div class="conditional" id="platformIdField" style="margin-top:8px"><label for="zipDotloopId">Transaction ID or loop name (optional)</label><input type="text" id="zipDotloopId" maxlength="80"></div>
@@ -427,7 +427,7 @@
               <div class="ref-note" id="referralNote" hidden>As part of the compliance process, make sure the referral agreement and W-9 are either in your platform or emailed to <a href="mailto:compliance@blueribbonrealty.com">compliance@blueribbonrealty.com</a>.</div>
             </div>
 
-            <div class="grid g2">
+            <div class="grid g2" id="adminFeeQuestion">
               
               <div class="field">
                 <label for="extraAdminFeeCollected">Admin fee on the closing document? <span class="required-star">*</span></label>
@@ -575,13 +575,16 @@
               File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
               Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
             </div>
-            <div class="acc-note fee-warn"><strong>Deliver a clean file and avoid the fee.</strong> A $100 processing fee is deducted from the agent's commission
+            <div class="acc-note fee-warn" id="cleanFileFeeWarn"><strong>Deliver a clean file and avoid the fee.</strong> A $100 processing fee is deducted from the agent's commission
               if the paperwork has 3 or more errors, or if any required form is missing.</div>
 
-            <div class="fixed-text acc-note" style="margin-top:8px">"I certify that the information, amounts, and uploaded documents in this Commission
+            <div class="fixed-text acc-note" id="rentalCert" style="margin-top:8px;display:none">"I certify that the lease, amounts and payment information in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
               Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
-            <div class="fixed-text acc-note" style="margin-top:8px">"I have provided wiring instructions to the title company and
+            <div class="fixed-text acc-note" id="saleCert" style="margin-top:8px">"I certify that the information, amounts, and uploaded documents in this Commission
+              Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
+              Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
+            <div class="fixed-text acc-note" id="saleWiringCert" style="margin-top:8px">"I have provided wiring instructions to the title company and
               have verified the method our firm will receive payment."</div>
             <label class="acc-ack" style="margin-top:10px"><input type="checkbox" id="accuracyAck"> I have read and agree to the certification above. <span class="required-star">*</span></label>
             <div class="grid g3" style="margin-top:10px">
@@ -746,6 +749,7 @@
       <div class="field" data-method-percent><label>% of the deal <span class="required-star">*</span></label><input type="number" data-f="split_percent" min="0.0001" max="100" step="0.0001" data-calc-trigger></div>
       <div class="field" data-method-fixed style="display:none"><label>Fixed Commission Amount ($) <span class="required-star">*</span></label><input type="number" data-f="commission_amount_fixed" min="0.01" step="0.01" data-calc-trigger></div>
       <div class="field"><label>Your gross share (before fees)</label><div class="readonly-display" data-computed="commission_amount">$0.00</div></div>
+      <div class="field" data-rental-payout style="display:none"><label>Your payout (80% of your share)</label><div class="readonly-display" data-computed="rental_payout">$0.00</div><div class="hint">Rentals: flat 80%. No ARF, no admin fee.</div></div>
       <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout % <span class="required-star">*</span></label><input type="number" data-f="referral_payout_percent" value="80" min="0" max="100" step="0.0001" data-calc-trigger><div class="hint">Default 80% of this row's commission share, no 6% ARF — broker/admin only to change.</div></div>
       <div class="field admin-only" data-referral-payout style="display:none"><label>Referral Payout Amount (computed)</label><div class="readonly-display" data-computed="referral_payout_amount">$0.00</div></div>
     </div>
@@ -808,8 +812,9 @@
     const close = $("#sponsorBarClose");
     if (logoLink) logoLink.href = SPONSOR_BANNER.ctaUrl || "#";
     if (cta) { cta.textContent = SPONSOR_BANNER.ctaText || "Learn more"; cta.href = SPONSOR_BANNER.ctaUrl || "#"; }
-    if (close) close.addEventListener("click", () => { bar.hidden = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
-    bar.hidden = false;
+    if (close) close.addEventListener("click", () => { bar.hidden = true; bar.dataset.on = "0"; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
+    bar.dataset.on = "1";
+    bar.hidden = ["Rental", "Referral Only"].includes(($("#transactionType") || {}).value);
   }
 
   // ============================================================
@@ -1175,7 +1180,10 @@
       }
     }
 
-    const ARF = r2(0.06 * (G - OP));
+    // Rentals (Tracy, 10/2/2026): each agent gets a flat 80% of their share
+    // of the check. No ARF, no admin fee, no lead fee.
+    const isRentalDeal = $("#transactionType").value === "Rental";
+    const ARF = isRentalDeal ? 0 : r2(0.06 * (G - OP));
 
     // ARF is a single 6% assessment on the WHOLE deal (net of any outside
     // referral payout) — never charged per agent. It's split proportionally
@@ -1186,7 +1194,7 @@
     const arfLiableIdx = [];
     let arfLiableSum = 0;
     agents.forEach((a, i) => {
-      if (a.agent_company !== "Blue Ribbon Referral Agency") {
+      if (a.agent_company !== "Blue Ribbon Referral Agency" && cRaw[i] > 0) {
         arfLiableIdx.push(i);
         arfLiableSum += cRaw[i];
       }
@@ -1216,12 +1224,12 @@
     // proportionally by their share of the transaction -- same proration
     // convention as ARF above, but with no Blue Ribbon Referral Agency
     // carve-out and applied across ALL active agent slots.
-    const adminFeeOffBottom = !extraFeeCollected;
+    const adminFeeOffBottom = !extraFeeCollected && !isRentalDeal;
     const rowAdminFees = agents.map(() => 0);
     if (adminFeeOffBottom && agents.length && Math.abs(Aagent) > 0.0001) {
       const sumCraw = cRaw.reduce((t, x) => t + x, 0);
       if (agents.length === 1) {
-        rowAdminFees[0] = Aagent;
+        if (cRaw[0] > 0) rowAdminFees[0] = Aagent;
       } else if (sumCraw > 0) {
         let allocated = 0;
         let maxSplit = -1, maxIdx = 0;
@@ -1250,7 +1258,8 @@
       const payoutPctRow = isReferralAgency ? (a.referral_payout_percent || 80) : 100;
       const CiRaw = cRaw[i];
       const referralPayoutAmt = isReferralAgency ? r2(CiRaw * payoutPctRow / 100) : 0;
-      const Ci = isReferralAgency ? referralPayoutAmt : CiRaw;
+      const rentalPayout = isRentalDeal ? r2(CiRaw * 0.8) : 0;
+      const Ci = isRentalDeal ? rentalPayout : (isReferralAgency ? referralPayoutAmt : CiRaw);
       const Fi = sumSignedRows(a.closing_fees);
       const Pi = sumSignedRows(a.post_adjustments);
       const rowAdminFee = rowAdminFees[i];
@@ -1262,7 +1271,9 @@
       const slot = a.slotEl;
       const setComputed = (name, val) => { const el = slot.querySelector('[data-computed="' + name + '"]'); if (el) el.textContent = money(val); };
       const rounding = (method !== "Fixed" && agents.length) ? r2(CiRaw - r2(B * n(a.split_percent) / 100)) : 0;
-      slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = isReferralAgency ? "" : "none"; });
+      slot.querySelectorAll("[data-referral-payout]").forEach(el => { el.style.display = (isReferralAgency && !isRentalDeal) ? "" : "none"; });
+      slot.querySelectorAll("[data-rental-payout]").forEach(el => { el.style.display = isRentalDeal ? "" : "none"; });
+      setComputed("rental_payout", rentalPayout);
       const titleEl = slot.querySelector("[data-agent-title]");
       if (titleEl) titleEl.textContent = "Agent " + (a.slotEl.dataset.slot || (i + 1)) + (a.agent_company === "Blue Ribbon Referral Agency" ? " — Referral Agency" : "");
       setComputed("commission_amount", CiRaw);
@@ -1278,8 +1289,11 @@
       const row = document.createElement("div");
       row.className = "recap-agent";
       row.innerHTML = '<div class="recap-agent-name">' + (a.name || "Agent " + (i + 1)) + (isReferralAgency ? " (Blue Ribbon Referral Agency)" : "") + '</div>' +
-        '<div class="recap-row"><span>Commission</span><span>' + money(Ci) + '</span></div>' +
-        '<div class="recap-row"><span>ARF (−)</span><span>-' + money(rowARF) + '</span></div>' +
+        (isRentalDeal
+          ? '<div class="recap-row"><span>Share of check</span><span>' + money(CiRaw) + '</span></div>' +
+            '<div class="recap-row"><span>Rental payout (80%)</span><span>' + money(Ci) + '</span></div>'
+          : '<div class="recap-row"><span>Commission</span><span>' + money(Ci) + '</span></div>' +
+            '<div class="recap-row"><span>ARF (−)</span><span>-' + money(rowARF) + '</span></div>') +
         (rowAdminFee > 0 ? '<div class="recap-row"><span>Admin Fee (−)</span><span>-' + money(rowAdminFee) + '</span></div>' : '') +
         '<div class="recap-row"><span>Net Due</span><span>' + money(Ni) + '</span></div>';
       agentsList.appendChild(row);
@@ -1323,6 +1337,21 @@
     $("#titleEscrowBlock").classList.toggle("show", !isRental);
     $("#rentalTitleNote").classList.toggle("show", isRental);
     $("#titleMoneyBanner").style.display = isRental ? "none" : "";
+    // Rentals are one simple entry: no title section, no admin-fee question,
+    // no $100 clean-file fee, and a lease-specific certification.
+    $("#titleSection").style.display = isRental ? "none" : "";
+    $("#adminFeeQuestion").style.display = isRental ? "none" : "";
+    if (isRental) { $("#extraAdminFeeBlock").classList.remove("show"); }
+    else updateExtraAdminFeeBlock();
+    $("#cleanFileFeeWarn").style.display = isRental ? "none" : "";
+    $("#rentalCert").style.display = isRental ? "" : "none";
+    $("#saleCert").style.display = isRental ? "none" : "";
+    $("#saleWiringCert").style.display = isRental ? "none" : "";
+    $("#docsLocationLabel").innerHTML = (isRental ? "Where is the lease?" : "Where are the contract documents?") + ' <span class="required-star">*</span>';
+    updateCheckDelayNote();
+    // Mortgage banners make no sense on a lease or a referral-only record.
+    const noMortgageAds = isRental || isReferralOnly;
+    ["#tracyNote", "#sponsorBar"].forEach(sel => { const el = $(sel); if (el) el.hidden = noMortgageAds || el.dataset.on !== "1"; });
     $("#buyersLegend").textContent = isRental ? "Tenant(s)" : "Buyer(s)";
     $("#sellersLegend").textContent = isRental ? "Landlord(s)" : "Seller(s)";
     $("#listingAgentLegend").textContent = isRental ? "Property Manager / Landlord Agent of Record" : "Listing Agent of Record";
@@ -1423,7 +1452,7 @@
     if (slots.length !== 1) return;
     const splitInput = slots[0].querySelector('[data-f="split_percent"]');
     if (splitInput && !splitInput.value.trim()) {
-      splitInput.value = "80";
+      splitInput.value = "100";
     }
   }
   function updatePropStateOther() { $("#propStateOtherField").classList.toggle("show", $("#propState").value === "Other"); }
@@ -1438,7 +1467,7 @@
     else if (v === "false") display.textContent = "Off the bottom — Admin Fee split among agents by share of transaction.";
     else display.textContent = "—";
   }
-  function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check"); }
+  function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check" && $("#transactionType").value !== "Rental"); }
 
   function refreshConditionalUI() {
     if (document.getElementById("propertyBlock")) updateMlsAddress();
@@ -1711,9 +1740,9 @@
     if (refType === "br") {
       requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Referral: add the Blue Ribbon Referral agent in Section 3 (Agents on this deal).", errors);
     }
-    requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
-    if ($("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
-    if ($("#extraAdminFeeCollected").value === "true") {
+    if (!isRental) requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
+    if (!isRental && $("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
+    if (!isRental && $("#extraAdminFeeCollected").value === "true") {
       requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
     }
     if ($("#externalReferralOwed").value === "true") {
@@ -1736,7 +1765,7 @@
     requiredMsg(Math.abs(calc.check) < 0.005, "Reconciliation check must equal $0.00 before this CDA can be Closed.", errors);
 
     const docsLoc = (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "";
-    requiredMsg(docsLoc, "Section 2: tell us where the contract documents are.", errors);
+    requiredMsg(docsLoc, isRental ? "Section 2: tell us where the lease is." : "Section 2: tell us where the contract documents are.", errors);
     if (docsLoc === "Upload") requiredMsg(cdaDocsFiles.length > 0, "Section 2: attach the documents, or pick the platform they're in.", errors);
 
     requiredMsg($("#accuracyAck").checked, "Section 5: check the box that you have read and agree to the certification.", errors);
@@ -1908,7 +1937,11 @@
     const stageKey = stages ? $("#dealStage").value : "";
     const stageLabel = stages ? ((stages.find(s => s.key === stageKey) || {}).label || "") : "";
     const btn = $("#saveStageBtn");
+    const topBtn = $("#saveStageBtnTop");
     btn.disabled = true;
+    // Show it's working right where they clicked — the status line is at the
+    // bottom of the page and the office sync can take a few seconds.
+    [btn, topBtn].forEach(b => { if (b) { b.disabled = true; b.textContent = "Saving…"; } });
     // Save to this device first so nothing is ever lost to a network hiccup,
     // then try to sync to the office (Tracy is not notified on stage saves —
     // only the final Mark Closed / Submit Closeout step notifies him).
@@ -1938,7 +1971,7 @@
       $("#submitStatus").innerHTML = '<ul class="msg-list"><li class="error">Saved on this device, but could not sync to the office (' + e.message + '). It is safe here — try Save again once you are back online so it can be resumed by code from other devices too.</li></ul>';
       return false;
     } finally {
-      btn.disabled = false;
+      [btn, topBtn].forEach(b => { if (b) { b.disabled = false; b.textContent = "Save Progress"; } });
     }
   }
 
@@ -2186,8 +2219,9 @@
     try { dismissed = localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) {}
     if (dismissed) return;
     const close = $("#tracyNoteClose");
-    if (close) close.addEventListener("click", () => { note.hidden = true; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
-    note.hidden = false;
+    if (close) close.addEventListener("click", () => { note.hidden = true; note.dataset.on = "0"; try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {} });
+    note.dataset.on = "1";
+    note.hidden = ["Rental", "Referral Only"].includes(($("#transactionType") || {}).value);
   }
 
   function updateV2Choices() {
