@@ -57,6 +57,8 @@
   fieldset{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 18px 18px;margin:0 0 16px}
   legend{padding:0 8px;font-weight:800;color:var(--navy);font-size:14px}
   legend.collapsible{cursor:pointer;user-select:none}
+  .sec-check{margin-left:10px;padding:2px 8px;border-radius:999px;background:#1b7a2f;color:#fff;font-size:12px;font-weight:800;vertical-align:2px}
+  .sec-check[hidden]{display:none}
   legend.collapsible::before,legend.collapsible::after{content:"▼";display:inline-block;font-size:1em;vertical-align:0;transition:transform .15s}
   legend.collapsible::before{margin-right:8px}
   legend.collapsible::after{margin-left:8px}
@@ -151,8 +153,10 @@
   .doc-count.limit{color:var(--err);font-weight:600}
   .banner-note.warn{background:#fff8e8;border-color:#f0dfa8;color:#6b5300}
   .fixed-text{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#334}
+  .fee-warn{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4e0;border:1px solid #f0c27a;color:#7a4a00;line-height:1.3}
   .acc-note{font-size:25px;line-height:1.3;color:#1b7a2f;background:#eef8f0;border-color:#b9dfc2}
   fieldset:has(.acc-ack input:checked) .acc-note{font-size:12.5px}
+  .acc-note.fee-warn{color:#7a4a00;background:#fff4e0;border:1px solid #f0c27a}
 
   .recap{position:sticky;top:16px;background:var(--navy);color:#fff;border-radius:12px;padding:16px}
   .recap h3{color:#fff;font-size:14px;margin-bottom:10px}
@@ -232,8 +236,6 @@
         <option value="Other">Other</option>
       </select>
     </div>
-    <p style="color:var(--navy2);font-weight:600;margin:4px 0 6px">Start this the day the listing is taken or the buyer contract is ratified. Save as the deal moves. Submit at closing.</p>
-    <p>Weichert, Realtors - Blue Ribbon — Front Royal VA · Martinsburg WV · Bowie MD · Blue Ribbon Referral Agency</p>
   </header>
 
   <div class="drafts-bar">
@@ -287,7 +289,6 @@
             <div class="field" id="projectedDateField">
               <label for="projectedClosingDate">Projected Closing Date</label>
               <input type="date" id="projectedClosingDate">
-              <div class="hint">Planning only — no fee math depends on this date.</div>
             </div>
             <div class="field" id="actualDateField">
               <label for="actualClosingDate">Actual Closing Date <span id="actualDateStar" class="required-star" style="display:none">*</span></label>
@@ -323,7 +324,6 @@
               </div>
               <div class="field"><label for="docsLocationPick">Where are the contract documents? <span class="required-star">*</span></label>
                 <select id="docsLocationPick"><option value="">Select…</option><option value="zipForm">zipForm</option><option value="dotloop">dotloop</option><option value="RibbonWay Platform">RibbonWay Platform</option><option value="Upload">Not in any platform — I'll upload them</option></select>
-                <div class="hint">We get the docs, run compliance, and email you "all clear" or a short fix list.</div>
                 <div hidden><input type="radio" name="docsLocation" value="zipForm"><input type="radio" name="docsLocation" value="dotloop"><input type="radio" name="docsLocation" value="RibbonWay Platform"><input type="radio" name="docsLocation" value="Upload"></div>
               </div>
               <div class="field conditional show" id="grossCommissionMethodField">
@@ -347,8 +347,7 @@
             </div>
             <div class="grid g3">
               <div></div><div></div>
-              <div class="field conditional" id="platformIdField"><label for="zipDotloopId">Transaction ID or loop name</label><input type="text" id="zipDotloopId" maxlength="80">
-                <div class="hint">Optional — helps us find the right file faster.</div>
+              <div class="field conditional" id="platformIdField"><label for="zipDotloopId">Transaction ID or loop name (optional)</label><input type="text" id="zipDotloopId" maxlength="80">
               </div>
             </div>
             <div class="conditional" id="docsUploadBlock" style="margin-top:6px">
@@ -387,7 +386,6 @@
               <div class="field">
                 <label for="extraAdminFeeCollected">Admin fee on the closing document? <span class="required-star">*</span></label>
                 <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
-                <div class="hint">Every deal collects the admin fee at closing unless it's one of the exempt deals.</div>
               </div>
               <div class="field conditional" id="adminFeeExemptField">
                 <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
@@ -506,7 +504,6 @@
             <legend>4 Title &amp; Escrow</legend>
             <div id="titleMoneyBanner"><mark style="background:#fff176;color:#3a2e00;padding:4px 10px;border-radius:4px;font-weight:700;display:inline-block;margin-bottom:8px">So we know who will be sending the commission. It's your job to make sure title sends it to us.</mark></div>
             <div class="conditional show" id="titleEscrowBlock">
-              <div class="hint" style="margin-bottom:8px">Pick from the list or add a new one. Required before closing.</div>
               <div class="grid g3">
                 <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
                 <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
@@ -528,19 +525,19 @@
 
           <fieldset>
             <legend>5 File Accuracy &amp; Certification</legend>
-            <label class="acc-ack"><input type="checkbox" id="accuracyAck"> I've read this</label>
             <div class="banner-note acc-note">
               File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
               Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
-              A <strong>$100 processing fee is deducted from the agent's commission</strong> if the paperwork has 3 or more errors,
-              or if any required form is missing. Goal: complete, accurate paperwork on the first pass.
             </div>
-          
+            <div class="acc-note fee-warn"><strong>$100 processing fee is deducted from the agent's commission</strong> if the paperwork has 3 or more errors,
+              or if any required form is missing. Goal: complete, accurate paperwork on the first pass.</div>
+
             <div class="fixed-text acc-note" style="margin-top:8px">"I certify that the information, amounts, and uploaded documents in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
               Realtors - Blue Ribbon to process this CDA subject to broker review."</div>
             <div class="fixed-text acc-note" style="margin-top:8px">"I have provided wiring instructions to the title company and
               have verified the method our firm will receive payment."</div>
+            <label class="acc-ack" style="margin-top:10px"><input type="checkbox" id="accuracyAck"> I have read and agree to the certification above. <span class="required-star">*</span></label>
             <div class="grid g3" style="margin-top:10px">
               <div class="field">
                 <label for="paymentMethod">Payment Method <span class="required-star">*</span></label>
@@ -1035,6 +1032,35 @@
   // ============================================================
   // Live reconciliation — mirrors Make module 3 ("Reconcile CDA") exactly
   // ============================================================
+  function sectionShown(el, fs) {
+    for (let n = el; n && n !== fs; n = n.parentElement) {
+      if (n.parentElement === fs && fs.classList.contains("collapsed")) continue;
+      if (n.hidden || getComputedStyle(n).display === "none") return false;
+    }
+    return true;
+  }
+  function updateSectionChecks() {
+    $$("#cdaForm fieldset").forEach(fs => {
+      const lg = fs.querySelector(":scope > legend");
+      if (!lg || fs.classList.contains("admin-only") || !sectionShown(fs, fs.parentElement)) return;
+      let done = true, any = false;
+      fs.querySelectorAll(".field").forEach(f => {
+        const lab = f.querySelector("label");
+        const star = lab && lab.querySelector(".required-star");
+        if (!star || getComputedStyle(star).display === "none" || !sectionShown(f, fs)) return;
+        const inp = f.querySelector("select, input:not([type=hidden]), textarea");
+        if (!inp || !sectionShown(inp, fs)) return;
+        any = true;
+        if (inp.type === "file" ? !inp.files.length : !String(inp.value).trim()) done = false;
+      });
+      if (fs.querySelector("#agentsList")) { any = true; const w = $("#pctTotalWarn"); if (w && !w.hidden) done = false; }
+      if (fs.querySelector("#accuracyAck")) { any = true; if (!$("#accuracyAck").checked) done = false; }
+      if (fs.querySelector("#referralYN") && $("#referralYN").value === "yes" && !document.querySelector('input[name="referralType"]:checked')) done = false;
+      let mark = lg.querySelector(".sec-check");
+      if (!mark) { mark = document.createElement("span"); mark.className = "sec-check"; mark.textContent = "✓ done"; lg.appendChild(mark); }
+      mark.hidden = !(any && done);
+    });
+  }
   function relabelDealRoles() {
     const rental = $("#transactionType").value === "Rental";
     const lbl = { Listing: rental ? "Landlord" : "Listing", Buyer: rental ? "Tenant" : "Buyer", Both: rental ? "Both (landlord + tenant)" : "Both" };
@@ -1042,6 +1068,7 @@
   }
   function recalc() {
     relabelDealRoles();
+    try { setTimeout(updateSectionChecks, 0); } catch (e) {}
     syncGrossCommissionMethod();
     const G = n($("#grossCommission").value);
 
@@ -1630,6 +1657,7 @@
     requiredMsg(docsLoc, "Section 2: tell us where the contract documents are.", errors);
     if (docsLoc === "Upload") requiredMsg(cdaDocsFiles.length > 0, "Section 2: attach the documents, or pick the platform they're in.", errors);
 
+    requiredMsg($("#accuracyAck").checked, "Section 5: check the box that you have read and agree to the certification.", errors);
     requiredMsg($("#paymentMethod").value, "Payment method is required.", errors);
     const typed = $("#typedSignature").value.trim().toLowerCase().replace(/\s+/g, " ");
     const named = $("#submitterName").value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -2114,7 +2142,12 @@
     document.addEventListener("change", e => { if (e.target.id === "inMls") updateMlsAddress(); });
     document.addEventListener("change", e => {
       if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
-      if (e.target.id === "officeCode") { populateAgentPickers(); return; }
+      if (e.target.id === "officeCode") {
+        const st = { MBG: "WV", FR: "VA", Bow: "MD" }[e.target.value];
+        const ts = $("#titleState");
+        if (ts) { if (st) ts.placeholder = st; if (st && !ts.value.trim()) ts.value = st; }
+        populateAgentPickers(); return;
+      }
       if (e.target.matches('[data-f="slot_office"]')) {
         const slot = e.target.closest("[data-agent-slot]"); const sel = slot.querySelector('[data-f="agent_pick"]');
         fillPicker(sel, sel.value, false, e.target.value); return;
