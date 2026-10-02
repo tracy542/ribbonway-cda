@@ -184,10 +184,12 @@
   .tracy-note-mark{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#3a2e00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 auto}
   .tracy-note-body b{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
   .tracy-note-body ul{margin:4px 0 0;padding-left:18px}
+  .tracy-note-call{margin-top:4px;font-size:15px;font-weight:600}
+  .tracy-note-call a{color:#ffeb3b;font-weight:800;text-decoration:none;white-space:nowrap}
   .tracy-note-body li{margin:2px 0}
   .tracy-note-close{border:0;background:transparent;color:#9fb3c9;width:26px;height:26px;border-radius:50%;font-size:15px;line-height:1;flex:0 0 auto;cursor:pointer}
   .tracy-note-close:hover{background:rgba(255,255,255,.12);color:#fff}
-  @media (max-width:640px){.tracy-note{grid-template-columns:1fr;text-align:center}.tracy-note-mark{justify-self:center}}
+  @media (max-width:640px){.tracy-note{gap:10px;padding:10px 12px;align-items:start;text-align:left}.flash-5s{font-size:22px}}
 </style>
 </head>
 <body>
@@ -210,12 +212,7 @@
     <div class="tracy-note-body">
       <b>A direct note from Tracy</b>
       <span class="flash-5s">Did you know you could've saved this buyer $2,000 by putting them in front of Revolution Mortgage?</span>
-      <ul>
-        <li>Ask every buyer, every time — before the contract, not after.</li>
-        <li>The $2,000 credit only applies when the buyer closes their loan with Heather Adams at Revolution Mortgage, NMLS #1940374.</li>
-        <li>On a typical loan, that's often $2,000+ back in their pocket.</li>
-        <li>Costs you nothing. Takes one text.</li>
-      </ul>
+      <div class="tracy-note-call">Call Heather Adams at Revolution Mortgage for details: <a href="tel:+16812429967">681-242-9967</a> &nbsp;·&nbsp; NMLS #1940374</div>
     </div>
     <button class="tracy-note-close" id="tracyNoteClose" type="button" aria-label="Dismiss">×</button>
   </div>
