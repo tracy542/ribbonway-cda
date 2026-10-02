@@ -1800,7 +1800,7 @@
     requiredMsg($("#paymentMethod").value, "Payment method is required.", errors);
     const typed = $("#typedSignature").value.trim().toLowerCase().replace(/\s+/g, " ");
     const named = $("#submitterName").value.trim().toLowerCase().replace(/\s+/g, " ");
-    requiredMsg(typed && typed === named, "Typed signature must match your name exactly.", errors);
+    requiredMsg(typed && typed === named, "Typed signature must match the name at the top of this form exactly (" + ($("#submitterName").value.trim() || "pick your name in Section 1") + "). If that's not you, change the name at the top first.", errors);
     requiredMsg($("#certificationDate").value && $("#certificationDate").value <= todayISO(), "Certification date is required and cannot be in the future.", errors);
   }
 
