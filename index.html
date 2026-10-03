@@ -430,23 +430,24 @@
             <div class="grid g2" id="adminFeeQuestion">
               
               <div class="field">
-                <label for="extraAdminFeeCollected">Admin fee on the closing document? <span class="required-star">*</span></label>
+                <label for="extraAdminFeeCollected">Additional compensation on the closing statement? <span class="required-star">*</span></label>
                 <select id="extraAdminFeeCollected"><option value="">Select…</option><option value="true">Yes — it's on the closing statement</option><option value="false">No — this deal is exempt</option></select>
               </div>
               <div class="field conditional" id="adminFeeExemptField">
                 <label for="adminFeeExemptReason">Why is it exempt? <span class="required-star">*</span></label>
                 <select id="adminFeeExemptReason">
                   <option value="">Select…</option>
-                  <option value="builder">Builder client (new construction)</option>
-                  <option value="own_home">It's my own home (my personal residence)</option>
-                  <option value="investor">Investor client who buys, rehabs and resells with us</option>
+                  <option value="va_loan">VA loan</option>
+                  <option value="builder">I represent the builder selling homes they built</option>
+                  <option value="investor">Fix-and-flip: client resells within 12 months</option>
+                  <option value="own_home">Owned by a Blue Ribbon agent, their LLC, or immediate family</option>
                   <option value="agent_plan">Agent's plan has no admin fee</option>
                 </select>
               </div>
             </div>
             <div class="conditional" id="extraAdminFeeBlock">
               <div class="grid g3" style="margin-top:8px">
-                <div class="field"><label for="extraAdminFeeAmount">Admin fee amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
+                <div class="field"><label for="extraAdminFeeAmount">Additional compensation amount on the closing statement ($) <span class="required-star">*</span></label><input type="number" id="extraAdminFeeAmount" min="0.01" step="0.01" data-calc-trigger></div>
                 <div class="field"><label>Handling (computed)</label><div class="readonly-display" id="extraAdminFeeHandlingDisplay">—</div></div>
               </div>
               <div class="hint">This goes straight to the brokerage. Your payout isn't touched.</div>
@@ -1161,7 +1162,7 @@
 
     let adminFeesCalc = collectAdjustmentRows($("#adminFeesList"));
     if (referralOwed && OP > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "External Referral Fee", type: "Debit", amount: OP }]);
-    if (extraFeeCollected && extraFeeAmount > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "Additional Commission Collected at Closing", type: "Credit", amount: extraFeeAmount }]);
+    if (extraFeeCollected && extraFeeAmount > 0) adminFeesCalc = adminFeesCalc.concat([{ description: "Additional Compensation Collected at Closing", type: "Credit", amount: extraFeeAmount }]);
     const reimb = collectAdjustmentRows($("#reimbList"));
 
     const A = sumSignedRows(adminFeesCalc);
@@ -1482,7 +1483,7 @@
     const display = $("#extraAdminFeeHandlingDisplay");
     if (!display) return;
     if (v === "true") display.textContent = "On top — credited to the brokerage, no agent impact.";
-    else if (v === "false") display.textContent = "Off the bottom — Admin Fee split among agents by share of transaction.";
+    else if (v === "false") display.textContent = "Off the bottom — additional compensation split among agents by share of transaction.";
     else display.textContent = "—";
   }
   function updateCheckDelayNote() { $("#checkDelayNote").classList.toggle("show", $("#paymentMethod").value === "Check" && $("#transactionType").value !== "Rental"); }
@@ -1768,10 +1769,10 @@
     if (refType === "br") {
       requiredMsg(calc.agents.some(a => a.agent_company === "Blue Ribbon Referral Agency"), "Referral: add the Blue Ribbon Referral agent in Section 3 (Agents on this deal).", errors);
     }
-    if (!isRental) requiredMsg($("#extraAdminFeeCollected").value !== "", "Admin fee: tell us whether it's on the closing statement.", errors);
-    if (!isRental && $("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Admin fee: pick why this deal is exempt.", errors);
+    if (!isRental) requiredMsg($("#extraAdminFeeCollected").value !== "", "Additional compensation: tell us whether it's on the closing statement.", errors);
+    if (!isRental && $("#extraAdminFeeCollected").value === "false") requiredMsg($("#adminFeeExemptReason").value, "Additional compensation: pick why this deal is exempt.", errors);
     if (!isRental && $("#extraAdminFeeCollected").value === "true") {
-      requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Amount collected is required when additional commission was collected at closing.", errors);
+      requiredMsg(n($("#extraAdminFeeAmount").value) > 0, "Enter the additional compensation amount on the closing statement.", errors);
     }
     if ($("#externalReferralOwed").value === "true") {
     }
