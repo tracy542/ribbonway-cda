@@ -193,6 +193,7 @@
   .drop-box-title{font-size:20px;font-weight:800}
   .drop-box-sub{font-size:14px;font-weight:600}
   .drop-box-hint{font-size:12px;font-weight:400;color:#445}
+  .drop-box-optional{font-size:12px;font-weight:400;color:#445;margin-left:4px}
   .drop-box input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;min-height:0}
   .msg-list{list-style:none;margin:0;padding:0}
   .msg-list li{padding:8px 10px;border-radius:7px;margin-bottom:6px;font-size:12.5px}
@@ -379,12 +380,13 @@
                   <div class="field">
                     <label for="cdaDocsUpload" class="drop-box">
                       <span class="drop-box-icon">&#8679;</span>
-                      <span class="drop-box-title">Choose files <span class="required-star">*</span></span>
+                      <span class="drop-box-title">Choose files <span class="required-star" id="cdaDocsStar">*</span><span class="drop-box-optional" id="cdaDocsOptionalTag" hidden>(optional)</span></span>
                       <span class="drop-box-sub">or drag them here</span>
                       <span class="drop-box-hint">Listing agreement, ratified contract, closeout paperwork. PDF, JPG, PNG or TIFF.</span>
                       <input type="file" id="cdaDocsUpload" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" multiple>
                     </label>
                   </div>
+                  <div class="hint" id="cdaDocsMlsNote" hidden>Not needed when an MLS number is provided — compliance pulls the docs from the MLS.</div>
                   <div id="cdaDocsChips" class="doc-chip-list"></div>
                   <div id="cdaDocsCount" class="doc-count"></div>
                 </div>
@@ -1795,7 +1797,7 @@
 
     const docsLoc = (document.querySelector('input[name="docsLocation"]:checked') || {}).value || "";
     requiredMsg(docsLoc, isRental ? "Section 2: tell us where the lease is." : "Section 2: tell us where the contract documents are.", errors);
-    if (docsLoc === "Upload") requiredMsg(cdaDocsFiles.length > 0, "Section 2: attach the documents, or pick the platform they're in.", errors);
+    if (docsLoc === "Upload" && !hasMlsNumber()) requiredMsg(cdaDocsFiles.length > 0, "Section 2: attach the documents, or pick the platform they're in.", errors);
 
     requiredMsg($("#accuracyAck").checked, "Section 5: check the box that you have read and agree to the certification.", errors);
     requiredMsg($("#paymentMethod").value, "Payment method is required.", errors);
@@ -2283,15 +2285,28 @@
     });
   }
 
+  // Uploads are required only when the deal is NOT in the MLS. With an MLS
+  // number, compliance pulls the docs from the MLS, so the picker is optional.
+  function hasMlsNumber() {
+    return $("#inMls").value === "yes" && !!$("#mlsNumber").value.trim();
+  }
+  function updateDocsUploadRequirement() {
+    const optional = hasMlsNumber();
+    $("#cdaDocsStar").hidden = optional;
+    $("#cdaDocsOptionalTag").hidden = !optional;
+    $("#cdaDocsMlsNote").hidden = !optional;
+  }
   function updateMlsAddress() {
     if (!$("#inMls").value && $("#mlsNumber").value.trim()) $("#inMls").value = "yes";
     const v = $("#inMls").value;
     $("#mlsNumberField").classList.toggle("show", v === "yes");
     $("#propertyBlock").style.display = v === "no" ? "" : "none";
     $("#mlsAddressNote").style.display = "none";
+    updateDocsUploadRequirement();
   }
   function bindPickers() {
     document.addEventListener("change", e => { if (e.target.id === "inMls") updateMlsAddress(); });
+    document.addEventListener("input", e => { if (e.target.id === "mlsNumber") updateDocsUploadRequirement(); });
     document.addEventListener("change", e => {
       if (e.target.id === "submitterPick") { onSubmitterPicked(); return; }
       if (e.target.id === "officeCode") {
