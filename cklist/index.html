@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deal Checklists</title>
@@ -241,30 +242,73 @@ const DATA = {
 
   WV: {
     draft: true,
+    workflow: true,
     buyer: [
-      { title: "Every deal", items: [
-        ["Purchase agreement (EPBOR / WV REALTORS)", "", "EPBOR"],
-        ["Buyer agency agreement", "", "EPBOR"],
-        ["Notification Regarding Real Estate Services (agency disclosure)", "", "WV Real Estate Commission"],
-        ["Seller's property disclosure", "Seller may line through pages 1–4 and complete page 5", "Brokerage policy"]
+      { title: "A · Agency — first meeting with the buyer", items: [
+        ["1. Buyer agency agreement", "", "EPBOR"],
+        ["2. Affiliated Business Arrangement (RESPA) disclosure", "Every deal", "Brokerage policy"],
+        ["3. Equal Housing Opportunity form", "", "Thomas's SOP"],
+        ["4. Lender pre-approval letter or proof of funds", "Before showing / writing", "Brokerage policy"]
       ]},
-      { title: "When it applies", items: [
-        ["Federal Lead-Based Paint Disclosure + EPA pamphlet", "Built before 1978", "Federal law"],
-        ["Financing addendum (Conventional / FHA / VA / USDA)", "Financed purchase", "EPBOR"],
-        ["Dual agency consent", "Dual agency", "WV law"],
-        ["Well / septic addendum", "Private well or septic", "EPBOR"],
-        ["Land lease / manufactured home documents", "Manufactured home or land lease", "Brokerage policy"]
+      { title: "C · Contract — writing each offer, in signing order", items: [
+        ["1. Pull the current MLS sheet (Bright listing printout)", "", "Brokerage policy"],
+        ["2. NEW Notice of Agency Relationship (NOA) for this offer — signed first", "Every offer gets its own NOA; nothing dated before it", "WVREC (mandatory 1/1/25)"],
+        ["3. Disclosure of Dual Agency", "Our listing — also mark it on the NOA", "WV REALTORS / WV law"],
+        ["4. “For Your Protection: Get a Home Inspection” (HUD)", "FHA loans", "Thomas's SOP"],
+        ["5. Seller's property disclosure (from listing agent) — goes BEFORE the contract", "Seller may line through pages 1–4 and complete page 5", "Brokerage policy"],
+        ["6. Federal Lead-Based Paint Disclosure + EPA pamphlet", "Built before 1978", "Federal law"],
+        ["7. Residential Sales Contract (RSC)", "", "EPBOR"],
+        ["8. WV ABA — Blue Ribbon Realty version", "", "Brokerage policy (C1/C2)"],
+        ["9. Items to Convey (ITC)", "", "EPBOR"],
+        ["10. Financing addendum — ONE only", "Financed purchase", "EPBOR"],
+        ["11. Inspection / contingency, escalation, well-septic, land lease addenda", "Only the ones used", "EPBOR"],
+        ["12. PA Disclosure of Financial Interest", "Buyer uses Heather Adams / Revolution Mortgage", "Brokerage policy"],
+        ["13. Pre-approval or proof of funds attached right after the contract", "", "Brokerage policy"],
+        ["14. Ratified: everyone signed, ratification date filled in, copies to buyer and listing agent", "", "Brokerage policy"],
+        ["15. Start the CDA at cda.ribbonway.com", "Within 24 hours of ratification", "Brokerage policy"]
+      ]},
+      { title: "D · Diligence — ratified to clear to close", items: [
+        ["1. Earnest money deposit receipt (check or wire)", "", "Brokerage policy"],
+        ["2. Inspection results / repair addendum", "Inspection contingency", "EPBOR"],
+        ["3. Contingency removals and any other addenda signed after ratification", "When used", "EPBOR"]
+      ]},
+      { title: "C · Closeout — settlement", items: [
+        ["1. Pre-settlement walk-through form", "Before closing", "Thomas's SOP"],
+        ["2. Closing Disclosure / ALTA settlement statement", "", "Thomas's SOP"],
+        ["3. Submit the CDA to the broker", "", "Brokerage policy"]
+      ]},
+      { title: "S · Stewardship — after closing", items: [
+        ["1. Client loaded to FUB and myWeichert with the house address and a market report", "", "Brokerage policy"]
       ]}
     ],
     listing: [
-      { title: "Every listing", items: [
-        ["Exclusive Right to Sell listing agreement", "", "EPBOR"],
-        ["Notification Regarding Real Estate Services (agency disclosure)", "", "WV Real Estate Commission"],
-        ["Seller's property disclosure", "Seller may line through pages 1–4 and complete page 5", "Brokerage policy"]
+      { title: "A · Agency — listing appointment", items: [
+        ["1. Notice of Agency Relationship (NOA) — signed by sellers first", "Nothing dated before it", "WVREC (mandatory 1/1/25)"],
+        ["2. Exclusive Right to Sell listing agreement", "", "EPBOR"],
+        ["3. Affiliated Business Arrangement (RESPA) disclosure", "Every deal", "Brokerage policy"],
+        ["4. Equal Housing Opportunity form", "", "Thomas's SOP"],
+        ["5. Seller's property disclosure", "Seller may line through pages 1–4 and complete page 5", "Brokerage policy"],
+        ["6. Federal Lead-Based Paint Disclosure", "Built before 1978", "Federal law"],
+        ["7. Bright MLS disclosures and seller options", "", "Thomas's SOP"],
+        ["8. Start the CDA at cda.ribbonway.com", "Within 24 hours of the listing agreement", "Brokerage policy"],
+        ["9. MLS sheet (current Bright printout) in the file", "Once the listing is live", "Brokerage policy"]
       ]},
-      { title: "When it applies", items: [
-        ["Federal Lead-Based Paint Disclosure", "Built before 1978", "Federal law"],
-        ["Dual agency consent", "Dual agency", "WV law"]
+      { title: "C · Contract — each offer received", items: [
+        ["1. Buyer agent's NOA for this offer", "Every offer comes with its own NOA", "WVREC"],
+        ["2. Disclosure of Dual Agency", "Both sides are ours — also mark it on the NOA", "WV REALTORS / WV law"],
+        ["3. MLS sheet in the offer package", "If missing: attach current sheet, seller signs, buyer initials", "Brokerage policy"],
+        ["4. Ratified: everyone signed, ratification date filled in, copies to seller and buyer agent", "", "EPBOR"]
+      ]},
+      { title: "D · Diligence — ratified to clear to close", items: [
+        ["1. Response to the inspection / repair addendum", "Buyer has an inspection contingency", "EPBOR"],
+        ["2. Contingency removals and any other addenda signed after ratification", "When used", "EPBOR"]
+      ]},
+      { title: "C · Closeout — settlement", items: [
+        ["1. Closing Disclosure / ALTA settlement statement", "", "Thomas's SOP"],
+        ["2. Submit the CDA to the broker", "", "Brokerage policy"]
+      ]},
+      { title: "S · Stewardship — after closing", items: [
+        ["1. Client loaded to FUB and myWeichert with their new address and a market report", "", "Brokerage policy"]
       ]}
     ]
   },
@@ -349,7 +393,7 @@ function render(){
 
   const groups = [...d[side]];
   if (st === "MD" && d.county[cty]) groups.push(d.county[cty][side]);
-  groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
+  if (!d.workflow) groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
 
   let html = "";
   groups.forEach((g, gi) => {
@@ -388,7 +432,7 @@ $("lists").addEventListener("change", e => {
 ["state","county","side"].forEach(id => $(id).addEventListener("change", render));
 $("clearBtn").addEventListener("click", () => { checked.clear(); render(); });
 
-$("foot").textContent = "Sources: Maryland REALTORS forms, PGCAR #101 Sales Contract Checklist (Rev. 4/23), GCAAR checklists, and the brokerage dotloop SOP. Last updated October 2026.";
+$("foot").textContent = "Sources: Maryland REALTORS forms, PGCAR #101 Sales Contract Checklist (Rev. 4/23), GCAAR checklists, WVREC Notice of Agency Relationship (rev. 10/2024), Blue Ribbon C1/C2 ACDCS checklists (7/2026), and the brokerage dotloop SOP. Last updated October 2026.";
 
 params();
 render();
