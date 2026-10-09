@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Washington, DC Deal Checklists</title>
+<style>
+  :root{
+    --navy:#0b2540; --navy2:#123a63; --gold:#c9a227; --ink:#111; --muted:#5b6b7c;
+    --line:#dfe6ee; --bg:#f4f7fb; --card:#ffffff; --ok:#1c7a3d; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5}
+  .wrap{max-width:900px;margin:0;padding:20px 16px 80px}
+  h1{color:var(--navy);font-size:30px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .pickers{display:flex;flex-wrap:wrap;gap:14px;background:var(--card);border:2px solid var(--navy);border-radius:8px;padding:14px 16px;margin-bottom:18px}
+  .pickers label{display:block;font-weight:800;color:var(--navy);font-size:15px;margin-bottom:4px}
+  .pickers select{font-size:19px;padding:9px 10px;border:1px solid #c8d2dc;border-radius:7px;background:#fff;min-width:200px}
+  .pickers [hidden]{display:none}
+  .bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px}
+  .progress{font-weight:800;color:var(--navy);font-size:18px}
+  button{font-size:16px;font-weight:700;padding:9px 16px;border-radius:7px;border:2px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+  button.primary{background:var(--navy);color:#fff}
+  .note{background:#fff8e1;border-left:5px solid var(--gold);padding:10px 14px;border-radius:6px;margin:0 0 16px;font-size:16px}
+  .note[hidden]{display:none}
+  section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px 6px;margin-bottom:16px}
+  section h2{color:var(--navy);font-size:20px;margin:0 0 8px}
+  ul{list-style:none;margin:0;padding:0}
+  li{border-top:1px solid var(--line)}
+  li:first-child{border-top:0}
+  li label{display:flex;gap:12px;align-items:flex-start;padding:10px 2px;cursor:pointer}
+  li input{width:22px;height:22px;margin-top:3px;flex:0 0 auto}
+  .name{font-weight:700}
+  .when{display:block;font-size:15px;color:var(--warn);font-weight:700}
+  .src{display:block;font-size:14px;color:var(--muted)}
+  li.done .name{color:var(--ok);text-decoration:line-through}
+  footer{color:var(--muted);font-size:14px;margin-top:20px}
+  @media print{
+    .pickers,.bar button{display:none}
+    body{background:#fff;font-size:13px}
+    section{break-inside:avoid;border-color:#999}
+  }
+.kq{margin:6px 0 4px 34px;font-size:1.05rem}
+.kq summary{cursor:pointer;font-weight:700;color:#1f3a6e;padding:6px 0}
+.kq ul{margin:4px 0 8px 20px;padding:0;list-style:disc}
+.kq li{margin:4px 0;border:0;padding:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Washington, DC Deal Checklists</h1>
+  <p class="sub">Weichert, Realtors – Blue Ribbon. Pick the side. Check off each document as it's in the file.</p>
+
+  <div class="pickers">
+    <select id="state" hidden><option value="DC">Washington, DC</option></select>
+    <div id="countyWrap">
+      <label for="county">MD county</label>
+      <select id="county">
+        <option value="PG">Prince George's</option>
+        <option value="MC">Montgomery</option>
+        <option value="FR">Frederick</option>
+        <option value="OTHER">Other MD county</option>
+      </select>
+    </div>
+    <div>
+      <label for="side">Side</label>
+      <select id="side">
+        <option value="buyer">Buyer (purchase)</option>
+        <option value="listing">Listing</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bar">
+    <span class="progress" id="progress"></span>
+    <button type="button" id="clearBtn">Clear checks</button>
+    <button type="button" class="primary" onclick="window.print()">Print / Save PDF</button>
+  </div>
+
+  <p class="note" id="draftNote" hidden>Starter list. Still being confirmed by compliance. Ask Gavin if a deal doesn't fit.</p>
+
+  <div id="lists"></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* Each item: [name, when-it-applies (blank = every deal), source] */
+const BROKERAGE_BUYER = {
+  title: "Brokerage requirements (every state)",
+  items: [
+    ["MLS sheet (current Bright listing printout)", "", "Brokerage policy"],
+    ["Affiliated Business Arrangement (RESPA) disclosure", "", "Brokerage policy – every deal"],
+    ["Lender pre-approval letter or proof of funds", "", "Brokerage policy"],
+    ["Copy of earnest money deposit (check or wire receipt)", "", "Brokerage policy"],
+    ["Equal Housing Opportunity form", "", "Thomas's SOP"],
+    ["“For Your Protection: Get a Home Inspection” (HUD)", "FHA loans", "Thomas's SOP"],
+    ["Pre-settlement walk-through form", "Before closing", "Thomas's SOP"],
+    ["Closing Disclosure / ALTA settlement statement", "At closeout", "Thomas's SOP"],
+    ["PA Disclosure of Financial Interest", "Buyer uses Heather Adams / Revolution Mortgage", "Brokerage policy"]
+  ]
+};
+const BROKERAGE_LISTING = {
+  title: "Brokerage requirements (every state)",
+  items: [
+    ["MLS sheet (current Bright listing printout)", "", "Brokerage policy"],
+    ["Bright MLS disclosures and seller options", "", "Thomas's SOP"],
+    ["Affiliated Business Arrangement (RESPA) disclosure", "", "Brokerage policy – every deal"],
+    ["Equal Housing Opportunity form", "", "Thomas's SOP"],
+    ["Closing Disclosure / ALTA settlement statement", "At closeout", "Thomas's SOP"]
+  ]
+};
+
+const DATA = {
+  DC: {
+    draft: true,
+    buyer: [
+      { title: "Every deal", items: [
+        ["GCAAR Sales Contract (1301)", "", "GCAAR"],
+        ["GCAAR 1313 DC Jurisdictional Disclosure and Addendum", "", "GCAAR"],
+        ["Buyer agency agreement", "", "GCAAR"],
+        ["DC Seller's Disclosure Statement", "Seller provides", "DC law"]
+      ]},
+      { title: "When it applies", items: [
+        ["DC Lead Disclosure + Federal Lead-Based Paint Disclosure", "Built before 1978", "DC / federal law"],
+        ["Financing addendum (Conventional / FHA / VA)", "Financed purchase", "GCAAR"],
+        ["Consent for Dual Agency", "Dual agency", "GCAAR"],
+        ["Condo / co-op resale documents", "Condo or co-op", "GCAAR"]
+      ]}
+    ],
+    listing: [
+      { title: "Every listing", items: [
+        ["GCAAR Listing Agreement", "", "GCAAR"],
+        ["DC Seller's Disclosure Statement", "", "DC law"]
+      ]},
+      { title: "When it applies", items: [
+        ["DC Lead Disclosure + Federal Lead-Based Paint Disclosure", "Built before 1978", "DC / federal law"],
+        ["Consent for Dual Agency", "Dual agency", "GCAAR"]
+      ]}
+    ]
+  }
+};
+
+const $ = id => document.getElementById(id);
+const checked = new Set();
+
+function params(){
+  const p = new URLSearchParams(location.search);
+  if (p.get("state") && DATA[p.get("state").toUpperCase()]) $("state").value = p.get("state").toUpperCase();
+  if (p.get("county")) $("county").value = p.get("county").toUpperCase();
+  if (p.get("side")) $("side").value = p.get("side").toLowerCase();
+}
+
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  const st = $("state").value, side = $("side").value, cty = $("county").value;
+  const d = DATA[st];
+  $("countyWrap").hidden = st !== "MD";
+  $("draftNote").hidden = !d.draft;
+
+  const groups = [...d[side]];
+  if (st === "MD" && d.county[cty]) groups.push(d.county[cty][side]);
+  if (!d.workflow) groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
+
+  let html = "";
+  groups.forEach((g, gi) => {
+    html += `<section><h2>${esc(g.title)}</h2><ul>`;
+    g.items.forEach((it, ii) => {
+      const key = `${st}|${side}|${cty}|${gi}|${ii}`;
+      const on = checked.has(key);
+      html += `<li class="${on ? "done" : ""}"><label>
+        <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
+        <span><span class="name">${esc(it[0])}</span>
+        ${it[1] ? `<span class="when">When: ${esc(it[1])}</span>` : ""}
+        <span class="src">${esc(it[2])}</span></span></label>${it[3] ? `<details class="kq"><summary>Key questions</summary><ul>${it[3].map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>` : ""}</li>`;
+    });
+    html += `</ul></section>`;
+  });
+  $("lists").innerHTML = html;
+  updateProgress();
+
+  const q = new URLSearchParams({ side, ...(st === "MD" ? { county: cty } : {}) });
+  history.replaceState(null, "", "?" + q.toString());
+}
+
+function updateProgress(){
+  const boxes = document.querySelectorAll("#lists input");
+  const done = [...boxes].filter(b => b.checked).length;
+  $("progress").textContent = `${done} of ${boxes.length} checked`;
+}
+
+$("lists").addEventListener("change", e => {
+  const b = e.target;
+  if (!b.dataset.key) return;
+  b.checked ? checked.add(b.dataset.key) : checked.delete(b.dataset.key);
+  b.closest("li").classList.toggle("done", b.checked);
+  updateProgress();
+});
+["state","county","side"].forEach(id => $(id).addEventListener("change", render));
+$("clearBtn").addEventListener("click", () => { checked.clear(); render(); });
+
+$("foot").textContent = "Sources: Maryland REALTORS forms, PGCAR #101 Sales Contract Checklist (Rev. 4/23), GCAAR checklists, WVREC Notice of Agency Relationship (rev. 10/2024), Blue Ribbon C1/C2 ACDCS checklists (7/2026), and the brokerage dotloop SOP. Last updated October 2026.";
+
+params();
+render();
+</script>
+</body>
+</html>
