@@ -176,6 +176,11 @@
   .next-steps-title{font-weight:800;font-size:16px;margin-bottom:4px}
   .next-steps ul{margin:0;padding-left:20px;font-size:15px}
   .next-steps li{margin:3px 0}
+  .addr-wrap{position:relative}
+  .addr-status{font-size:14px;color:#555;margin-top:4px}
+  .addr-list{position:absolute;left:0;right:0;top:100%;z-index:50;background:#fff;border:1px solid #c9d3e0;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);overflow:hidden}
+  .addr-list button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid #eef1f5;background:#fff;font-size:16px;cursor:pointer;color:#1b2a41}
+  .addr-list button:hover,.addr-list button:focus{background:#eef4ff}
   .dual-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 12px}
   .dual-row[hidden]{display:none}
   .dual-ack{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:15px;font-weight:700;color:var(--navy)}
@@ -273,7 +278,7 @@
 
   <div class="drafts-bar">
     <label for="resumeCodeInput" style="margin:0;font-weight:800;font-size:min(24px,4.2vw);white-space:nowrap;color:var(--navy)">Resume a saved CDA — enter your code:</label>
-    <input type="text" id="resumeCodeInput" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="7 digits" style="width:100px">
+    <input type="text" id="resumeCodeInput" maxlength="8" placeholder="7 digits" style="width:100px">
     <button type="button" class="btn small" id="resumeCodeBtn">Resume</button>
     <button type="button" class="btn small" id="newDraftBtn">Start New CDA</button>
     <span id="currentRecordBadge"></span>
@@ -408,17 +413,19 @@
               </div>
               
             </div>
-            <div id="propertyBlock" style="display:none">
-            <div class="sub-legend">Property address</div>
+            <div id="propertyBlock">
+            <div class="sub-legend">Property address <span class="required-star">*</span></div>
             <div class="grid g3">
-              <div class="field" style="grid-column:span 2"><label for="propStreet">Street</label><input type="text" id="propStreet" maxlength="150"></div>
-              <div class="field"><label for="propCity">City</label><input type="text" id="propCity" maxlength="80"></div>
+              <div class="field addr-wrap" style="grid-column:span 2"><label for="propStreet">Street <span class="required-star">*</span></label><input type="text" id="propStreet" maxlength="150" autocomplete="off" placeholder="Start typing the address, then pick it from the list">
+                <div class="addr-status" id="addrStatus" hidden></div>
+                <div class="addr-list" id="addrList" hidden></div></div>
+              <div class="field"><label for="propCity">City <span class="required-star">*</span></label><input type="text" id="propCity" maxlength="80"></div>
               <div class="field">
-                <label for="propState">State</label>
-                <select id="propState"><option value="VA">VA</option><option value="WV">WV</option><option value="MD">MD</option><option value="Other">Other</option></select>
+                <label for="propState">State <span class="required-star">*</span></label>
+                <select id="propState"><option value="VA">VA</option><option value="WV">WV</option><option value="MD">MD</option><option value="PA">PA</option><option value="DC">DC</option><option value="Other">Other</option></select>
               </div>
               <div class="field conditional" id="propStateOtherField"><label for="propStateOther">State (specify)</label><input type="text" id="propStateOther" maxlength="40"></div>
-              <div class="field"><label for="propZip">ZIP</label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
+              <div class="field"><label for="propZip">ZIP <span class="required-star">*</span></label><input type="text" id="propZip" placeholder="22630 or 22630-1234"></div>
             </div>
             </div>
             <div class="conditional" id="referralChoiceBlock">
@@ -580,9 +587,6 @@
               File Complete – No Errors review status: <strong id="accuracyStatusDisplay">Pending Review</strong>.
               Once this CDA is Closed, our AI evidence-review step reads the attached documents and reports factual findings to Tracy.
             </div>
-            <div class="acc-note fee-warn" id="cleanFileFeeWarn"><strong>Deliver a clean file and avoid the fee.</strong> A $100 processing fee is deducted from the agent's commission
-              if the paperwork has 3 or more errors, or if any required form is missing.
-              <strong>I don't want your money. I want a clean file.</strong> – Tracy</div>
 
             <div class="fixed-text acc-note" id="rentalCert" style="margin-top:8px;display:none">"I certify that the lease, amounts and payment information in this Commission
               Disbursement Authorization are complete and accurate to the best of my knowledge, and I authorize Weichert
@@ -1365,7 +1369,6 @@
     $("#adminFeeQuestion").style.display = isRental ? "none" : "";
     if (isRental) { $("#extraAdminFeeBlock").classList.remove("show"); }
     else updateExtraAdminFeeBlock();
-    $("#cleanFileFeeWarn").style.display = isRental ? "none" : "";
     $("#rentalCert").style.display = isRental ? "" : "none";
     $("#saleCert").style.display = isRental ? "none" : "";
     $("#saleWiringCert").style.display = isRental ? "none" : "";
@@ -1512,7 +1515,6 @@
   function saveDraftsIndex(idx) { try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(idx)); } catch (e) {} }
 
   function buildPropertyAddress() {
-    if ($("#inMls") && $("#inMls").value === "yes" && $("#mlsNumber").value.trim()) return "MLS# " + $("#mlsNumber").value.trim();
     const street = $("#propStreet").value.trim();
     const city = $("#propCity").value.trim();
     const state = $("#propState").value === "Other" ? $("#propStateOther").value.trim() : $("#propState").value;
@@ -1625,8 +1627,8 @@
 
   async function resumeByCode(code, opts) {
     opts = opts || {};
-    code = (code || "").trim();
-    if (!/^\d{7}$/.test(code)) { alert("Enter the 7-digit code exactly as you wrote it down — numbers only."); return; }
+    code = (code || "").trim().toUpperCase();
+    if (!/^B?\d{7}$/.test(code)) { alert("Enter the 7-digit code exactly as you wrote it down (the buyer side of a dual starts with B)."); return; }
     const btn = $("#resumeCodeBtn");
     if (btn) btn.disabled = true;
     try {
@@ -1744,11 +1746,9 @@
     requiredMsg(n($("#grossCommission").value) > 0, "Expected commission on the closing document is required.", errors);
     requiredMsg($("#inMls").value, "Section 2: tell us whether it's in the MLS.", errors);
     if ($("#inMls").value === "yes") requiredMsg($("#mlsNumber").value.trim(), "Section 2: enter the MLS number.", errors);
-    if ($("#inMls").value === "no") {
-      requiredMsg($("#propStreet").value.trim().length >= 2, "Property street is required when it is not in the MLS.", errors);
-      requiredMsg($("#propCity").value.trim().length >= 2, "Property city is required when it is not in the MLS.", errors);
-      requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Property ZIP is required when it is not in the MLS.", errors);
-    }
+    requiredMsg($("#propStreet").value.trim().length >= 2, "Section 2: property street is required.", errors);
+    requiredMsg($("#propCity").value.trim().length >= 2, "Section 2: property city is required.", errors);
+    requiredMsg(/^\d{5}(-\d{4})?$/.test($("#propZip").value.trim()), "Section 2: property ZIP is required.", errors);
 
 
     $$("[data-buyer-row]").forEach((r, i) => requiredMsg(r.querySelector('[data-f="phone"]').value.trim(), (isRental ? "Tenant" : "Buyer") + " #" + (i + 1) + " phone is required.", errors));
@@ -2301,9 +2301,53 @@
     if (!$("#inMls").value && $("#mlsNumber").value.trim()) $("#inMls").value = "yes";
     const v = $("#inMls").value;
     $("#mlsNumberField").classList.toggle("show", v === "yes");
-    $("#propertyBlock").style.display = v === "no" ? "" : "none";
+    $("#propertyBlock").style.display = "";
     $("#mlsAddressNote").style.display = "none";
     updateDocsUploadRequirement();
+  }
+  // Address lookup (Tracy 10/10): agent types the address, picks it from
+  // the list, and street/city/state/ZIP fill in. Google Places via Make
+  // (ACB-010) so no API key sits in this page.
+  const ADDRESS_LOOKUP_URL = "https://hook.us2.make.com/spmei71eaabc1m8d8ymbxfk8ytq8m7mw";
+  function bindAddressLookup() {
+    const inp = $("#propStreet"), list = $("#addrList"), status = $("#addrStatus");
+    if (!inp || !list) return;
+    let timer = null, seq = 0, picked = false;
+    const hide = () => { list.hidden = true; list.innerHTML = ""; };
+    const setStatus = t => { status.textContent = t || ""; status.hidden = !t; };
+    const fill = r => {
+      picked = true;
+      inp.value = r.street; $("#propCity").value = r.city || "";
+      const st = $("#propState"), known = [...st.options].some(o => o.value === r.state);
+      st.value = known ? r.state : "Other";
+      if (!known && $("#propStateOther")) $("#propStateOther").value = r.state || "";
+      st.dispatchEvent(new Event("change", { bubbles: true }));
+      $("#propZip").value = r.zip || "";
+      [inp, $("#propCity"), $("#propZip")].forEach(el => el.dispatchEvent(new Event("input", { bubbles: true })));
+      hide(); setStatus(r.zip ? "" : "No ZIP came back for that address. Please type it in.");
+    };
+    const search = async q => {
+      const my = ++seq; setStatus("Looking up the address…");
+      try {
+        const resp = await fetch(ADDRESS_LOOKUP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ q: q }) });
+        const json = await resp.json();
+        if (my !== seq || picked) return;
+        const res = (json && json.results) || [];
+        list.innerHTML = "";
+        res.forEach(r => { const b = document.createElement("button"); b.type = "button"; b.textContent = r.label; b.addEventListener("click", () => fill(r)); list.appendChild(b); });
+        list.hidden = !res.length;
+        setStatus(res.length ? "" : "No match found. Check the address, or type the city, state and ZIP yourself.");
+      } catch (e) { if (my === seq) setStatus("Address lookup is not available right now. Type the city, state and ZIP yourself."); }
+    };
+    inp.addEventListener("input", e => {
+      if (!e.isTrusted) return;
+      picked = false; clearTimeout(timer);
+      const q = inp.value.trim();
+      if (q.length < 6) { hide(); setStatus(""); return; }
+      timer = setTimeout(() => search(q), 700);
+    });
+    inp.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+    document.addEventListener("click", e => { if (!e.target.closest(".addr-wrap")) hide(); });
   }
   function bindPickers() {
     document.addEventListener("change", e => { if (e.target.id === "inMls") updateMlsAddress(); });
@@ -2380,6 +2424,7 @@
     loadTitleList();
     ["input", "change"].forEach(ev => document.addEventListener(ev, e => { if (e.target.id === "titleCompanyName" || e.target.id === "titleContactName") onTitleTyped(); }));
     bindPickers();
+    bindAddressLookup();
     bindV2();
     bindSponsorBar();
     bindTracyNote();
@@ -2422,7 +2467,11 @@
       // Open the new tab now, while we still have the click (pop-up blockers allow it), and fill it in once saved.
       const win = window.open("", "_blank");
       if (win) { try { win.document.write('<p style="font:20px Arial;padding:30px">Creating the ' + sideName + '-side CDA…</p>'); } catch (e) {} }
-      const newCode = genCode();
+      // Tracy 10/10: one number for the whole dual deal — listing side is the
+      // plain code, buyer side is the same code with a "B" in front.
+      const baseNum = String(currentRecordId).replace(/^B/i, "");
+      if (t === "Buyer Side") currentRecordId = "B" + baseNum;
+      const newCode = other === "Buyer Side" ? "B" + baseNum : baseNum;
       $("#dualAgency").checked = true;
       $("#linkedCdaCode").value = newCode;
       const ok = await handleSaveStage({ noModal: true });
@@ -2468,7 +2517,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     const urlCode = new URLSearchParams(location.search).get("code");
-    if (urlCode && /^\d{7}$/.test(urlCode)) resumeByCode(urlCode, { retries: 5 });
+    if (urlCode && /^B?\d{7}$/i.test(urlCode)) resumeByCode(urlCode, { retries: 5 });
     let dirty = false;
     document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
     document.addEventListener("change", e => { if (e.target.closest && e.target.closest("#cdaForm")) dirty = true; });
