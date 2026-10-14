@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>How to Find Your Deal ID</title>
+<style>
+/* Layout: single left-aligned column, one card per platform */
+:root{--bg:#f5f7f9;--card:#ffffff;--ink:#14243a;--muted:#4a5a6e;--line:#d6dde5;--accent:#0f7f86;--mark:#d93a3a;--gold:#c98700;
+--display:"Libre Franklin",Arial,sans-serif;--body:"Source Sans 3",Arial,sans-serif;--mono:"IBM Plex Mono",Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1720;--card:#17222e;--ink:#e8eef4;--muted:#a9b6c4;--line:#2b3a4a;--accent:#38b6bd;--mark:#ff6b6b;--gold:#f0b43c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1720;--card:#17222e;--ink:#e8eef4;--muted:#a9b6c4;--line:#2b3a4a;--accent:#38b6bd;--mark:#ff6b6b;--gold:#f0b43c;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.5;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:900px;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);font-size:2rem;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.4rem;margin:0}
+p{margin:0;max-width:65ch}
+.lead{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.label{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+img{max-width:100%;border:1px solid var(--line);border-radius:6px}
+.url{font-family:var(--mono);font-size:1rem;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:10px 16px;overflow-x:auto;white-space:nowrap}
+.url b{color:var(--mark);border:3px solid var(--mark);border-radius:8px;padding:0 4px}
+.wafdl{border-left:4px solid var(--gold);padding-left:14px}
+code{font-family:var(--mono)}
+.zf{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;color:#14243a;font-family:Arial,sans-serif;font-size:15px}
+.zf-top{display:flex;gap:14px;align-items:center;padding:10px 12px;border-bottom:1px solid #d6dde5}
+.zf-back{background:#7a9a01;color:#fff;font-weight:700;padding:8px 10px;border-radius:4px;white-space:nowrap}
+.zf-addr{font-weight:700}
+.zf-tid{margin-top:4px}.zf-tid b{border:3px solid #d93a3a;border-radius:8px;padding:0 6px}
+.zf-tabs{display:flex;gap:16px;background:#5a6b78;color:#e8eef4;padding:8px 12px;font-size:14px;flex-wrap:wrap}.zf-tabs .on{color:#fff;font-weight:700}
+.zf-box{padding:12px}.zf-h{font-weight:700;margin-bottom:8px}.zf-l{font-size:13px;color:#4a5a6e}
+.zf-mls{display:inline-block;margin-top:4px;border:3px solid #c98700;border-radius:8px;padding:2px 8px;font-family:monospace}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono&display=swap">
+<div class="wrap">
+<h1>How to find your deal ID</h1>
+<p class="lead">The CDA form asks for your MLS # and your dotloop Loop ID or zipForm Transaction ID. Both are optional. If you leave the ID blank, the office fills it in for you.</p>
+
+<section class="card">
+<span class="label">zipForm</span>
+<h2>Transaction ID (TID)</h2>
+<ol><li>Open the transaction.</li><li>Look under the address at the top left. The number after <b>TID</b> is your Transaction ID.</li><li>Your MLS # is in the Property Summary box.</li></ol>
+<div class="zf" role="img" aria-label="zipForm transaction header: the TID number under the address is circled in red, and the MLS Number field is circled in gold">
+  <div class="zf-top"><span class="zf-back">&lsaquo; Back to List</span><div><div class="zf-addr">318 GANTT DR MARTINSBURG WV</div><div class="zf-tid"><b>TID 123153887</b></div></div></div>
+  <div class="zf-tabs"><span class="on">Summary</span><span>Parties</span><span>Documents</span><span>Checklist</span></div>
+  <div class="zf-box"><div class="zf-h">Property Summary</div><div class="zf-l">MLS Number</div><div class="zf-mls">WVBE2051512</div></div>
+</div>
+<p>In this example the Transaction ID is <code>123153887</code> and the MLS # is <code>WVBE2051512</code>.</p>
+</section>
+
+<section class="card">
+<span class="label">dotloop</span>
+<h2>Loop ID</h2>
+<ol><li>Open the loop.</li><li>Look at the web address at the top of your browser.</li><li>The number at the end, after <code>/loop/</code>, is your Loop ID.</li></ol>
+<div class="url">https://www.dotloop.com/my/loop/<b>312105661</b></div>
+<p>In this example the Loop ID is <code>312105661</code>. Copying the whole web address into the CDA works too.</p>
+</section>
+
+<section class="card wafdl">
+<span class="label">Required on every deal</span>
+<h2>WAFFL: Where All Final Files Live</h2>
+<p>Put every final, fully signed file in the WAFFL folder in your loop or transaction. Compliance reviews only what is in WAFFL. If it's not in WAFFL, it doesn't count.</p>
+</section>
+</div>
+
+
+</body></html>
