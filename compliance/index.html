@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Compliance Desk · Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: one left-aligned work queue — summary counts, filter tabs, then one row per CDA that opens to compliance findings (each with an email yes/no), the email preview, and work controls. Large type for phone use. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a;
+  --accent:#1f4fa3; --accent-ink:#ffffff;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8; --good:#1e6b3a; --good-bg:#e3f3e8; --idle-bg:#eceff4;
+  --f-display:"Source Serif 4", Georgia, serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2;
+  --accent:#7fa6ee; --accent-ink:#0d1422;
+  --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; --idle-bg:#242d3e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2;
+  --accent:#7fa6ee; --accent-ink:#0d1422;
+  --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; --idle-bg:#242d3e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1400px;display:flex;flex-direction:column;gap:20px}
+#masterView .sub,#masterView .foot{max-width:90ch}
+h1{font-family:var(--f-display);font-weight:600;font-size:2rem;margin:0;text-wrap:balance}
+h1 .today{font-family:var(--f-body);font-weight:600;font-size:1.1rem;color:var(--muted);margin-left:10px;white-space:nowrap}
+.sub{color:var(--muted);margin:4px 0 0;max-width:65ch}
+.counts{display:flex;flex-wrap:wrap;gap:10px}
+.count{display:flex;align-items:baseline;gap:8px;padding:8px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.count b{font-size:1.5rem;font-variant-numeric:tabular-nums}
+button.count{font:inherit;color:inherit;cursor:pointer;text-align:left}
+button.count:hover{border-color:var(--accent)}
+button.count[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
+.count.bad b{color:var(--bad)} .count.warn b{color:var(--warn)} .count.good b{color:var(--good)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font:inherit;font-weight:600;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tab:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.list{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.sheet{border-collapse:collapse;width:100%;min-width:1150px;font-size:16px;font-variant-numeric:tabular-nums}
+.sheet th{position:sticky;top:0;background:var(--idle-bg);text-align:left;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
+.sheet th[aria-sort="ascending"]::after{content:" ▲"} .sheet th[aria-sort="descending"]::after{content:" ▼"}
+.sheet td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.sheet tr.main{cursor:pointer} .sheet tr.main:hover td{background:var(--bg)}
+.sheet tr.main td:first-child{border-left:5px solid var(--line);font-weight:700;min-width:220px}
+.sheet tbody.s-bad tr.main td:first-child{border-left-color:var(--bad)} .sheet tbody.s-warn tr.main td:first-child{border-left-color:var(--warn)} .sheet tbody.s-good tr.main td:first-child{border-left-color:var(--good)}
+.sheet td.num{text-align:right;white-space:nowrap} .sheet td.nw{white-space:nowrap}
+.sheet tr.det td{background:var(--bg);border-left:5px solid var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.toolbar input{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:260px;max-width:100%}
+details.row{background:var(--surface);border:1px solid var(--line);border-radius:10px;border-left:6px solid var(--line)}
+details.row.s-bad{border-left-color:var(--bad)} details.row.s-warn{border-left-color:var(--warn)} details.row.s-good{border-left-color:var(--good)}
+summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+summary::-webkit-details-marker{display:none}
+.addr{font-weight:700;font-size:1.15rem;min-width:0;overflow-wrap:anywhere}
+.meta{color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.code{font-family:var(--f-mono);color:var(--ink);letter-spacing:.04em}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:.9rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--idle-bg);color:var(--ink)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.good{background:var(--good-bg);color:var(--good)}
+.body{padding:0 16px 16px;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line)}
+.body h3{font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px}
+.facts dt{color:var(--muted)} .facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.finds{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.find{display:grid;grid-template-columns:minmax(0,2fr) 150px minmax(0,1.5fr);gap:8px 14px;align-items:start;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.find input.dir{font:inherit;width:100%;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.finds-head{display:grid;grid-template-columns:minmax(0,2fr) 150px minmax(0,1.5fr);gap:14px;padding:0 12px;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sheet tr.det td>.body{position:sticky;left:0;width:min(1340px,calc(100vw - 70px));box-sizing:border-box}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.strip{display:flex;flex-wrap:wrap;gap:4px 22px;margin:0;font-size:1rem}
+.strip div{display:flex;gap:6px;min-width:0}
+.strip dt{color:var(--muted)} .strip dd{margin:0;overflow-wrap:anywhere}
+.workline{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.workline select{flex:0 0 auto}
+.workline input.note{font:inherit;flex:1 1 320px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.mainnote{display:block;font-size:.85rem;color:var(--muted);white-space:normal;max-width:260px;margin-top:3px}
+.sheet td.nw .mainnote{white-space:normal}
+@media (max-width:760px){.find,.finds-head{grid-template-columns:1fr}.finds-head{display:none}}
+.find p{margin:0;min-width:0;overflow-wrap:anywhere}
+.find.yes{border-color:var(--bad)} .find.no{opacity:.75}
+.find label{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
+@media (max-width:520px){.find{grid-template-columns:1fr}}
+.who{display:flex;flex-wrap:wrap;gap:8px 20px}
+.who label{display:flex;gap:8px;align-items:center;font-weight:600}
+.who input{width:20px;height:20px}
+.preview{white-space:pre-wrap;font:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0;max-width:70ch;overflow-wrap:anywhere}
+.work{display:flex;flex-direction:column;gap:10px}
+.work label{font-weight:600}
+select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+textarea{width:100%;min-height:80px;resize:vertical}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.saved{color:var(--good);font-weight:600}
+.err{color:var(--bad);font-weight:600}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);max-width:65ch}
+.foot{color:var(--muted);font-size:.95rem;max-width:65ch;margin:0}
+.agentlink{color:var(--accent);font-weight:600;text-decoration:none} .agentlink:hover{text-decoration:underline}
+#agentView{display:flex;flex-direction:column;gap:18px;font-size:20px}
+#agentView h1{font-size:2.2rem}
+.deal{background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.deal.s-bad{border-left-color:var(--bad)} .deal.s-warn{border-left-color:var(--warn)} .deal.s-good{border-left-color:var(--good)}
+.deal h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}
+.deal .facts{font-size:1.05rem}
+.deal ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.btn.big{font-size:1.15rem;padding:14px 24px}
+.back{font-size:1rem}
+.hist h2{font-family:var(--f-display);font-weight:600;font-size:1.5rem;margin:12px 0 4px}
+.hist .list table{min-width:640px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+#gate{min-height:80vh;display:flex;align-items:center;justify-content:center}
+#gate[hidden]{display:none}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px;width:min(420px,100%);display:flex;flex-direction:column;gap:14px;box-shadow:0 6px 24px rgba(0,0,0,.06)}
+.gate-card h1{font-size:1.7rem}
+.gate-card label{font-weight:600;font-size:.95rem}
+.gate-card input,.gate-card select{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.gate-card .btn{width:100%;font-size:1.1rem;padding:12px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <form class="gate-card" id="gform" autocomplete="off">
+    <h1>Compliance Desk</h1>
+    <p class="sub" style="margin:0">Weichert, Realtors – Blue Ribbon. Enter the code to come in.</p>
+    <div><label for="gcode">Code</label><input id="gcode" type="password" autocomplete="off" spellcheck="false"></div>
+    <div><label for="gname">Who's working?</label><select id="gname"><option>Gavin</option><option>Tracy</option><option>Office</option></select></div>
+    <button class="btn" type="submit">Enter</button>
+    <p id="gmsg" class="err" role="status" style="margin:0"></p>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div id="agentView" hidden></div>
+  <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
+  <header>
+    <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Lock this page</button></div>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row, mark each finding Yes or No for the agent's email, and pick who's copied. The email is drafted only after every finding has a Yes or No.</p>
+  </header>
+
+  <div class="counts" id="counts" aria-live="polite"></div>
+
+  <div class="tabs" role="group" aria-label="Filter">
+    <button class="tab" id="tab-all" data-f="all" aria-pressed="true">Every transaction</button>
+    <button class="tab" id="tab-attn" data-f="attn" aria-pressed="false">Needs attention</button>
+    <button class="tab" id="tab-review" data-f="review" aria-pressed="false">Findings to review</button>
+    <button class="tab" id="tab-open" data-f="open" aria-pressed="false">All open</button>
+    <button class="tab" id="tab-done" data-f="done" aria-pressed="false">Done</button>
+    <button class="tab" id="tab-removed" data-f="removed" aria-pressed="false">Removed</button>
+  </div>
+
+  <div class="toolbar"><input id="q" type="search" placeholder="Search address, agent, MLS#, CDA code" aria-label="Search"><select id="officeF" aria-label="Office"><option value="">All offices</option><option value="MBG">Martinsburg</option><option value="FR">Front Royal</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select><select id="agentF" aria-label="Agent"><option value="">All agents</option></select><span class="foot">Click a column to sort. Click a row to open it.</span></div>
+  <div class="list" id="list">
+    <div class="empty">Loading CDAs… Each CDA the office saves shows up here with its code, the agent, and the compliance results.</div>
+  </div>
+
+  <p class="foot">The list is built each night from Bright MLS (our listings and our buyer-side deals) plus non-MLS deals agents save at https://cda.ribbonway.com. CDA codes are the ones agents enter under "Resume". Emails marked "Ready to draft" are written into Tracy's Outlook drafts on the next nightly run. Nothing is sent from this page.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const OFFICES={MBG:"Martinsburg",FR:"Front Royal",Bow:"Bowie",REF:"Referral"};
+  const WORK={open:"Not started",working:"Working",done:"Done"};
+  const REVIEW={open:"Gavin to review",ready:"Ready to draft",drafted:"Email drafted",none:"No email needed"};
+  const HISTORY_STATUSES=["closed","withdrawn","canceled","cancelled","expired"];
+  let rows=[], filter="all", db=null, user=null, canWrite=true, names={}, openIds=new Set();
+  const local={}; // unsaved review edits per CDA: {decisions:[], cc:{gavin,tracy}}
+  try{ const f=localStorage.getItem("cdaDeskView"); if(f) filter=f; }catch(e){}
+
+  const $=s=>document.querySelector(s);
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const fmtDate=iso=>{ if(!iso) return ""; const d=new Date(iso); if(isNaN(d)) return esc(iso); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); };
+  const money=v=>{ const n=Number(v); return n?("$"+n.toLocaleString()):""; };
+  try{ $("#today").textContent="· "+new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"}); }catch(e){}
+
+  function compState(r){
+    const c=r.compliance||{};
+    if(r.cdaStatus==="none") return {cls:"bad",label:"No CDA yet"};
+    if(r.cdaStatus==="save_failed") return {cls:"bad",label:"Save failed"};
+    if(c.status==="issues") return {cls:"bad",label:"Issues ("+((c.items||[]).length)+")"};
+    if(c.status==="clean") return {cls:"good",label:"Compliance clean"};
+    if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
+    return {cls:"warn",label:"Not checked yet"};
+  }
+  const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  const findings=r=>((r.compliance||{}).items||[]);
+  function reviewOf(r){
+    const items=findings(r), saved=r.review||{}, l=local[r.id]||{};
+    const savedDec={}; (saved.decisions||[]).forEach(d=>{ if(d&&d.text!=null) savedDec[d.text]=d.include; });
+    const savedDir={}; (saved.decisions||[]).forEach(d=>{ if(d&&d.text!=null) savedDir[d.text]=d.direction||""; });
+    const decisions=items.map((t,i)=>({text:t,include:(l.decisions&&l.decisions[i]!==undefined)?l.decisions[i]:(savedDec[t]||""),direction:(l.dirs&&l.dirs[i]!==undefined)?l.dirs[i]:(savedDir[t]||"")}));
+    const cc={gavin:true,tracy:false,...(saved.cc||{}),...(l.cc||{})};
+    return {decisions,cc,status:saved.status||"open",saved};
+  }
+  const reviewPending=r=>findings(r).length && !["ready","drafted","none"].includes((r.review||{}).status);
+  function needsAttn(r){ const w=(r.work||{}).status; if(w==="done") return false; return compState(r).cls!=="good"; }
+  function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
+
+  let sortKey="address", sortDir=1, query="", officeF="", agentF="";
+  const slug=n=>String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  function sortVal(r){ switch(sortKey){ case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
+  const isRemoved=r=>!!(r.archived&&r.archived.at);
+  function visible(){
+    return rows.filter(r=>{
+      if(filter==="removed") return isRemoved(r);
+      if(isRemoved(r)) return false;
+      const w=(r.work||{}).status||"open";
+      if(filter==="attn") return needsAttn(r);
+      if(filter==="review") return reviewPending(r);
+      if(filter==="open") return w!=="done";
+      if(filter==="done") return w==="done";
+      if(filter==="clean") return w!=="done"&&compState(r).cls==="good";
+      return true;
+    }).filter(r=>!officeF||r.office===officeF).filter(r=>!agentF||slug(r.agent)===agentF).filter(r=>{ if(!query) return true; const h=[r.address,r.agent,r.mls,codeOf(r),r.side,r.mlsStatus].join(" ").toLowerCase(); return h.includes(query); })
+      .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; });
+  }
+
+  function renderAgentFilter(){
+    const sel=$("#agentF"); if(!sel) return;
+    const seen={};
+    rows.filter(r=>!isRemoved(r)&&r.agent&&(!officeF||r.office===officeF)).forEach(r=>{ const s=slug(r.agent); if(!seen[s]) seen[s]=r.agent; });
+    const opts=Object.keys(seen).sort((a,b)=>seen[a].localeCompare(seen[b]));
+    if(agentF&&!seen[agentF]) agentF="";
+    sel.innerHTML=`<option value="">All agents</option>`+opts.map(s=>`<option value="${esc(s)}" ${s===agentF?"selected":""}>${esc(seen[s])}</option>`).join("");
+  }
+
+  function renderCounts(){
+    const live=rows.filter(r=>!isRemoved(r));
+    const open=live.filter(r=>(r.work||{}).status!=="done");
+    const attn=live.filter(needsAttn).length;
+    const toReview=live.filter(reviewPending).length;
+    const clean=open.filter(r=>compState(r).cls==="good").length;
+    $("#counts").innerHTML=
+      `<button type="button" class="count bad" data-f="attn" aria-pressed="${filter==="attn"}"><b>${attn}</b><span>need attention</span></button>`+
+      `<button type="button" class="count warn" data-f="review" aria-pressed="${filter==="review"}"><b>${toReview}</b><span>findings to review</span></button>`+
+      `<button type="button" class="count good" data-f="clean" aria-pressed="${filter==="clean"}"><b>${clean}</b><span>clean, waiting on agent</span></button>`+
+      `<button type="button" class="count" data-f="all" aria-pressed="${filter==="all"}"><b>${live.length}</b><span>transactions in all</span></button>`;
+  }
+
+  function emailText(r,rv){
+    const first=String(r.agent||"").split(" ")[0]||"there";
+    const yes=rv.decisions.filter(d=>d.include==="yes").map(d=>"- "+d.text+(d.direction?"\n  What we need: "+d.direction:"")).join("\n");
+    const cc=["Gavin","Tracy"].filter(n=>rv.cc[n.toLowerCase()]);
+    return `To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},\n\nBLUF: Your file for ${r.address||"this deal"} needs the items below before it can close out.\n\n${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
+  }
+
+  function reviewHtml(r){
+    const items=findings(r), id=esc(r.id);
+    if(!items.length) return "";
+    const rv=reviewOf(r), locked=rv.status==="drafted";
+    const allDecided=rv.decisions.every(d=>d.include==="yes"||d.include==="no");
+    const anyYes=rv.decisions.some(d=>d.include==="yes");
+    const dis=(!canWrite||locked)?"disabled":"";
+    const list=rv.decisions.map((d,i)=>`<li class="find ${d.include}">
+        <p>${esc(d.text)}</p>
+        <div><label class="sr" for="inc-${id}-${i}">Put in agent email?</label>
+        <select id="inc-${id}-${i}" data-inc="${id}" data-i="${i}" ${dis}>
+          <option value="" ${d.include?"":"selected"}>Pick one</option>
+          <option value="yes" ${d.include==="yes"?"selected":""}>Yes</option>
+          <option value="no" ${d.include==="no"?"selected":""}>No</option>
+        </select></div>
+        <div><input class="dir" id="dir-${id}-${i}" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="Gavin/Tracy direction: what we want done" aria-label="Direction for this finding" ${dis}></div></li>`).join("");
+    const who=`<div class="who" role="group" aria-label="Who gets the email">
+        <label><input type="checkbox" checked disabled> ${esc(r.agent||"Agent")} (agent)</label>
+        <label><input type="checkbox" id="cc-g-${id}" data-cc="gavin" data-id="${id}" ${rv.cc.gavin?"checked":""} ${dis}> Gavin</label>
+        <label><input type="checkbox" id="cc-t-${id}" data-cc="tracy" data-id="${id}" ${rv.cc.tracy?"checked":""} ${dis}> Tracy</label></div>`;
+    let action, note="";
+    if(locked){ action=""; note=`Email drafted ${fmtDate(rv.saved.draftAt)} in Tracy's Outlook drafts. Nothing has been sent.`; }
+    else if(!allDecided){ action=`<button class="btn" disabled>Ready to draft</button>`; note=`Mark every finding Yes or No first (${rv.decisions.filter(d=>!d.include).length} left).`; }
+    else if(anyYes){ action=`<button class="btn" data-ready="${id}" ${canWrite?"":"disabled"}>Ready to draft</button>`; note=rv.status==="ready"?`Marked ready ${fmtDate(rv.saved.at)}${rv.saved.by?" by "+esc(names[rv.saved.by]||"Someone"):""}. It's drafted on the next nightly run.`:"The email is written into Tracy's Outlook drafts on the next nightly run."; }
+    else { action=`<button class="btn ghost" data-ready="${id}" ${canWrite?"":"disabled"}>No email needed</button>`; note=rv.status==="none"?"Marked: no email needed.":"Every finding is No, so there's nothing to send."; }
+    const preview=anyYes?`<h3>Email preview</h3><pre class="preview">${esc(emailText(r,rv))}</pre>`:"";
+    return `<div><h3>Compliance findings</h3><div class="finds-head"><span>Finding</span><span>In agent email?</span><span>Direction (Gavin / Tracy)</span></div><ul class="finds">${list}</ul></div>
+      <div class="workline"><b>Email goes to:</b>${who}</div>
+      ${preview}
+      <div class="actions">${action}<span id="rmsg-${id}" role="status"></span></div>
+      ${note?`<p class="foot">${note}</p>`:""}`;
+  }
+
+  function rowHtml(r){
+    const c=r.compliance||{}, w=r.work||{}, cs=compState(r), id=esc(r.id);
+    const who=w.by?(names[w.by]||"Someone"):"";
+    const rs=findings(r).length?(r.review||{}).status||"open":"";
+    const findBlock=findings(r).length?reviewHtml(r):
+      `<div><h3>Compliance findings</h3><p>${c.status==="clean"?"No problems found.":c.status==="not_found"?"Couldn't find the deal in zipForm or dotloop.":"The compliance check hasn't run on this one yet."}</p></div>`;
+    return `<tbody class="row ${stripe(r)}" data-id="${id}">
+      <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
+        <td>${esc(r.address||"Address not set")}</td>
+        <td class="num">${money(r.price)}</td>
+        <td class="nw code">${esc(r.mls||"Not in MLS")}</td>
+        <td class="nw">${esc(r.mlsStatus||"")}</td>
+        <td class="nw">${esc(r.side||"")}</td>
+        <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
+        <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
+        <td class="nw">${esc(r.closing||"")}</td>
+        <td class="nw code">${esc(codeOf(r)||"")}</td>
+        <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span></td>
+        <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
+        <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}</td>
+      </tr>
+      <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="12"><div class="body">
+        <div class="workline" style="margin-top:12px">
+          <label for="st-${id}"><b>Work</b></label>
+          <select id="st-${id}" ${canWrite?"":"disabled"}>${Object.keys(WORK).map(k=>`<option value="${k}" ${k===(w.status||"open")?"selected":""}>${WORK[k]}</option>`).join("")}</select>
+          <input class="note" id="nt-${id}" value="${esc(w.note||"")}" placeholder="Note: what you did or what you're waiting on" aria-label="Work note" ${canWrite?"":"disabled"}>
+          <button class="btn" data-save="${id}" ${canWrite?"":"disabled"}>Save</button><span id="msg-${id}" role="status"></span>
+          ${w.at?`<span class="foot">Updated ${fmtDate(w.at)}${who?" by "+esc(who):""}</span>`:""}
+        </div>
+        <dl class="strip">
+          ${r.title?`<div><dt>Title</dt><dd>${esc(r.title)}</dd></div>`:""}
+          ${r.savedAt?`<div><dt>CDA saved</dt><dd>${fmtDate(r.savedAt)}${r.startedBy?" by "+esc(r.startedBy):""}</dd></div>`:""}
+          ${r.agentEmailed?`<div><dt>Agent emailed</dt><dd>${fmtDate(r.agentEmailed)}</dd></div>`:""}
+          ${c.checkedAt?`<div><dt>Checked</dt><dd>${fmtDate(c.checkedAt)}${c.platform?" in "+esc(c.platform):""}</dd></div>`:""}
+        </dl>
+        ${r.notes?`<p class="foot" style="max-width:none"><b>Office note:</b> ${esc(r.notes)}</p>`:""}
+        ${findBlock}
+        ${canWrite?removeHtml(r):""}
+        ${canWrite?"":`<p class="foot">You can view this desk but not change it. Ask Tracy for edit access.</p>`}
+      </div></td></tr>
+    </tbody>`;
+  }
+
+  const confirmIds=new Set();
+  function removeHtml(r){
+    const id=esc(r.id);
+    if(isRemoved(r)) return `<div class="actions"><button class="btn ghost" data-restore="${id}">Put back on the list</button><span class="foot">Removed ${fmtDate(r.archived.at)}${r.archived.by?" by "+esc(names[r.archived.by]||"Someone"):""}${r.archived.reason?": "+esc(r.archived.reason):""}</span></div>`;
+    if(confirmIds.has(String(r.id))) return `<div class="work"><label for="rm-${id}">Why remove it? (optional)</label><textarea id="rm-${id}" placeholder="Example: test CDA, deal fell through, duplicate"></textarea>
+      <div class="actions"><button class="btn" data-rmyes="${id}" style="background:var(--bad)">Yes, remove from list</button><button class="btn ghost" data-rmno="${id}">Keep it</button><span id="rmmsg-${id}" role="status"></span></div>
+      <p class="foot">Removing hides it from the desk and stops the nightly run from adding it back. You can put it back from the Removed tab. The CDA itself isn't deleted.</p></div>`;
+    return `<div class="actions"><button class="btn ghost" data-rm="${id}">Remove from list</button></div>`;
+  }
+
+  const agentSlug=()=>{ const h=location.hash||""; return h.startsWith("#a-")?h.slice(3):""; };
+  function released(r){ const rv=r.review||{}; if(!["ready","drafted"].includes(rv.status)) return []; return (rv.decisions||[]).filter(d=>d&&d.include==="yes").map(d=>d.text); }
+  const isHistory=r=>HISTORY_STATUSES.includes(String(r.mlsStatus||"").toLowerCase())||((r.work||{}).status==="done");
+  function renderAgent(sl){
+    const all=rows.filter(r=>!isRemoved(r)&&slug(r.agent)===sl).sort((a,b)=>String(a.address||"").localeCompare(String(b.address||""),undefined,{numeric:true}));
+    const mine=all.filter(r=>!isHistory(r));
+    const hist=all.filter(isHistory).sort((a,b)=>String(b.closing||"").localeCompare(String(a.closing||"")));
+    const name=all[0]?all[0].agent:sl.replace(/-/g," ");
+    const open=mine.filter(r=>released(r).length).length;
+    const cards=mine.map(r=>{
+      const cs=compState(r), id=esc(r.id), rc=r.recheck||{}, items=released(r), c=r.compliance||{};
+      const code=codeOf(r);
+      const btn= rc.status==="requested" ? `<button class="btn big" disabled>Requested — checking</button><span class="foot">Asked ${fmtDate(rc.requestedAt)}. The office re-checks within the hour.</span>`
+        : `<button class="btn big" data-recheck="${id}">Check again</button>${(rc.doneAt||c.checkedAt)?`<span class="foot">Checked ${fmtDate(rc.doneAt||c.checkedAt)}</span>`:""}`;
+      return `<article class="deal s-${cs.cls}">
+        <h2>${esc(r.address||"Address not set")}</h2>
+        <dl class="facts">
+          <dt>MLS#</dt><dd>${esc(r.mls||"Not in MLS")}</dd>
+          <dt>Side</dt><dd>${esc(r.side||"")}</dd>
+          <dt>Status</dt><dd>${esc(r.mlsStatus||r.stage||"")}</dd>
+          <dt>CDA</dt><dd>${code?`<a class="agentlink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(code)}" target="_blank" rel="noopener">${esc(code)} — open it</a>`:"Not started yet"}</dd>
+          <dt>Compliance</dt><dd><span class="pill ${cs.cls}">${cs.label}</span></dd>
+        </dl>
+        ${items.length?`<div><b>Fix these within 48 hours:</b><ul>${items.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`:""}
+        <div class="actions">${btn}<span id="rcmsg-${id}" role="status"></span></div>
+      </article>`;
+    }).join("");
+    const histHtml=`<section class="hist"><h2>Deal history</h2>
+      ${hist.length?`<div class="list"><table class="sheet"><thead><tr><th>Address</th><th>MLS#</th><th>Side</th><th>Status</th><th>Price</th><th>Closing</th><th>CDA</th></tr></thead><tbody>${hist.map(r=>`<tr><td>${esc(r.address||"")}</td><td class="nw code">${esc(r.mls||"Not in MLS")}</td><td class="nw">${esc(r.side||"")}</td><td class="nw">${esc(r.mlsStatus||"Done")}</td><td class="num">${money(r.price)}</td><td class="nw">${esc(r.closing||"")}</td><td class="nw code">${esc(codeOf(r)||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No closed or finished deals on file yet.</div>`}
+      </section>`;
+    $("#agentView").innerHTML=`<a class="agentlink back" href="#">← All transactions</a>
+      <header><h1>${esc(name)} <span class="today">${esc(($("#today")||{}).textContent||"")}</span></h1><p class="sub">Your Blue Ribbon deals and where each one stands on compliance. Fix anything listed, then click Check again. Your closed deals are at the bottom.</p></header>
+      <div class="counts"><div class="count"><b>${mine.length}</b><span>active deals</span></div><div class="count bad"><b>${open}</b><span>with items to fix</span></div><div class="count good"><b>${hist.length}</b><span>in deal history</span></div></div>
+      ${cards||`<div class="empty">No active deals right now.</div>`}
+      ${histHtml}`;
+  }
+  function render(){
+    const sl=agentSlug();
+    $("#agentView").hidden=!sl; $("#masterView").hidden=!!sl;
+    if(sl){ renderAgent(sl); return; }
+    document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-pressed",String(t.dataset.f===filter)));
+    renderAgentFilter();
+    renderCounts();
+    const v=visible();
+    if(!rows.length){ $("#list").innerHTML=`<div class="empty">No CDAs yet. When the office starts a CDA, it shows up here with its code and the compliance results.</div>`; return; }
+    if(!v.length){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been removed.":"Nothing in this view."}</div>`; return; }
+    const cols=[["address","Address"],["price","Price"],["mls","MLS#"],["mlsStatus","MLS status"],["side","Side"],["agent","Agent"],["office","Office"],["closing","Closing"],["cda","CDA"],["comp","Compliance"],["review","Gavin review"],["work","Work"]];
+    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr></thead>${v.map(rowHtml).join("")}</table>`;
+  }
+  function rerenderRow(id){
+    const r=rows.find(x=>String(x.id)===String(id)); if(!r) return render();
+    const el=document.querySelector(`tbody.row[data-id="${CSS.escape(String(id))}"]`);
+    if(!el) return render();
+    const tmp=document.createElement("table"); tmp.innerHTML=rowHtml(r); el.replaceWith(tmp.querySelector("tbody")); renderCounts();
+  }
+
+  async function saveReview(id,patch,msgEl){
+    if(!db) return false;
+    try{
+      const r=rows.find(x=>String(x.id)===String(id)), rv=reviewOf(r), by=user?await user.id():"";
+      const review={decisions:rv.decisions,cc:rv.cc,status:rv.status==="drafted"?"drafted":"open",by:by||"",at:new Date().toISOString(),...patch};
+      if(rv.saved.draftAt) review.draftAt=rv.saved.draftAt;
+      await db.collection("cdas").doc(String(id)).update({review});
+      r.review=review; delete local[id];
+      if(msgEl){ msgEl.className="saved"; msgEl.textContent="Saved"; }
+      return true;
+    }catch(err){ if(msgEl){ msgEl.className="err"; msgEl.textContent="Couldn't save. You may only have view access."; } return false; }
+  }
+
+  document.addEventListener("change",async e=>{
+    const s=e.target.closest("[data-inc]");
+    const dr=e.target.closest("[data-dir]");
+    if(dr){ const id=dr.dataset.dir, i=+dr.dataset.i, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
+      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:rv.cc}; local[id].dirs[i]=dr.value.trim();
+      await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
+    if(s){ const id=s.dataset.inc, i=+s.dataset.i, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
+      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:rv.cc}; local[id].decisions[i]=s.value;
+      rerenderRow(id); await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
+    const c=e.target.closest("[data-cc]");
+    if(c){ const id=c.dataset.id, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
+      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:{...rv.cc,[c.dataset.cc]:c.checked}};
+      rerenderRow(id); await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); }
+  });
+
+  document.addEventListener("click",async e=>{
+    const t=e.target.closest(".tab,button.count[data-f]");
+    if(t){ filter=t.dataset.f; try{localStorage.setItem("cdaDeskView",filter)}catch(_){} render(); return; }
+    const rcb=e.target.closest("[data-recheck]");
+    if(rcb&&db){ const id=rcb.dataset.recheck, msg=document.getElementById("rcmsg-"+id); rcb.disabled=true;
+      try{ const by=user?await user.id():""; await db.collection("cdas").doc(id).update({recheck:{status:"requested",requestedAt:new Date().toISOString(),by:by||"",doneAt:""}}); }
+      catch(err){ rcb.disabled=false; if(msg){msg.className="err";msg.textContent="Couldn't send the request. You may only have view access.";} }
+      return; }
+    const rm=e.target.closest("[data-rm]");
+    if(rm){ confirmIds.add(rm.dataset.rm); rerenderRow(rm.dataset.rm); return; }
+    const rn=e.target.closest("[data-rmno]");
+    if(rn){ confirmIds.delete(rn.dataset.rmno); rerenderRow(rn.dataset.rmno); return; }
+    const ry=e.target.closest("[data-rmyes]");
+    if(ry&&db){ const id=ry.dataset.rmyes, msg=document.getElementById("rmmsg-"+id); ry.disabled=true;
+      try{ const by=user?await user.id():""; const reason=(document.getElementById("rm-"+id)||{}).value||"";
+        await db.collection("cdas").doc(id).update({archived:{at:new Date().toISOString(),by:by||"",reason:reason.trim()}});
+        confirmIds.delete(id); openIds.delete(id);
+      }catch(err){ ry.disabled=false; if(msg){msg.className="err";msg.textContent="Couldn't remove it. You may only have view access.";} }
+      return; }
+    const rs=e.target.closest("[data-restore]");
+    if(rs&&db){ rs.disabled=true; try{ await db.collection("cdas").doc(rs.dataset.restore).update({archived:{at:"",by:"",reason:""}}); }catch(_){ rs.disabled=false; } return; }
+    const rd=e.target.closest("[data-ready]");
+    if(rd){ const id=rd.dataset.ready, r=rows.find(x=>String(x.id)===id), rv=reviewOf(r);
+      rd.disabled=true; const anyYes=rv.decisions.some(d=>d.include==="yes");
+      await saveReview(id,{status:anyYes?"ready":"none"},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
+    const b=e.target.closest("[data-save]");
+    if(b && db){
+      const id=b.dataset.save, msg=document.getElementById("msg-"+id);
+      b.disabled=true; msg.className=""; msg.textContent="Saving…";
+      try{
+        const by=user?await user.id():null;
+        await db.collection("cdas").doc(id).update({work:{status:document.getElementById("st-"+id).value,note:document.getElementById("nt-"+id).value.trim(),by:by||"",at:new Date().toISOString()}});
+        msg.className="saved"; msg.textContent="Saved";
+      }catch(err){ msg.className="err"; msg.textContent="Couldn't save. You may only have view access."; }
+      b.disabled=false;
+    }
+  });
+  document.addEventListener("click",e=>{
+    const th=e.target.closest("th[data-sort]");
+    if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
+    const tr=e.target.closest("tr.main[data-toggle]");
+    if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
+  });
+  document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
+  document.addEventListener("input",e=>{ if(e.target.id==="officeF"){ officeF=e.target.value; render(); return; } if(e.target.id==="agentF"){ agentF=e.target.value; render(); return; } if(e.target.id==="q"){ query=e.target.value.trim().toLowerCase(); render(); } });
+
+  window.addEventListener("hashchange",()=>{ render(); window.scrollTo(0,0); });
+  render();
+
+  /* ---- Code-protected data link (Make). The code is checked in Make, not here. ---- */
+  const API="https://hook.us2.make.com/cs6r8cxef5s8cslaoeaaw7im2h4k2phr";
+  let CODE="", BY="";
+  try{ CODE=localStorage.getItem("cdaDeskCode")||""; BY=localStorage.getItem("cdaDeskName")||""; }catch(_){}
+  names=new Proxy({},{get:(t,k)=>(typeof k==="string"&&k&&!k.startsWith("u_"))?k:"Someone"});
+  async function call(body){
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({code:CODE},body))});
+    if(r.status===401){ const e=new Error("bad_code"); e.bad=true; throw e; }
+    if(!r.ok) throw new Error("http_"+r.status);
+    return r.json();
+  }
+  user={id:async()=>BY||"Office"};
+  db={collection:()=>({doc:id=>({update:async patch=>{
+    const j=await call({action:"update",id:String(id),patch:JSON.stringify(patch)});
+    if(!j||j.ok!==true) throw new Error("not_saved");
+    const r=rows.find(x=>String(x.id)===String(id)); if(r) Object.assign(r,patch);
+    if(patch.review) return; // the caller redraws this row itself
+    if(patch.work){ setTimeout(()=>{ const r2=rows.find(x=>String(x.id)===String(id)); if(r2) rerenderRow(id); },900); return; }
+    render();
+  }})})};
+  async function load(quiet){
+    try{
+      const j=await call({action:"list"});
+      rows=(j&&j.rows)||[];
+      const a=document.activeElement; if(quiet&&a&&(a.tagName==="TEXTAREA"||a.tagName==="SELECT"||(a.tagName==="INPUT"&&a.id!=="q"))) return true;
+      render(); return true;
+    }catch(err){
+      if(err.bad){ showGate("That code didn't work. Try again."); return false; }
+      if(!quiet) $("#list").innerHTML=`<div class="empty">Couldn't load the list. Refresh the page to try again.</div>`;
+      return false;
+    }
+  }
+  function showGate(msg){
+    document.getElementById("gate").hidden=false; document.getElementById("app").hidden=true;
+    const m=document.getElementById("gmsg"); m.textContent=msg||""; document.getElementById("gcode").focus();
+  }
+  async function enter(){
+    document.getElementById("gate").hidden=true; document.getElementById("app").hidden=false;
+    const ok=await load(false); if(!ok) return;
+    try{ localStorage.setItem("cdaDeskCode",CODE); localStorage.setItem("cdaDeskName",BY); }catch(_){}
+  }
+  document.getElementById("gform").addEventListener("submit",e=>{
+    e.preventDefault();
+    CODE=document.getElementById("gcode").value.trim();
+    BY=document.getElementById("gname").value;
+    if(!CODE){ showGate("Type the code to enter."); return; }
+    enter();
+  });
+  document.getElementById("logout").addEventListener("click",()=>{ try{ localStorage.removeItem("cdaDeskCode"); }catch(_){} CODE=""; rows=[]; showGate(""); });
+  if(BY){ const s=document.getElementById("gname"); if([...s.options].some(o=>o.value===BY)) s.value=BY; }
+  if(CODE) enter(); else showGate("");
+  setInterval(()=>{ if(CODE&&!document.getElementById("app").hidden&&document.visibilityState==="visible") load(true); },90000);
+})();
+</script>
+
+</body>
+</html>
