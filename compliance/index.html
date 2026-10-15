@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
 <style>
-[hidden]{display:none!important}
 /* Layout: one left-aligned work queue — summary counts, filter tabs, then one row per CDA that opens to compliance findings (each with an email yes/no), the email preview, and work controls. Large type for phone use. */
 :root{
   --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a;
@@ -127,6 +126,25 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .gate-card .btn{width:100%;font-size:1.1rem;padding:12px}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
+[hidden]{display:none!important}
+.fcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:6px}
+@media (max-width:900px){.fcols{grid-template-columns:1fr}}
+.fcol{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.fcol h4{margin:0;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.fcol h4 small{font-weight:600;color:var(--muted);font-size:.85rem}
+.fb{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.fb li{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.fb li.yes{border-left-color:var(--bad)} .fb li.no{opacity:.6}
+.fb li.no p{text-decoration:line-through}
+.fb p{margin:0;overflow-wrap:anywhere} .fb p::before{content:"• ";font-weight:700}
+.fb .mine{font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.fbtns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vbtn{font:inherit;font-size:.9rem;font-weight:700;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.vbtn[aria-pressed="true"].v{background:var(--bad);border-color:var(--bad);color:#fff}
+.vbtn[aria-pressed="true"].a{background:var(--muted);border-color:var(--muted);color:var(--surface)}
+.fb input.dir,.fadd input{font:inherit;width:100%;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.fadd{display:flex;gap:6px} .fadd input{flex:1;border-style:dashed} .fadd .vbtn{flex:0 0 auto}
+.fempty{color:var(--muted);margin:0;font-size:.95rem}
 </style>
 </head>
 <body>
@@ -147,7 +165,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
     <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Lock this page</button></div>
-    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row, mark each finding Yes or No for the agent's email, and pick who's copied. The email is drafted only after every finding has a Yes or No.</p>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: Radar findings and KJ findings side by side. Verify what should go to the agent, archive the rest, or type in your own. Send to Tracy emails her the verified items to review and forward.</p>
   </header>
 
   <div class="counts" id="counts" aria-live="polite"></div>
@@ -166,7 +184,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="empty">Loading CDAs… Each CDA the office saves shows up here with its code, the agent, and the compliance results.</div>
   </div>
 
-  <p class="foot">The list is built each night from Bright MLS (our listings and our buyer-side deals) plus non-MLS deals agents save at https://cda.ribbonway.com. CDA codes are the ones agents enter under "Resume". Emails marked "Ready to draft" are written into Tracy's Outlook drafts on the next nightly run. Nothing is sent from this page.</p>
+  <p class="foot">The list is built each night from Bright MLS (our listings and our buyer-side deals) plus non-MLS deals agents save at https://cda.ribbonway.com. CDA codes are the ones agents enter under "Resume". "Send to Tracy" emails Tracy from compliance@ with the verified items. Nothing goes to an agent from this page.</p>
   </div>
 </div>
 
@@ -174,7 +192,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 (function(){
   const OFFICES={MBG:"Martinsburg",FR:"Front Royal",Bow:"Bowie",REF:"Referral"};
   const WORK={open:"Not started",working:"Working",done:"Done"};
-  const REVIEW={open:"Gavin to review",ready:"Ready to draft",drafted:"Email drafted",none:"No email needed"};
+  const REVIEW={open:"Gavin to review",ready:"Ready to draft",drafted:"Email drafted",sent:"Sent to Tracy",none:"No email needed"};
   const HISTORY_STATUSES=["closed","withdrawn","canceled","cancelled","expired"];
   let rows=[], filter="all", db=null, user=null, canWrite=true, names={}, openIds=new Set();
   const local={}; // unsaved review edits per CDA: {decisions:[], cc:{gavin,tracy}}
@@ -196,16 +214,24 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return {cls:"warn",label:"Not checked yet"};
   }
   const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
-  const findings=r=>((r.compliance||{}).items||[]);
+  const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[]);
+  const COLS=[["radar","Radar Findings"],["kj","KJ Findings"]];
+  const dkey=(src,text)=>src+"|"+text;
   function reviewOf(r){
-    const items=findings(r), saved=r.review||{}, l=local[r.id]||{};
-    const savedDec={}; (saved.decisions||[]).forEach(d=>{ if(d&&d.text!=null) savedDec[d.text]=d.include; });
-    const savedDir={}; (saved.decisions||[]).forEach(d=>{ if(d&&d.text!=null) savedDir[d.text]=d.direction||""; });
-    const decisions=items.map((t,i)=>({text:t,include:(l.decisions&&l.decisions[i]!==undefined)?l.decisions[i]:(savedDec[t]||""),direction:(l.dirs&&l.dirs[i]!==undefined)?l.dirs[i]:(savedDir[t]||"")}));
+    const c=r.compliance||{}, saved=r.review||{}, l=local[r.id]||{};
+    const added=l.added||saved.added||[];
+    const sd={}; (saved.decisions||[]).forEach(d=>{ if(!d||d.text==null) return; sd[dkey(d.src||"radar",d.text)]=d; if(!d.src) sd["*|"+d.text]=d; });
+    const list=[];
+    (c.items||[]).forEach(t=>list.push({src:"radar",text:String(t)}));
+    (c.kj||[]).forEach(t=>list.push({src:"kj",text:String(t)}));
+    added.forEach((a,ai)=>{ if(a&&a.text) list.push({src:a.src==="kj"?"kj":"radar",text:String(a.text),mine:true,ai,by:a.by||""}); });
+    const decisions=list.map(x=>{ const k=dkey(x.src,x.text), s=sd[k]||sd["*|"+x.text]||{};
+      return Object.assign({},x,{key:k,include:(l.dec&&l.dec[k]!==undefined)?l.dec[k]:(s.include||""),direction:(l.dir&&l.dir[k]!==undefined)?l.dir[k]:(s.direction||"")}); });
     const cc={gavin:true,tracy:false,...(saved.cc||{}),...(l.cc||{})};
-    return {decisions,cc,status:saved.status||"open",saved};
+    return {decisions,added,cc,status:saved.status||"open",saved};
   }
-  const reviewPending=r=>findings(r).length && !["ready","drafted","none"].includes((r.review||{}).status);
+  const hasReviewItems=r=>findings(r).length||((r.review||{}).added||[]).length;
+  const reviewPending=r=>hasReviewItems(r) && !["ready","drafted","none","sent"].includes((r.review||{}).status);
   function needsAttn(r){ const w=(r.work||{}).status; if(w==="done") return false; return compState(r).cls!=="good"; }
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
@@ -258,33 +284,43 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
 
   function reviewHtml(r){
-    const items=findings(r), id=esc(r.id);
-    if(!items.length) return "";
+    const id=esc(r.id), c=r.compliance||{};
     const rv=reviewOf(r), locked=rv.status==="drafted";
-    const allDecided=rv.decisions.every(d=>d.include==="yes"||d.include==="no");
     const anyYes=rv.decisions.some(d=>d.include==="yes");
+    const allNo=rv.decisions.length&&rv.decisions.every(d=>d.include==="no");
+    const undecided=rv.decisions.filter(d=>!d.include).length;
     const dis=(!canWrite||locked)?"disabled":"";
-    const list=rv.decisions.map((d,i)=>`<li class="find ${d.include}">
-        <p>${esc(d.text)}</p>
-        <div><label class="sr" for="inc-${id}-${i}">Put in agent email?</label>
-        <select id="inc-${id}-${i}" data-inc="${id}" data-i="${i}" ${dis}>
-          <option value="" ${d.include?"":"selected"}>Pick one</option>
-          <option value="yes" ${d.include==="yes"?"selected":""}>Yes</option>
-          <option value="no" ${d.include==="no"?"selected":""}>No</option>
-        </select></div>
-        <div><input class="dir" id="dir-${id}-${i}" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="Gavin/Tracy direction: what we want done" aria-label="Direction for this finding" ${dis}></div></li>`).join("");
+    const radarEmpty=c.status==="clean"?"Radar found no problems.":c.status==="not_found"?"Couldn't find the deal in zipForm or dotloop.":"Radar hasn't checked this one yet.";
+    const col=(src,label)=>{
+      const items=rv.decisions.map((d,i)=>[d,i]).filter(([d])=>d.src===src);
+      const v=items.filter(([d])=>d.include==="yes").length;
+      const li=items.map(([d,i])=>`<li class="${d.include}">
+          ${d.mine?`<span class="mine">Added by ${esc(d.by||"office")}</span>`:""}
+          <p>${esc(d.text)}</p>
+          <div class="fbtns">
+            <button type="button" class="vbtn v" data-v="${id}" data-i="${i}" aria-pressed="${d.include==="yes"}" ${dis}>${d.include==="yes"?"Verified":"Verify"}</button>
+            <button type="button" class="vbtn a" data-a="${id}" data-i="${i}" aria-pressed="${d.include==="no"}" ${dis}>${d.include==="no"?"Archived":"Archive"}</button>
+            ${d.mine&&!dis?`<button type="button" class="linkbtn" data-del="${id}" data-ai="${d.ai}">Delete</button>`:""}
+          </div>
+          ${d.include==="yes"?`<input class="dir" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="What we need the agent to do (goes in the email)" aria-label="Direction for this finding" ${dis}>`:""}
+        </li>`).join("");
+      const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:"No KJ findings."}</p>`;
+      const add=dis?"":`<div class="fadd"><input id="add-${id}-${src}" data-addin="${id}" data-col="${src}" placeholder="• Type a finding…" aria-label="Add a ${esc(label)} item"><button type="button" class="vbtn" data-add="${id}" data-col="${src}">Add</button></div>`;
+      return `<div class="fcol"><h4>${esc(label)} <small>${items.length} · ${v} verified</small></h4>${empty}<ul class="fb">${li}</ul>${add}</div>`;
+    };
     const who=`<div class="who" role="group" aria-label="Who gets the email">
         <label><input type="checkbox" checked disabled> ${esc(r.agent||"Agent")} (agent)</label>
         <label><input type="checkbox" id="cc-g-${id}" data-cc="gavin" data-id="${id}" ${rv.cc.gavin?"checked":""} ${dis}> Gavin</label>
         <label><input type="checkbox" id="cc-t-${id}" data-cc="tracy" data-id="${id}" ${rv.cc.tracy?"checked":""} ${dis}> Tracy</label></div>`;
-    let action, note="";
-    if(locked){ action=""; note=`Email drafted ${fmtDate(rv.saved.draftAt)} in Tracy's Outlook drafts. Nothing has been sent.`; }
-    else if(!allDecided){ action=`<button class="btn" disabled>Ready to draft</button>`; note=`Mark every finding Yes or No first (${rv.decisions.filter(d=>!d.include).length} left).`; }
-    else if(anyYes){ action=`<button class="btn" data-ready="${id}" ${canWrite?"":"disabled"}>Ready to draft</button>`; note=rv.status==="ready"?`Marked ready ${fmtDate(rv.saved.at)}${rv.saved.by?" by "+esc(names[rv.saved.by]||"Someone"):""}. It's drafted on the next nightly run.`:"The email is written into Tracy's Outlook drafts on the next nightly run."; }
-    else { action=`<button class="btn ghost" data-ready="${id}" ${canWrite?"":"disabled"}>No email needed</button>`; note=rv.status==="none"?"Marked: no email needed.":"Every finding is No, so there's nothing to send."; }
+    let action="", note="";
+    const sentNote=rv.status==="sent"?`Sent to Tracy ${fmtDate(rv.saved.sentAt)}${rv.saved.sentBy?" by "+esc(rv.saved.sentBy):""}. `:"";
+    if(locked){ note=`Email drafted ${fmtDate(rv.saved.draftAt)} in Tracy's Outlook drafts.`; }
+    else if(anyYes){ action=`<button class="btn" data-send="${id}" ${canWrite?"":"disabled"}>${rv.status==="sent"?"Send to Tracy again":"Send to Tracy"}</button>`; note=sentNote+"Emails Tracy from compliance@ with the verified items. She reviews and forwards it to the agent."+(undecided?` ${undecided} item${undecided>1?"s":""} not verified or archived yet will be left out.`:""); }
+    else if(allNo){ action=`<button class="btn ghost" data-ready="${id}" ${canWrite?"":"disabled"}>No email needed</button>`; note=rv.status==="none"?"Marked: no email needed.":"Everything is archived, so there's nothing to send."; }
+    else if(rv.decisions.length){ note="Verify the items that should go to the agent. Archive the rest."; }
     const preview=anyYes?`<h3>Email preview</h3><pre class="preview">${esc(emailText(r,rv))}</pre>`:"";
-    return `<div><h3>Compliance findings</h3><div class="finds-head"><span>Finding</span><span>In agent email?</span><span>Direction (Gavin / Tracy)</span></div><ul class="finds">${list}</ul></div>
-      <div class="workline"><b>Email goes to:</b>${who}</div>
+    return `<div><h3>Compliance check</h3><div class="fcols">${COLS.map(([s,l])=>col(s,l)).join("")}</div></div>
+      ${anyYes?`<div class="workline"><b>Email goes to:</b>${who}</div>`:""}
       ${preview}
       <div class="actions">${action}<span id="rmsg-${id}" role="status"></span></div>
       ${note?`<p class="foot">${note}</p>`:""}`;
@@ -293,9 +329,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function rowHtml(r){
     const c=r.compliance||{}, w=r.work||{}, cs=compState(r), id=esc(r.id);
     const who=w.by?(names[w.by]||"Someone"):"";
-    const rs=findings(r).length?(r.review||{}).status||"open":"";
-    const findBlock=findings(r).length?reviewHtml(r):
-      `<div><h3>Compliance findings</h3><p>${c.status==="clean"?"No problems found.":c.status==="not_found"?"Couldn't find the deal in zipForm or dotloop.":"The compliance check hasn't run on this one yet."}</p></div>`;
+    const rs=hasReviewItems(r)?(r.review||{}).status||"open":"";
+    const findBlock=reviewHtml(r);
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td>${esc(r.address||"Address not set")}</td>
@@ -308,7 +343,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${esc(r.closing||"")}</td>
         <td class="nw code">${esc(codeOf(r)||"")}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span></td>
-        <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
+        <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}</td>
       </tr>
       <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="12"><div class="body">
@@ -344,7 +379,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
 
   const agentSlug=()=>{ const h=location.hash||""; return h.startsWith("#a-")?h.slice(3):""; };
-  function released(r){ const rv=r.review||{}; if(!["ready","drafted"].includes(rv.status)) return []; return (rv.decisions||[]).filter(d=>d&&d.include==="yes").map(d=>d.text); }
+  function released(r){ const rv=r.review||{}; if(!["ready","drafted","sent"].includes(rv.status)) return []; return (rv.decisions||[]).filter(d=>d&&d.include==="yes").map(d=>d.text); }
   const isHistory=r=>HISTORY_STATUSES.includes(String(r.mlsStatus||"").toLowerCase())||((r.work||{}).status==="done");
   function renderAgent(sl){
     const all=rows.filter(r=>!isRemoved(r)&&slug(r.agent)===sl).sort((a,b)=>String(a.address||"").localeCompare(String(b.address||""),undefined,{numeric:true}));
@@ -403,28 +438,47 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(!db) return false;
     try{
       const r=rows.find(x=>String(x.id)===String(id)), rv=reviewOf(r), by=user?await user.id():"";
-      const review={decisions:rv.decisions,cc:rv.cc,status:rv.status==="drafted"?"drafted":"open",by:by||"",at:new Date().toISOString(),...patch};
-      if(rv.saved.draftAt) review.draftAt=rv.saved.draftAt;
+      const review={decisions:rv.decisions.filter(d=>d.include||d.direction).map(d=>({src:d.src,text:d.text,include:d.include,direction:d.direction})),added:rv.added,cc:rv.cc,status:rv.status==="drafted"?"drafted":"open",by:by||"",at:new Date().toISOString(),...patch};
+      ["draftAt","sentAt","sentBy"].forEach(k=>{ if(rv.saved[k]) review[k]=rv.saved[k]; });
       await db.collection("cdas").doc(String(id)).update({review});
       r.review=review; delete local[id];
       if(msgEl){ msgEl.className="saved"; msgEl.textContent="Saved"; }
       return true;
-    }catch(err){ if(msgEl){ msgEl.className="err"; msgEl.textContent="Couldn't save. You may only have view access."; } return false; }
+    }catch(err){ if(msgEl){ msgEl.className="err"; msgEl.textContent="Couldn't save. Check your connection and try again."; } return false; }
+  }
+  function edit(id){ const r=rows.find(x=>String(x.id)===String(id)); const rv=reviewOf(r); local[id]=local[id]||{}; const l=local[id]; l.dec=l.dec||{}; l.dir=l.dir||{}; if(!l.added) l.added=rv.added.slice(); if(!l.cc) l.cc={...rv.cc}; return {r,rv,l}; }
+  async function commit(id){ rerenderRow(id); await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); }
+  async function addFinding(id,col){
+    const inp=document.getElementById("add-"+id+"-"+col); const t=(inp&&inp.value||"").trim(); if(!t) return;
+    const {l}=edit(id); const by=user?await user.id():"";
+    l.added.push({src:col,text:t,by:by||"",at:new Date().toISOString()}); l.dec[dkey(col,t)]="yes";
+    await commit(id); const again=document.getElementById("add-"+id+"-"+col); if(again) again.focus();
   }
 
+  document.addEventListener("keydown",e=>{ const a=e.target.closest&&e.target.closest("[data-addin]"); if(a&&e.key==="Enter"){ e.preventDefault(); addFinding(a.dataset.addin,a.dataset.col); } });
   document.addEventListener("change",async e=>{
-    const s=e.target.closest("[data-inc]");
     const dr=e.target.closest("[data-dir]");
-    if(dr){ const id=dr.dataset.dir, i=+dr.dataset.i, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
-      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:rv.cc}; local[id].dirs[i]=dr.value.trim();
-      await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
-    if(s){ const id=s.dataset.inc, i=+s.dataset.i, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
-      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:rv.cc}; local[id].decisions[i]=s.value;
-      rerenderRow(id); await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
+    if(dr){ const id=dr.dataset.dir, i=+dr.dataset.i; const {rv,l}=edit(id); l.dir[rv.decisions[i].key]=dr.value.trim(); await commit(id); return; }
     const c=e.target.closest("[data-cc]");
-    if(c){ const id=c.dataset.id, r=rows.find(x=>String(x.id)===id); const rv=reviewOf(r);
-      local[id]={decisions:rv.decisions.map(d=>d.include),dirs:rv.decisions.map(d=>d.direction),cc:{...rv.cc,[c.dataset.cc]:c.checked}};
-      rerenderRow(id); await saveReview(id,{},document.getElementById("rmsg-"+id)); rerenderRow(id); }
+    if(c){ const id=c.dataset.id; const {l}=edit(id); l.cc[c.dataset.cc]=c.checked; await commit(id); }
+  });
+  document.addEventListener("click",async e=>{
+    const vb=e.target.closest("[data-v],[data-a]");
+    if(vb){ const id=vb.dataset.v||vb.dataset.a, i=+vb.dataset.i, val=vb.dataset.v?"yes":"no"; const {rv,l}=edit(id); const d=rv.decisions[i]; l.dec[d.key]=d.include===val?"":val; await commit(id); return; }
+    const ad=e.target.closest("[data-add]");
+    if(ad){ addFinding(ad.dataset.add,ad.dataset.col); return; }
+    const dl=e.target.closest("[data-del]");
+    if(dl){ const id=dl.dataset.del, ai=+dl.dataset.ai; const {l}=edit(id); l.added.splice(ai,1); await commit(id); return; }
+    const sd=e.target.closest("[data-send]");
+    if(sd){ const id=sd.dataset.send, msg=document.getElementById("rmsg-"+id); sd.disabled=true; msg.className=""; msg.textContent="Sending to Tracy…";
+      const ok=await saveReview(id,{},null);
+      if(!ok){ sd.disabled=false; msg.className="err"; msg.textContent="Couldn't save first. Try again."; return; }
+      try{ const j=await call({action:"send",id:String(id),by:BY||"Office"});
+        if(!j||j.ok!==true||!j.row) throw new Error("not_sent");
+        const r=rows.find(x=>String(x.id)===String(id)); if(r) Object.assign(r,j.row);
+        rerenderRow(id); const m2=document.getElementById("rmsg-"+id); if(m2){ m2.className="saved"; m2.textContent="Sent to Tracy"; }
+      }catch(err){ sd.disabled=false; msg.className="err"; msg.textContent="Couldn't send. Tell Tracy, or try again in a minute."; }
+      return; }
   });
 
   document.addEventListener("click",async e=>{
@@ -450,8 +504,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(rs&&db){ rs.disabled=true; try{ await db.collection("cdas").doc(rs.dataset.restore).update({archived:{at:"",by:"",reason:""}}); }catch(_){ rs.disabled=false; } return; }
     const rd=e.target.closest("[data-ready]");
     if(rd){ const id=rd.dataset.ready, r=rows.find(x=>String(x.id)===id), rv=reviewOf(r);
-      rd.disabled=true; const anyYes=rv.decisions.some(d=>d.include==="yes");
-      await saveReview(id,{status:anyYes?"ready":"none"},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
+      rd.disabled=true;
+      await saveReview(id,{status:"none"},document.getElementById("rmsg-"+id)); rerenderRow(id); return; }
     const b=e.target.closest("[data-save]");
     if(b && db){
       const id=b.dataset.save, msg=document.getElementById("msg-"+id);
