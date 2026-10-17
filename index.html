@@ -574,19 +574,19 @@
             <div id="titleMoneyBanner"><mark style="background:#fff176;color:#3a2e00;padding:4px 10px;border-radius:4px;font-weight:700;display:inline-block;margin-bottom:8px">So we know who will be sending the commission. It's your job to make sure title sends it to us.</mark></div>
             <div class="conditional show" id="titleEscrowBlock">
               <div class="grid g3">
-                <div class="field"><label for="titleCompanyName">Title Company <span class="required-star">*</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
-                <div class="field"><label for="titleContactName">Title Contact Name <span class="required-star">*</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
+                <div class="field"><label for="titleCompanyName">Title Company <span style="font-weight:600">(optional)</span></label><input type="text" id="titleCompanyName" maxlength="150" list="titleCompanyList" autocomplete="off" placeholder="Start typing — pick or add new"><datalist id="titleCompanyList"></datalist></div>
+                <div class="field"><label for="titleContactName">Title Contact Name <span style="font-weight:600">(optional)</span></label><input type="text" id="titleContactName" maxlength="100" list="titleContactList" autocomplete="off"><datalist id="titleContactList"></datalist></div>
               </div>
               <div class="grid g3" style="margin-top:10px">
-                <div class="field"><label for="titlePhone">Title Phone <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
-                <div class="field"><label for="titleEmail">Title Email <span class="required-star">*</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
+                <div class="field"><label for="titlePhone">Title Phone <span style="font-weight:600">(optional)</span> <span class="verify-tag" hidden>verify</span></label><input type="tel" id="titlePhone"></div>
+                <div class="field"><label for="titleEmail">Title Email <span style="font-weight:600">(optional)</span> <span class="verify-tag" hidden>verify</span></label><input type="email" id="titleEmail"></div>
                 <input type="hidden" id="titleFax">
               </div>
               <div class="grid g3" style="margin-top:10px">
-                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span class="required-star">*</span></label><input type="text" id="titleStreet" maxlength="150"></div>
-                <div class="field"><label for="titleCity">Title City <span class="required-star">*</span></label><input type="text" id="titleCity" maxlength="80"></div>
-                <div class="field"><label for="titleState">Title State <span class="required-star">*</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
-                <div class="field"><label for="titleZip">Title ZIP <span class="required-star">*</span></label><input type="text" id="titleZip"></div>
+                <div class="field" style="grid-column:span 2"><label for="titleStreet">Title Street <span style="font-weight:600">(optional)</span></label><input type="text" id="titleStreet" maxlength="150"></div>
+                <div class="field"><label for="titleCity">Title City <span style="font-weight:600">(optional)</span></label><input type="text" id="titleCity" maxlength="80"></div>
+                <div class="field"><label for="titleState">Title State <span style="font-weight:600">(optional)</span></label><input type="text" id="titleState" maxlength="2" placeholder="VA"></div>
+                <div class="field"><label for="titleZip">Title ZIP <span style="font-weight:600">(optional)</span></label><input type="text" id="titleZip"></div>
               </div>
             </div>
             <div class="hint conditional" id="rentalTitleNote">Rentals don't route through title/escrow, so that section is skipped. If this particular lease does involve a title/escrow company (security deposit handling, etc.), note it below.</div>
@@ -1768,13 +1768,9 @@
       requiredMsg(calc.agents.some(a => a.deal_role === "Listing" || a.deal_role === "Both"), "Section 3: set the Deal Role to Listing for the listing agent.", errors);
     }
     if (!isRental) {
-      requiredMsg($("#titleContactName").value.trim(), "Title contact name is required.", errors);
-      requiredMsg($("#titleCompanyName").value.trim(), "Title company is required.", errors);
-      requiredMsg($("#titleStreet").value.trim(), "Title street is required.", errors);
-      requiredMsg($("#titleCity").value.trim(), "Title city is required.", errors);
-      requiredMsg($("#titleState").value.trim(), "Title state is required.", errors);
-      requiredMsg($("#titlePhone").value.trim(), "Title phone is required.", errors);
-      requiredMsg(/^\S+@\S+\.\S+$/.test($("#titleEmail").value.trim()), "A valid title email is required.", errors);
+      // Title info is optional (Tracy, 10/17/2026). Only check the email's format if one was typed.
+      const titleEmail = $("#titleEmail").value.trim();
+      if (titleEmail) requiredMsg(/^\S+@\S+\.\S+$/.test(titleEmail), "Title email doesn't look right — fix it or leave it blank.", errors);
     }
 
     const refType = (document.querySelector('input[name="referralType"]:checked') || {}).value || "";
