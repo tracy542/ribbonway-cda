@@ -182,7 +182,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <button class="tab" id="tab-review" data-f="review" aria-pressed="false">Findings to review</button>
     <button class="tab" id="tab-open" data-f="open" aria-pressed="false">All open</button>
     <button class="tab" id="tab-done" data-f="done" aria-pressed="false">Done</button>
-    <button class="tab" id="tab-removed" data-f="removed" aria-pressed="false">Removed</button>
+    <button class="tab" id="tab-removed" data-f="removed" aria-pressed="false">Archived</button>
   </div>
 
   <div class="toolbar"><input id="q" type="search" placeholder="Search address, agent, MLS#, CDA code" aria-label="Search"><select id="officeF" aria-label="Office"><option value="">All offices</option><option value="MBG">Martinsburg</option><option value="FR">Front Royal</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select><select id="agentF" aria-label="Agent"><option value="">All agents</option></select><button type="button" id="clearCF" hidden>Clear column filters</button><span class="foot">Click a column title to sort. Use the box under each title to filter. Click a row to open it.</span></div>
@@ -363,7 +363,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw code">${cdaLink(codeOf(r))}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
-        <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}</td>
+        <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
       <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="12"><div class="body">
         <div class="workline" style="margin-top:12px">
@@ -390,11 +390,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const confirmIds=new Set();
   function removeHtml(r){
     const id=esc(r.id);
-    if(isRemoved(r)) return `<div class="actions"><button class="btn ghost" data-restore="${id}">Put back on the list</button><span class="foot">Removed ${fmtDate(r.archived.at)}${r.archived.by?" by "+esc(names[r.archived.by]||"Someone"):""}${r.archived.reason?": "+esc(r.archived.reason):""}</span></div>`;
+    if(isRemoved(r)) return `<div class="actions"><button class="btn ghost" data-restore="${id}">Put back on the list</button><span class="foot">Archived ${fmtDate(r.archived.at)}${r.archived.by?" by "+esc(names[r.archived.by]||"Someone"):""}${r.archived.reason?": "+esc(r.archived.reason):""}</span></div>`;
     if(confirmIds.has(String(r.id))) return `<div class="work"><label for="rm-${id}">Why remove it? (optional)</label><textarea id="rm-${id}" placeholder="Example: test CDA, deal fell through, duplicate"></textarea>
-      <div class="actions"><button class="btn" data-rmyes="${id}" style="background:var(--bad)">Yes, remove from list</button><button class="btn ghost" data-rmno="${id}">Keep it</button><span id="rmmsg-${id}" role="status"></span></div>
-      <p class="foot">Removing hides it from the desk and stops the nightly run from adding it back. You can put it back from the Removed tab. The CDA itself isn't deleted.</p></div>`;
-    return `<div class="actions"><button class="btn ghost" data-rm="${id}">Remove from list</button></div>`;
+      <div class="actions"><button class="btn" data-rmyes="${id}" style="background:var(--bad)">Yes, archive it</button><button class="btn ghost" data-rmno="${id}">Keep it</button><span id="rmmsg-${id}" role="status"></span></div>
+      <p class="foot">Archiving hides it from the desk and stops the nightly run from adding it back. You can put it back from the Archived tab. The CDA itself isn't deleted.</p></div>`;
+    return `<div class="actions"><button class="btn ghost" data-rm="${id}">Archive</button></div>`;
   }
 
   const agentSlug=()=>{ const h=location.hash||""; return h.startsWith("#a-")?h.slice(3):""; };
@@ -443,7 +443,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const v=visible();
     if(!rows.length){ $("#list").innerHTML=`<div class="empty">No CDAs yet. When the office starts a CDA, it shows up here with its code and the compliance results.</div>`; return; }
     const anyCF=Object.values(colF).some(Boolean); $("#clearCF").hidden=!anyCF;
-    if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been removed.":"Nothing in this view."}</div>`; return; }
+    if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been archived.":"Nothing in this view."}</div>`; return; }
     const cols=COLDEFS;
     $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="12" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
   }
@@ -509,6 +509,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
       try{ const by=user?await user.id():""; await db.collection("cdas").doc(id).update({recheck:{status:"requested",requestedAt:new Date().toISOString(),by:by||"",doneAt:""}}); }
       catch(err){ rcb.disabled=false; if(msg){msg.className="err";msg.textContent="Couldn't send the request. You may only have view access.";} }
       return; }
+    const ar=e.target.closest("[data-arch]");
+    if(ar&&db){ const id=ar.dataset.arch, msg=document.getElementById("armsg-"+id); ar.disabled=true;
+      try{ const by=user?await user.id():""; await db.collection("cdas").doc(id).update({archived:{at:new Date().toISOString(),by:by||"",reason:"Archived from the list"}}); openIds.delete(id); }
+      catch(err){ ar.disabled=false; if(msg) msg.textContent="Couldn't archive it. You may only have view access."; }
+      return; }
     const rm=e.target.closest("[data-rm]");
     if(rm){ confirmIds.add(rm.dataset.rm); rerenderRow(rm.dataset.rm); return; }
     const rn=e.target.closest("[data-rmno]");
@@ -542,7 +547,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-recheck]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
