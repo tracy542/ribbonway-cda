@@ -241,8 +241,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function needsAttn(r){ const w=(r.work||{}).status; if(w==="done") return false; return compState(r).cls!=="good"; }
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
-  let sortKey="address", sortDir=1, query="", officeF="", agentF="", colF={};
-  const COLDEFS=[["mlsStatus","MLS status"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["closing","Closing"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
+  let sortKey="closing", sortDir=1, query="", officeF="", agentF="", colF={};
+  const COLDEFS=[["mlsStatus","MLS status"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
   const TEXTF=new Set(["address","price","mls","cda"]);
   function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; default: return String(r[k]||""); } }
   const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip) return true; const f=colF[k]; if(!f) return true; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):(f==="(blank)"?t==="":t===f); });
@@ -250,7 +250,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function sortVal(r){ switch(sortKey){ case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
   const isRemoved=r=>!!(r.archived&&r.archived.at);
   function visible(){ return baseRows().filter(r=>cfMatch(r))
-      .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; }); }
+      .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); const ex=x===""||x==null, ey=y===""||y==null; if(ex!==ey) return ex?1:-1; return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; }); }
   function baseRows(){
     return rows.filter(r=>{
       if(filter==="removed") return isRemoved(r);
@@ -353,13 +353,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td class="stc">${esc(r.mlsStatus||"")}</td>
+        <td class="nw">${esc(r.closing||"")}</td>
         <td class="addrc">${esc(r.address||"Address not set")}</td>
         <td class="num">${money(r.price)}</td>
         <td class="nw code">${esc(r.mls||"Not in MLS")}</td>
         <td class="nw">${esc(r.side||"")}</td>
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
-        <td class="nw">${esc(r.closing||"")}</td>
         <td class="nw code">${cdaLink(codeOf(r))}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
