@@ -213,7 +213,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
     return {cls:"warn",label:"Not checked yet"};
   }
-  const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[]);
   const COLS=[["radar","Radar Findings"],["kj","KJ Findings"]];
   const dkey=(src,text)=>src+"|"+text;
@@ -341,7 +341,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
         <td class="nw">${esc(r.closing||"")}</td>
-        <td class="nw code">${esc(codeOf(r)||"")}</td>
+        <td class="nw code">${cdaLink(codeOf(r))}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span></td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}</td>
@@ -406,7 +406,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </article>`;
     }).join("");
     const histHtml=`<section class="hist"><h2>Deal history</h2>
-      ${hist.length?`<div class="list"><table class="sheet"><thead><tr><th>Address</th><th>MLS#</th><th>Side</th><th>Status</th><th>Price</th><th>Closing</th><th>CDA</th></tr></thead><tbody>${hist.map(r=>`<tr><td>${esc(r.address||"")}</td><td class="nw code">${esc(r.mls||"Not in MLS")}</td><td class="nw">${esc(r.side||"")}</td><td class="nw">${esc(r.mlsStatus||"Done")}</td><td class="num">${money(r.price)}</td><td class="nw">${esc(r.closing||"")}</td><td class="nw code">${esc(codeOf(r)||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No closed or finished deals on file yet.</div>`}
+      ${hist.length?`<div class="list"><table class="sheet"><thead><tr><th>Address</th><th>MLS#</th><th>Side</th><th>Status</th><th>Price</th><th>Closing</th><th>CDA</th></tr></thead><tbody>${hist.map(r=>`<tr><td>${esc(r.address||"")}</td><td class="nw code">${esc(r.mls||"Not in MLS")}</td><td class="nw">${esc(r.side||"")}</td><td class="nw">${esc(r.mlsStatus||"Done")}</td><td class="num">${money(r.price)}</td><td class="nw">${esc(r.closing||"")}</td><td class="nw code">${cdaLink(codeOf(r))}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No closed or finished deals on file yet.</div>`}
       </section>`;
     $("#agentView").innerHTML=`<a class="agentlink back" href="#">← All transactions</a>
       <header><h1>${esc(name)} <span class="today">${esc(($("#today")||{}).textContent||"")}</span></h1><p class="sub">Your Blue Ribbon deals and where each one stands on compliance. Fix anything listed, then click Check again. Your closed deals are at the bottom.</p></header>
@@ -521,7 +521,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   document.addEventListener("click",e=>{
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
