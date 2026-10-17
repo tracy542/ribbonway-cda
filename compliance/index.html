@@ -49,7 +49,13 @@ table.sheet{border-collapse:collapse;width:100%;min-width:1150px;font-size:16px;
 .sheet th[aria-sort="ascending"]::after{content:" ▲"} .sheet th[aria-sort="descending"]::after{content:" ▼"}
 .sheet td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 .sheet tr.main{cursor:pointer} .sheet tr.main:hover td{background:var(--bg)}
-.sheet tr.main td:first-child{border-left:5px solid var(--line);font-weight:700;min-width:220px}
+.sheet tr.main td:first-child{border-left:5px solid var(--line)} .sheet td.addrc{font-weight:700;min-width:220px}
+.sheet td.stc{font-size:14px;width:1%;white-space:nowrap}
+.sheet tr.frow th{top:34px;padding:4px 6px 8px;cursor:default;text-transform:none;letter-spacing:0}
+.sheet tr.frow th::after{content:none!important}
+.sheet tr.frow select,.sheet tr.frow input{font:inherit;font-size:13px;width:100%;min-width:70px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.sheet tr.frow .on{border-color:var(--accent);outline:1px solid var(--accent)}
+#clearCF{font:inherit;font-size:.95rem;padding:6px 12px;border:1px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);cursor:pointer}
 .sheet tbody.s-bad tr.main td:first-child{border-left-color:var(--bad)} .sheet tbody.s-warn tr.main td:first-child{border-left-color:var(--warn)} .sheet tbody.s-good tr.main td:first-child{border-left-color:var(--good)}
 .sheet td.num{text-align:right;white-space:nowrap} .sheet td.nw{white-space:nowrap}
 .sheet tr.det td{background:var(--bg);border-left:5px solid var(--accent)}
@@ -179,7 +185,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <button class="tab" id="tab-removed" data-f="removed" aria-pressed="false">Removed</button>
   </div>
 
-  <div class="toolbar"><input id="q" type="search" placeholder="Search address, agent, MLS#, CDA code" aria-label="Search"><select id="officeF" aria-label="Office"><option value="">All offices</option><option value="MBG">Martinsburg</option><option value="FR">Front Royal</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select><select id="agentF" aria-label="Agent"><option value="">All agents</option></select><span class="foot">Click a column to sort. Click a row to open it.</span></div>
+  <div class="toolbar"><input id="q" type="search" placeholder="Search address, agent, MLS#, CDA code" aria-label="Search"><select id="officeF" aria-label="Office"><option value="">All offices</option><option value="MBG">Martinsburg</option><option value="FR">Front Royal</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select><select id="agentF" aria-label="Agent"><option value="">All agents</option></select><button type="button" id="clearCF" hidden>Clear column filters</button><span class="foot">Click a column title to sort. Use the box under each title to filter. Click a row to open it.</span></div>
   <div class="list" id="list">
     <div class="empty">Loading CDAs… Each CDA the office saves shows up here with its code, the agent, and the compliance results.</div>
   </div>
@@ -235,11 +241,17 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function needsAttn(r){ const w=(r.work||{}).status; if(w==="done") return false; return compState(r).cls!=="good"; }
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
-  let sortKey="address", sortDir=1, query="", officeF="", agentF="";
+  let sortKey="address", sortDir=1, query="", officeF="", agentF="", colF={};
+  const COLDEFS=[["mlsStatus","MLS status"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["closing","Closing"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
+  const TEXTF=new Set(["address","price","mls","cda"]);
+  function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; default: return String(r[k]||""); } }
+  const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip) return true; const f=colF[k]; if(!f) return true; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):(f==="(blank)"?t==="":t===f); });
   const slug=n=>String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   function sortVal(r){ switch(sortKey){ case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
   const isRemoved=r=>!!(r.archived&&r.archived.at);
-  function visible(){
+  function visible(){ return baseRows().filter(r=>cfMatch(r))
+      .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; }); }
+  function baseRows(){
     return rows.filter(r=>{
       if(filter==="removed") return isRemoved(r);
       if(isRemoved(r)) return false;
@@ -250,8 +262,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
       if(filter==="done") return w==="done";
       if(filter==="clean") return w!=="done"&&compState(r).cls==="good";
       return true;
-    }).filter(r=>!officeF||r.office===officeF).filter(r=>!agentF||slug(r.agent)===agentF).filter(r=>{ if(!query) return true; const h=[r.address,r.agent,r.mls,codeOf(r),r.side,r.mlsStatus].join(" ").toLowerCase(); return h.includes(query); })
-      .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; });
+    }).filter(r=>!officeF||r.office===officeF).filter(r=>!agentF||slug(r.agent)===agentF).filter(r=>{ if(!query) return true; const h=[r.address,r.agent,r.mls,codeOf(r),r.side,r.mlsStatus].join(" ").toLowerCase(); return h.includes(query); });
+  }
+  function filterRow(){
+    const base=baseRows();
+    return `<tr class="frow">${COLDEFS.map(([k,l])=>{ const f=colF[k]||"";
+      if(TEXTF.has(k)) return `<th><input type="search" data-cf="${k}" value="${esc(f)}" placeholder="Filter" aria-label="Filter ${esc(l)}" class="${f?"on":""}"></th>`;
+      const vals=[...new Set(base.filter(r=>cfMatch(r,k)).map(r=>colText(r,k)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      if(f&&!vals.includes(f==="(blank)"?"":f)) vals.push(f==="(blank)"?"":f);
+      return `<th><select data-cf="${k}" aria-label="Filter ${esc(l)}" class="${f?"on":""}"><option value="">All</option>${vals.map(v=>{ const ov=v===""?"(blank)":v; return `<option value="${esc(ov)}" ${ov===f?"selected":""}>${esc(ov)}</option>`; }).join("")}</select></th>`; }).join("")}</tr>`;
   }
 
   function renderAgentFilter(){
@@ -333,10 +352,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const findBlock=reviewHtml(r);
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
-        <td>${esc(r.address||"Address not set")}</td>
+        <td class="stc">${esc(r.mlsStatus||"")}</td>
+        <td class="addrc">${esc(r.address||"Address not set")}</td>
         <td class="num">${money(r.price)}</td>
         <td class="nw code">${esc(r.mls||"Not in MLS")}</td>
-        <td class="nw">${esc(r.mlsStatus||"")}</td>
         <td class="nw">${esc(r.side||"")}</td>
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
@@ -423,9 +442,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
     renderCounts();
     const v=visible();
     if(!rows.length){ $("#list").innerHTML=`<div class="empty">No CDAs yet. When the office starts a CDA, it shows up here with its code and the compliance results.</div>`; return; }
-    if(!v.length){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been removed.":"Nothing in this view."}</div>`; return; }
-    const cols=[["address","Address"],["price","Price"],["mls","MLS#"],["mlsStatus","MLS status"],["side","Side"],["agent","Agent"],["office","Office"],["closing","Closing"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
-    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr></thead>${v.map(rowHtml).join("")}</table>`;
+    const anyCF=Object.values(colF).some(Boolean); $("#clearCF").hidden=!anyCF;
+    if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been removed.":"Nothing in this view."}</div>`; return; }
+    const cols=COLDEFS;
+    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="12" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
   }
   function rerenderRow(id){
     const r=rows.find(x=>String(x.id)===String(id)); if(!r) return render();
@@ -519,13 +539,17 @@ textarea{width:100%;min-height:80px;resize:vertical}
     }
   });
   document.addEventListener("click",e=>{
+    if(e.target.id==="clearCF"){ colF={}; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
     if(e.target.closest("a.cdalink,[data-recheck]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
-  document.addEventListener("input",e=>{ if(e.target.id==="officeF"){ officeF=e.target.value; render(); return; } if(e.target.id==="agentF"){ agentF=e.target.value; render(); return; } if(e.target.id==="q"){ query=e.target.value.trim().toLowerCase(); render(); } });
+  document.addEventListener("input",e=>{ const cf=e.target.closest&&e.target.closest("[data-cf]");
+    if(cf){ const k=cf.dataset.cf; colF[k]=cf.value; const txt=cf.tagName==="INPUT", pos=txt?cf.selectionStart:0; render();
+      if(txt){ const n=document.querySelector(`input[data-cf="${k}"]`); if(n){ n.focus(); try{n.setSelectionRange(pos,pos)}catch(_){} } } return; }
+    if(e.target.id==="officeF"){ officeF=e.target.value; render(); return; } if(e.target.id==="agentF"){ agentF=e.target.value; render(); return; } if(e.target.id==="q"){ query=e.target.value.trim().toLowerCase(); render(); } });
 
   window.addEventListener("hashchange",()=>{ render(); window.scrollTo(0,0); });
   render();
