@@ -683,7 +683,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(isRemoved(r)||r.cdaCode) return msg;
     if(rowBusy.has(r.id)) return `<div class="rbtns"><button class="btn" disabled>Starting…</button></div>`;
     const inf=rowStartInfo(r);
-    const lbl=inf.a?`Start CDA for ${esc(String(inf.a.name).split(" ")[0])}`:"Start CDA";
+    const lbl="Start CDA";
     const pick=inf.pick?`<select class="rpick" data-rpick="${id}" aria-label="Pick agent"><option value="">Pick agent…</option>${AGENTS.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))).map(a=>`<option value="${esc(a.agent_id)}">${esc(a.name)}</option>`).join("")}</select>`:"";
     return `<div class="rbtns"><button class="btn" data-rstart="${id}" ${inf.a?"":"disabled"}>${lbl}</button><button class="btn ghost" data-rno="${id}">Not ours</button></div>${pick}${inf.why?`<span class="mainnote">${inf.why}</span>`:""}${msg}`;
   }
