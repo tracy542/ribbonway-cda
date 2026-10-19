@@ -163,8 +163,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .nbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .ndone{grid-column:1/-1;background:var(--good-bg);color:var(--good);font-weight:600;padding:8px 12px;border-radius:6px}
 .nerr{grid-column:1/-1;color:var(--bad);font-weight:600}
+.nfill{display:inline-block;align-self:flex-start;padding:0 6px;border-radius:4px;background:var(--new-bg);color:var(--new);font-weight:600;font-size:.8rem}
+.nfill.warn{background:var(--warn-bg);color:var(--warn);white-space:normal}
+.nrow.dup{grid-template-columns:minmax(0,2.2fr) minmax(0,2.4fr) auto;border-left:4px solid var(--warn)}
+.ndup{font-size:.95rem;line-height:1.5}
+.nnote{grid-column:1/-1;color:var(--warn);font-size:.95rem}
 .bchg{display:block;font-size:.85rem;font-weight:600;color:var(--new);margin-top:3px;white-space:normal}
-@media (max-width:760px){.nrow{grid-template-columns:1fr 1fr}.nrow .addr{grid-column:1/-1}.nbtns{grid-column:1/-1}}
+@media (max-width:760px){.nrow{grid-template-columns:1fr 1fr}.nrow .addr{grid-column:1/-1}.nbtns{grid-column:1/-1}.nrow.dup{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -190,7 +195,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   <section class="tray" id="tray" aria-labelledby="trayTitle" hidden>
     <div class="tray-head"><h2 id="trayTitle">New in Bright — pick agent</h2><span class="tcount" id="trayCount"></span></div>
-    <p class="foot" style="max-width:80ch">A bot reads Bright's "CDA Feed" emails and puts each new MLS number here. Pick the agent and side, then Start CDA. That saves the CDA, gives it a code, adds the deal to the list below, and emails the agent to finish their part. Not ours moves it to Archived with no CDA.</p>
+    <p class="foot" style="max-width:80ch">A bot reads Bright's "CDA Feed" emails and puts each new MLS number here. Agent and Side fill in from the matching MLS# in the Bright list below; check them, then click Start CDA. If that MLS# already has a CDA, the card is marked Duplicate instead. Start CDA saves the CDA, gives it a code, adds the deal to the list below, and emails the agent to finish their part. Not ours moves it to Archived with no CDA.</p>
     <div class="trows" id="trows"></div>
   </section>
 
@@ -474,21 +479,69 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const trayRows=()=>rows.filter(r=>r.tray&&!r.started&&!isRemoved(r)).sort((a,b)=>String((b.feed||{}).seenAt||"").localeCompare(String((a.feed||{}).seenAt||"")));
   const agentOpts=(off,want)=>{ const l=AGENTS.slice().sort((x,y)=>((OFF_ALIAS[x.office]||x.office)===off?0:1)-((OFF_ALIAS[y.office]||y.office)===off?0:1)||String(x.name).localeCompare(String(y.name)));
     return `<option value="">${AGENTS.length?"Pick agent…":"Loading agents…"}</option>`+l.map(a=>`<option value="${esc(a.agent_id)}" ${String(a.agent_id)===String(want)?"selected":""}>${esc(a.name)}${a.office?" — "+esc(OFFICES[OFF_ALIAS[a.office]||a.office]||a.office):""}</option>`).join(""); };
+  /* ---- Bright match (10/18). Each card looks up its MLS# in the Bright Inventory rows already in the main table.
+     Agent and Side fill in from those rows. If any row for that MLS# already has a CDA, the card is a duplicate
+     and Start CDA is not offered. Start CDA itself stays a human click. ---- */
+  const normMls=v=>String(v||"").trim().toUpperCase();
+  const normName=v=>String(v||"").toLowerCase().replace(/[^a-z]+/g," ").trim();
+  const sideOf=s=>{ const t=String(s||"").toLowerCase(); if(/dual|both/.test(t)) return "Both"; if(/list|sell(er)?\b/.test(t)&&!/selling/.test(t)) return "Listing"; if(/buy|selling/.test(t)) return "Buyer"; return ""; };
+  const hasCda=r=>!!(r.cdaCode||["saved","submitted"].includes(r.cdaStatus)||(r.source&&r.source!=="mls"));
+  function findAgent(name,agentId){
+    if(agentId){ const a=AGENTS.find(x=>String(x.agent_id)===String(agentId)); if(a) return a; }
+    const n=normName(name); if(!n) return null;
+    const exact=AGENTS.filter(x=>normName(x.name)===n); if(exact.length===1) return exact[0];
+    const p=n.split(" "), first=p[0], last=p[p.length-1];
+    const loose=AGENTS.filter(x=>{ const q=normName(x.name).split(" "); return q[0]===first&&q[q.length-1]===last; });
+    return loose.length===1?loose[0]:null;
+  }
+  function brightMatch(t){
+    const m=normMls(t.mls); if(!m) return null;
+    const hits=rows.filter(x=>!x.tray&&String(x.id)!==String(t.id)&&normMls(x.mls)===m);
+    if(!hits.length) return null;
+    const withCda=hits.filter(hasCda);
+    if(withCda.length) return {dup:true,rows:withCda};
+    const sides={}; hits.forEach(x=>{ const s=sideOf(x.side)||(/-L$/i.test(x.id)?"Listing":/-B$/i.test(x.id)?"Buyer":""); if(s&&x.agent){ if(s==="Both"){ sides.Listing=sides.Listing||x; sides.Buyer=sides.Buyer||x; } else sides[s]=sides[s]||x; } });
+    const L=sides.Listing, B=sides.Buyer;
+    if(L&&B){ if(normName(L.agent)===normName(B.agent)) return {side:"Both",agentName:L.agent,agentId:L.agentId||L.agent_id}; return {split:true,L,B}; }
+    const one=L||B; if(!one) return null;
+    return {side:L?"Listing":"Buyer",agentName:one.agent,agentId:one.agentId||one.agent_id};
+  }
+  function applyMatch(t){
+    const mt=brightMatch(t); const pk=trayPick[t.id]=trayPick[t.id]||{};
+    if(!mt||mt.dup||mt.split) return mt;
+    if(!pk.touchedSide&&mt.side){ pk.side=mt.side; pk.autoSide=true; }
+    if(!pk.touchedAgent){ const a=findAgent(mt.agentName,mt.agentId); if(a){ pk.agent=a.agent_id; pk.autoAgent=true; } else { pk.agent=""; pk.autoAgent=false; } }
+    return mt;
+  }
   function renderTray(){
     const box=document.getElementById("tray"); if(!box) return;
     const t=trayRows(), done=Object.keys(trayDone);
     box.hidden=!t.length&&!done.length;
-    document.getElementById("trayCount").textContent=t.length+" waiting";
+    const nDup=t.filter(r=>{ const m=brightMatch(r); return m&&m.dup; }).length;
+    document.getElementById("trayCount").textContent=(t.length-nDup)+" waiting"+(nDup?" · "+nDup+" duplicate"+(nDup>1?"s":""):"");
     const doneHtml=done.map(id=>`<div class="nrow"><div class="ndone">${trayDone[id]}</div></div>`).join("");
     const a=document.activeElement; if(a&&a.closest&&a.closest("#trows")&&a.tagName==="SELECT") return;
     document.getElementById("trows").innerHTML=doneHtml+t.map(r=>{
-      const id=esc(r.id), pk=trayPick[r.id]||{}, busy=trayBusy.has(r.id), f=r.feed||{};
+      const id=esc(r.id), busy=trayBusy.has(r.id), f=r.feed||{};
+      const mt=busy?brightMatch(r):applyMatch(r), pk=trayPick[r.id]||{};
       const street=r.street||String(r.address||"").split(",")[0], rest=[r.city?r.city+(r.state?", "+r.state:""):"",r.type,money(r.price)].filter(Boolean).join(" · ");
-      return `<div class="nrow" data-trow="${id}">
-        <div class="addr"><b>${esc(street)}</b><div class="nmeta">${esc(rest)}</div><div class="nmeta"><span class="code">MLS# ${esc(r.mls)}</span> · seen ${fmtDate(f.seenAt)}${f.link?` · <a class="agentlink" href="${esc(f.link)}" target="_blank" rel="noopener">Bright</a>`:""}</div></div>
-        <label>Agent<select data-tagent="${id}" ${busy?"disabled":""}>${agentOpts(r.office,pk.agent)}</select></label>
-        <label>Side<select data-tside="${id}" ${busy?"disabled":""}><option value="">Pick side…</option>${[["Listing","Listing"],["Buyer","Buyer"],["Both","Both sides (dual)"]].map(([v,l])=>`<option value="${v}" ${pk.side===v?"selected":""}>${l}</option>`).join("")}</select></label>
+      const addr=`<div class="addr"><b>${esc(street)}</b><div class="nmeta">${esc(rest)}</div><div class="nmeta"><span class="code">MLS# ${esc(r.mls)}</span> · seen ${fmtDate(f.seenAt)}${f.link?` · <a class="agentlink" href="${esc(f.link)}" target="_blank" rel="noopener">Bright</a>`:""}</div></div>`;
+      if(mt&&mt.dup){
+        const list=mt.rows.map(x=>`${cdaLink(codeOf(x))||"CDA on file"}${x.agent?" · "+esc(x.agent):""}${x.side?" · "+esc(x.side):""}`).join("<br>");
+        return `<div class="nrow dup" data-trow="${id}">${addr}
+          <div class="ndup"><span class="pill warn">Duplicate</span> This MLS# already has a CDA:<br>${list}</div>
+          <div class="nbtns"><button class="btn ghost" data-tdup="${id}">Clear duplicate</button></div>
+          <div class="nerr" id="terr-${id}" role="status" hidden></div>
+        </div>`;
+      }
+      const agentHint=pk.autoAgent?`<span class="nfill">From Bright</span>`:(mt&&mt.agentName&&!pk.touchedAgent?`<span class="nfill warn">Bright says ${esc(mt.agentName)} — not in the agent list, pick one</span>`:"");
+      const sideHint=pk.autoSide?`<span class="nfill">From Bright</span>`:"";
+      const splitNote=mt&&mt.split?`<div class="nnote">Bright shows two Blue Ribbon agents: ${esc(mt.L.agent)} (listing) and ${esc(mt.B.agent)} (buyer). Pick one here; the other starts theirs at cda.ribbonway.com.</div>`:"";
+      return `<div class="nrow" data-trow="${id}">${addr}
+        <label>Agent ${agentHint}<select data-tagent="${id}" ${busy?"disabled":""}>${agentOpts(r.office,pk.agent)}</select></label>
+        <label>Side ${sideHint}<select data-tside="${id}" ${busy?"disabled":""}><option value="">Pick side…</option>${[["Listing","Listing"],["Buyer","Buyer"],["Both","Both sides (dual)"]].map(([v,l])=>`<option value="${v}" ${pk.side===v?"selected":""}>${l}</option>`).join("")}</select></label>
         <div class="nbtns"><button class="btn" data-tstart="${id}" ${pk.agent&&pk.side&&!busy?"":"disabled"}>${busy?"Starting…":"Start CDA"}</button><button class="btn ghost" data-tno="${id}" ${busy?"disabled":""}>Not ours</button></div>
+        ${splitNote}
         <div class="nerr" id="terr-${id}" role="status" hidden></div>
       </div>`; }).join("");
   }
@@ -498,6 +551,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const r=rows.find(x=>String(x.id)===String(id)); const pk=trayPick[id]||{};
     const a=AGENTS.find(x=>String(x.agent_id)===String(pk.agent)); if(!r||!a||!pk.side) return;
     const err=document.getElementById("terr-"+id);
+    const chk=brightMatch(r); if(chk&&chk.dup){ renderTray(); return; } // a CDA showed up for this MLS# since the card was drawn
     trayBusy.add(id); renderTray();
     const sides=pk.side==="Both"?["Listing","Buyer"]:[pk.side];
     const base=genCode(); const codes={Listing:base,Buyer:pk.side==="Both"?"B"+base:base};
@@ -539,12 +593,17 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const ag=e.target.closest&&e.target.closest("[data-tagent]"), sd=e.target.closest&&e.target.closest("[data-tside]");
     if(!ag&&!sd) return;
     const id=(ag||sd).dataset[ag?"tagent":"tside"]; trayPick[id]=trayPick[id]||{};
-    if(ag) trayPick[id].agent=ag.value; else trayPick[id].side=sd.value;
+    if(ag){ trayPick[id].agent=ag.value; trayPick[id].touchedAgent=true; trayPick[id].autoAgent=false; } else { trayPick[id].side=sd.value; trayPick[id].touchedSide=true; trayPick[id].autoSide=false; }
     const b=document.querySelector(`[data-tstart="${CSS.escape(id)}"]`); if(b) b.disabled=!(trayPick[id].agent&&trayPick[id].side);
   });
   document.addEventListener("click",async e=>{
     const st=e.target.closest&&e.target.closest("[data-tstart]");
     if(st){ startCda(st.dataset.tstart); return; }
+    const dp=e.target.closest&&e.target.closest("[data-tdup]");
+    if(dp&&db){ const id=dp.dataset.tdup; dp.disabled=true;
+      try{ await db.collection("cdas").doc(id).update({archived:{at:new Date().toISOString(),by:"Compliance",reason:"Duplicate (New in Bright) — MLS# already has a CDA"}}); const r=rows.find(x=>String(x.id)===String(id)); trayDone[id]=`${esc((r&&(r.street||r.address))||id)}: duplicate cleared. The existing CDA is on the list below.`; render(); }
+      catch(_){ dp.disabled=false; const m=document.getElementById("terr-"+id); if(m){ m.hidden=false; m.textContent="Couldn't clear it. Try again."; } }
+      return; }
     const no=e.target.closest&&e.target.closest("[data-tno]");
     if(no&&db){ const id=no.dataset.tno; no.disabled=true;
       try{ await db.collection("cdas").doc(id).update({archived:{at:new Date().toISOString(),by:"Compliance",reason:"Not ours (New in Bright)"}}); const r=rows.find(x=>String(x.id)===String(id)); trayDone[id]=`${esc((r&&(r.street||r.address))||id)}: moved to Archived. No CDA started.`; render(); }
