@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Items to Convey – Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--navy:#13294b;--bg:#f4f6fa;--ink:#1b1f27;--muted:#3d4757;--line:#9aa6b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:18px;line-height:1.4}
+header{background:var(--navy);color:#fff;padding:14px 20px;font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header span{color:#f2d27a;font-size:14px;font-weight:600}
+main{max-width:860px;margin:0 auto;padding:20px 16px 80px}
+h1{color:var(--navy);font-size:28px;margin:0 0 6px;font-weight:800}
+.lead{color:var(--muted);margin:0 0 18px}
+fieldset{border:2px solid var(--navy);border-radius:10px;background:#fff;margin:0 0 16px;padding:6px 18px 18px}
+legend{font-weight:800;color:var(--navy);font-size:18px;padding:0 8px;cursor:pointer;user-select:none}
+legend button{all:unset;cursor:pointer}
+fieldset.closed > :not(legend){display:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+.l{display:block;font-size:16px;font-weight:700;color:var(--navy);margin:0 0 6px}
+input[type=text],input[type=email],select,textarea{width:100%;font:inherit;font-size:18px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],select{height:52px}
+textarea{min-height:70px;resize:vertical}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #e3e7ee;flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.ck{display:flex;align-items:center;gap:12px;cursor:pointer;min-height:44px}
+.ck input{width:24px;height:24px}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{font:inherit;width:44px;height:44px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-size:20px;font-weight:700;color:var(--navy);cursor:pointer}
+.qty span{min-width:28px;text-align:center;font-weight:700}
+.type{flex-basis:100%}
+.note{background:#fbf1d3;border-radius:8px;padding:10px 12px;font-size:16px;color:#4a3b00;margin:10px 0}
+.btn{font:inherit;font-weight:800;font-size:18px;border-radius:10px;padding:14px 24px;cursor:pointer;border:2px solid var(--navy)}
+.primary{background:var(--navy);color:#fff}
+.secondary{background:#fff;color:var(--navy)}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:18px 0}
+.err{color:#8a1c1c;font-weight:700}
+#done{display:none}
+</style>
+</head>
+<body>
+<header>Weichert, Realtors – Blue Ribbon <span>Items to Convey</span></header>
+<main>
+<div id="form">
+<h1>What stays with the house?</h1>
+<p class="lead">Check each item that conveys at no value. Use + if there's more than one. <b>Items not listed do NOT convey.</b> Your agent reviews this with you before anything is signed.</p>
+
+<fieldset id="s0"><legend><button type="button">▼ 1 Your agent &amp; the property ▼</button></legend>
+<div class="grid">
+<div class="full"><label class="l" for="agent">Your listing agent *</label><select id="agent"><option value="">Loading agents…</option></select></div>
+<div class="full"><label class="l" for="address">Street address *</label><input type="text" id="address" autocomplete="street-address"></div>
+<div><label class="l" for="city">City</label><input type="text" id="city"></div>
+<div><label class="l" for="zip">West Virginia zip</label><input type="text" id="zip" inputmode="numeric"></div>
+<div><label class="l" for="county">County</label><input type="text" id="county"></div>
+<div><label class="l" for="seller1">Seller name(s) *</label><input type="text" id="seller1"></div>
+<div class="full"><label class="l" for="email">Your email *</label><input type="email" id="email" autocomplete="email"></div>
+</div>
+</fieldset>
+
+<div id="groups"></div>
+
+<fieldset><legend><button type="button">▼ Other items ▼</button></legend>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div><label class="l" for="smart">A. Smart devices that convey</label><textarea id="smart" placeholder="e.g. doorbell camera, smart thermostat"></textarea></div>
+<div><label class="l" for="asis">B. As-is items: Seller will not warrant the condition or working order of these items and/or systems</label><textarea id="asis"></textarea></div>
+<div><label class="l" for="other">C. Other items to convey</label><textarea id="other"></textarea></div>
+</div>
+</fieldset>
+
+<div class="bar"><button type="button" class="btn primary" id="submit">Submit to my agent</button><span id="msg"></span></div>
+</div>
+
+<div id="done">
+<h1>Sent to your agent</h1>
+<p class="lead">Thank you. Your agent has your list as a PDF and will review it with you, then send the official form for your signature.</p>
+<div class="bar"><a class="btn primary" href="../sd/" style="text-decoration:none">Seller Disclosure</a><button type="button" class="btn secondary" id="dl">Download my copy (PDF)</button></div>
+</div>
+</main>
+<script>
+const HOOK_AGENTS='https://hook.us2.make.com/6s0mb4bs03ffh34kynx33f3i6m2fkipj';
+const HOOK_SUBMIT='https://hook.us2.make.com/47x58wkagnptxr4neu3dyjnom9to74my';
+const STORE='br_itc_draft_v1', SHARED='br_seller_shared_v1';
+const OFFICES={MBG:'Martinsburg',Bow:'Bowie',BOW:'Bowie',FR:'Front Royal',FRO:'Front Royal',REF:'Referral'};
+const GROUPS=[
+ {title:'Kitchen',items:['Refrigerator w/ice maker','Refrigerator w/o ice maker','Stove or Range','Cooktop/Counter','Wall Oven','Microwave','Dishwasher','Disposal','Freezer']},
+ {title:'Laundry',items:['Clothes Washer','Clothes Dryer']},
+ {title:'Heating, cooling & systems',items:['Alarm System','Ceiling Fan','Heating Stove','Water Treatment System','Window A/C Unit']},
+ {title:'Garage & outdoor',items:['Garage Opener','w/remote','Hot Tub, Equip & Cover','Pool, Equip, & cover','Playground Equipment','Storage Shed']},
+ {title:'Windows & walls',items:['Wall Mount Brackets','Window Blinds/Shades/Hardware','Window Treatments Installed']}
+];
+let state={items:{},f:{}};
+try{const s=JSON.parse(localStorage.getItem(STORE)||'null'); if(s) state=Object.assign(state,s);}catch(e){}
+try{const sh=JSON.parse(localStorage.getItem(SHARED)||'null'); if(sh){ if(!state.f.agent&&sh.agent) state.f.agent=sh.agent; if(!state.f.email&&sh.email) state.f.email=sh.email; if(!state.f.seller1&&sh.seller1) state.f.seller1=[sh.seller1,sh.seller2].filter(Boolean).join(', '); if(!state.f.address&&sh.address){ const p=sh.address.split(','); state.f.address=p[0].trim(); if(p[1]) state.f.city=state.f.city||p[1].trim(); const z=(sh.address.match(/\b\d{5}(-\d{4})?\b/)||[])[0]; if(z) state.f.zip=state.f.zip||z; } }}catch(e){}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){
+  let h='';
+  GROUPS.forEach((g,gi)=>{
+    h+='<fieldset><legend><button type="button">▼ '+(gi+2)+' '+esc(g.title)+' ▼</button></legend>';
+    g.items.forEach(it=>{
+      const q=state.items[it]||0;
+      h+='<div class="row"><label class="ck"><input type="checkbox" data-it="'+esc(it)+'"'+(q?' checked':'')+'>'+esc(it)+'</label>';
+      h+='<div class="qty"'+(q?'':' style="visibility:hidden"')+'><button type="button" aria-label="Fewer" data-dec="'+esc(it)+'">−</button><span>'+(q||1)+'</span><button type="button" aria-label="More" data-inc="'+esc(it)+'">+</button></div>';
+      if(it==='Heating Stove') h+='<div class="type"><label class="l" for="f_stove">Heating stove type</label><input type="text" id="f_stove" data-f="stove" value="'+esc(state.f.stove||'')+'"></div>';
+      h+='</div>';
+    });
+    h+='</fieldset>';
+  });
+  document.getElementById('groups').innerHTML=h;
+}
+render();
+['address','city','zip','county','seller1','email','smart','asis','other'].forEach(id=>{ if(state.f[id]) document.getElementById(id).value=state.f[id]; });
+document.addEventListener('click',e=>{
+  const lg=e.target.closest('legend'); if(lg){const fs=lg.parentElement; fs.classList.toggle('closed'); const b=lg.querySelector('button'); b.textContent=b.textContent.replace(/^[▼▶]/,fs.classList.contains('closed')?'▶':'▼'); return;}
+  const inc=e.target.closest('[data-inc]'), dec=e.target.closest('[data-dec]');
+  if(inc||dec){ const it=(inc||dec).dataset.inc||(inc||dec).dataset.dec; let q=state.items[it]||1; q=inc?q+1:Math.max(1,q-1); state.items[it]=q; (inc||dec).parentElement.querySelector('span').textContent=q; save(); }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.it){ const it=t.dataset.it; if(t.checked) state.items[it]=state.items[it]||1; else delete state.items[it]; t.closest('.row').querySelector('.qty').style.visibility=t.checked?'visible':'hidden'; save(); }
+  if(t.id==='agent'){ state.f.agent=t.value; save(); }
+});
+document.addEventListener('input',e=>{ const t=e.target; if(t.dataset.f){state.f[t.dataset.f]=t.value;save();return;} if(t.id){ state.f[t.id]=t.value; save(); } });
+
+let AGENTS=[];
+fetch(HOOK_AGENTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"form":"itc"}'}).then(r=>r.json()).then(d=>{
+  AGENTS=(d.agents||[]).filter(a=>String(a.active)!=='false'&&a.name).sort((a,b)=>a.name.localeCompare(b.name));
+  const sel=document.getElementById('agent');
+  sel.innerHTML='<option value="">Pick your agent…</option>'+AGENTS.map(a=>'<option value="'+esc(a.agent_id)+'">'+esc(a.name)+(a.office?' – '+esc(OFFICES[a.office]||a.office):'')+'</option>').join('');
+  if(state.f.agent) sel.value=state.f.agent;
+}).catch(()=>{document.getElementById('agent').innerHTML='<option value="">Could not load agents – refresh the page</option>';});
+
+function buildPdf(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:'pt',format:'letter'}); const W=612,M=48; let y=56;
+  const line=(txt,o)=>{o=o||{}; doc.setFont('helvetica',o.b?'bold':'normal'); doc.setFontSize(o.s||11); doc.splitTextToSize(String(txt),W-2*M-(o.indent||0)).forEach(p=>{ if(y>740){doc.addPage();y=56;} doc.text(p,M+(o.indent||0),y); y+=(o.s||11)+4; });};
+  line('EASTERN PANHANDLE BOARD OF REALTORS',{b:true,s:12}); line('ITEMS TO CONVEY – seller answers',{b:true,s:13});
+  line('Seller-entered worksheet for agent review. Agent transfers answers to the official form for signatures.',{s:9}); y+=6;
+  const ag=AGENTS.find(a=>a.agent_id===state.f.agent);
+  line('Seller: '+(state.f.seller1||'')); line('Street address: '+(state.f.address||'')+'    County: '+(state.f.county||''));
+  line('City: '+(state.f.city||'')+', West Virginia  Zip: '+(state.f.zip||'')); line('Listing agent: '+(ag?ag.name:'')+'    Submitted: '+new Date().toLocaleString()); y+=8;
+  line('Items that convey (# items)',{b:true});
+  let any=false; GROUPS.forEach(g=>g.items.forEach(it=>{ if(state.items[it]){ any=true; line('[X] '+state.items[it]+'  '+it+(it==='Heating Stove'&&state.f.stove?' (Type: '+state.f.stove+')':''),{indent:10}); } }));
+  if(!any) line('(none checked)',{indent:10}); y+=6;
+  line('A. Smart Devices: '+(state.f.smart||'')); line('B. As-Is Items: '+(state.f.asis||'')); line('C. Other Items To Convey: '+(state.f.other||'')); line('D. Items NOT listed DO NOT convey.',{b:true});
+  return doc;
+}
+let lastPdf=null;
+document.getElementById('submit').addEventListener('click',async()=>{
+  const msg=document.getElementById('msg'); msg.className=''; msg.textContent='';
+  const need=[['agent','your listing agent'],['address','the street address'],['seller1','your name'],['email','your email']].filter(([id])=>!document.getElementById(id).value.trim());
+  if(need.length){msg.className='err'; msg.textContent='Please add '+need.map(n=>n[1]).join(', ')+'.'; window.scrollTo({top:0,behavior:'smooth'}); return;}
+  ['agent','address','city','zip','county','seller1','email','smart','asis','other'].forEach(id=>state.f[id]=document.getElementById(id).value); save();
+  const btn=document.getElementById('submit'); btn.disabled=true; btn.textContent='Sending…';
+  try{
+    const doc=buildPdf(); lastPdf=doc; const b64=doc.output('datauristring').split(',')[1];
+    const ag=AGENTS.find(a=>a.agent_id===state.f.agent);
+    const full=[state.f.address,state.f.city,('WV '+(state.f.zip||'')).trim()].filter(Boolean).join(', ');
+    const street=(state.f.address||'Property').replace(/[^A-Za-z0-9 ]/g,'').trim();
+    const payload={form:'ITC',form_label:'Items to Convey',agent_id:state.f.agent,agent_name:ag?ag.name:'',address:full,seller_names:state.f.seller1,seller_email:state.f.email,filename:street+' - Items to Convey.pdf',pdf_base64:b64};
+    const r=await fetch(HOOK_SUBMIT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('send failed');
+    document.getElementById('form').style.display='none'; document.getElementById('done').style.display='block'; window.scrollTo({top:0});
+  }catch(e){ msg.className='err'; msg.textContent='Something went wrong sending it. Please try again, or email compliance@blueribbonrealty.com.'; }
+  btn.disabled=false; btn.textContent='Submit to my agent';
+});
+document.getElementById('dl').addEventListener('click',()=>{(lastPdf||buildPdf()).save('Items to Convey.pdf');});
+</script>
+</body>
+</html>
