@@ -69,6 +69,7 @@
       <select id="side">
         <option value="buyer">Buyer (purchase)</option>
         <option value="listing">Listing</option>
+        <option value="rental">Rental (lease)</option>
       </select>
     </div>
   </div>
@@ -144,7 +145,15 @@ const DATA = {
         ["Back-Up Contract Addendum", "Back-up offer", "MAR / PGCAR #101"],
         ["Sale, Financing, Settlement or Lease of Other Real Estate Addendum", "Buyer must sell/settle another home", "MAR / PGCAR #101"],
         ["Disclosure of Licensee Status Addendum", "A buyer or seller holds a real estate license", "MAR / PGCAR #101"],
-        ["Escrow Agreement Between Buyer, Seller and Escrow Agent", "Title company holds the deposit", "MAR / PGCAR #101"]
+        ["Escrow Agreement Between Buyer, Seller and Escrow Agent", "Title company holds the deposit", "MAR / PGCAR #101"],
+        ["Post-settlement items", "Anything due after settlement", "Thomas's checklist (8/21/26)"]
+      ]},
+      { title: "Blue Ribbon required", items: [
+        ["Loan financing information", "Financed purchase", "Thomas's checklist (8/21/26)"],
+        ["Full listing or agent synopsis", "", "Thomas's checklist (8/21/26)"],
+        ["Price trend analysis or CMA", "", "Thomas's checklist (8/21/26)"],
+        ["Property tax record or public record", "", "Thomas's checklist (8/21/26)"],
+        ["Cinch home warranty – accepted or declined", "", "Thomas's checklist (8/21/26)"]
       ]}
     ],
     listing: [
@@ -152,15 +161,44 @@ const DATA = {
         ["MAR Exclusive Right to Sell Residential Brokerage Agreement", "", "MAR"],
         ["MD Residential Property Disclosure/Disclaimer Statement", "Unless property is exempt", "MREC"],
         ["Disclosure of Inclusions/Exclusions, Leased Items and Utilities Addendum", "", "MAR"],
-        ["Notice to Buyer and Seller of Buyer's Rights and Seller's Obligations", "Unless property is exempt", "MAR"]
+        ["Notice to Buyer and Seller of Buyer's Rights and Seller's Obligations", "Unless property is exempt", "MAR"],
+        ["MD Lead Poisoning Prevention Program Disclosure", "", "Thomas's checklist (9/25) – not optional"],
+        ["Financial Condition of Property Disclosure Addendum", "", "Thomas's checklist (9/25) – not optional"]
       ]},
       { title: "When it applies", items: [
         ["Federal Lead-Based Paint Disclosure", "Built before 1978", "Federal law"],
-        ["MD Lead Poisoning Prevention Program Disclosure", "Built before 1978 and was or will be a rental", "MD law"],
         ["Consent for Dual Agency", "Dual agency", "MREC"],
-        ["Financial Condition of Property Disclosure Addendum", "Seller is behind on mortgage, liens, or short sale", "MAR"],
         ["Short Sale Addendum to the Listing", "Short sale", "MAR"],
         ["HOA / Condo resale documents", "HOA or condo", "MAR"]
+      ]},
+      { title: "Blue Ribbon required", items: [
+        ["Price trend analysis or CMA", "", "Thomas's checklist (9/25)"],
+        ["Property tax record or public record", "", "Thomas's checklist (9/25)"],
+        ["Seller estimated cost worksheet (net sheet)", "", "Thomas's checklist (9/25)"],
+        ["Cinch home protection plan – accepted or declined", "", "Thomas's checklist (9/25)"],
+        ["Referral form", "Referral deal", "Thomas's checklist (9/25)"]
+      ]}
+    ],
+    rental: [
+      { title: "Every rental", items: [
+        ["Residential lease agreement", "", "Thomas's checklist (9/25)"],
+        ["Buyer/tenant agency agreement", "", "Thomas's checklist (9/25)"],
+        ["Affiliated Business Arrangement (RESPA) disclosure", "", "Thomas's checklist (9/25)"],
+        ["Equal Housing Opportunity form", "", "Thomas's checklist (9/25)"],
+        ["First month's rent (our listing) or Blue Ribbon's share from the listing broker", "", "Thomas's checklist (9/25)"]
+      ]},
+      { title: "When it applies", items: [
+        ["Consent for Dual Agency", "Dual agency", "Thomas's checklist (9/25)"],
+        ["Federal Lead-Based Paint Disclosure + lead paint addendum to the lease", "Built before 1978", "Thomas's checklist (9/25)"],
+        ["Lead-based paint brochure given to the client", "Built before 1978", "Thomas's checklist (9/25)"],
+        ["County or city lease addenda", "As the jurisdiction requires", "Thomas's checklist (9/25)"]
+      ]},
+      { title: "Blue Ribbon required", items: [
+        ["Bright MLS printout", "", "Thomas's checklist (9/25)"],
+        ["Tax or public record", "", "Thomas's checklist (9/25)"],
+        ["Copy of the rental application", "", "Thomas's checklist (9/25)"],
+        ["Copy of the security deposit", "", "Thomas's checklist (9/25)"],
+        ["Copy of the first month's rent", "", "Thomas's checklist (9/25)"]
       ]}
     ],
     county: {
@@ -225,8 +263,8 @@ function render(){
   $("draftNote").hidden = !d.draft;
 
   const groups = [...d[side]];
-  if (st === "MD" && d.county[cty]) groups.push(d.county[cty][side]);
-  if (!d.workflow) groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
+  if (st === "MD" && d.county[cty] && d.county[cty][side]) groups.push(d.county[cty][side]);
+  if (!d.workflow && side !== "rental") groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
 
   let html = "";
   groups.forEach((g, gi) => {

@@ -69,6 +69,7 @@
       <select id="side">
         <option value="buyer">Buyer (purchase)</option>
         <option value="listing">Listing</option>
+        <option value="rental">Rental (lease)</option>
       </select>
     </div>
   </div>
@@ -138,6 +139,35 @@ const DATA = {
       { title: "When it applies", items: [
         ["DC Lead Disclosure + Federal Lead-Based Paint Disclosure", "Built before 1978", "DC / federal law"],
         ["Consent for Dual Agency", "Dual agency", "GCAAR"]
+      ]},
+      { title: "Blue Ribbon required", items: [
+        ["Price trend analysis or CMA", "", "Thomas's checklist (9/25)"],
+        ["Property tax record or public record", "", "Thomas's checklist (9/25)"],
+        ["Seller estimated cost worksheet (net sheet)", "", "Thomas's checklist (9/25)"],
+        ["Cinch home protection plan – accepted or declined", "", "Thomas's checklist (9/25)"],
+        ["Referral form", "Referral deal", "Thomas's checklist (9/25)"]
+      ]}
+    ],
+    rental: [
+      { title: "Every rental", items: [
+        ["Residential lease agreement", "", "Thomas's checklist (9/25)"],
+        ["Buyer/tenant agency agreement", "", "Thomas's checklist (9/25)"],
+        ["Affiliated Business Arrangement (RESPA) disclosure", "", "Thomas's checklist (9/25)"],
+        ["Equal Housing Opportunity form", "", "Thomas's checklist (9/25)"],
+        ["First month's rent (our listing) or Blue Ribbon's share from the listing broker", "", "Thomas's checklist (9/25)"]
+      ]},
+      { title: "When it applies", items: [
+        ["Consent for Dual Agency", "Dual agency", "Thomas's checklist (9/25)"],
+        ["Federal Lead-Based Paint Disclosure + lead paint addendum to the lease", "Built before 1978", "Thomas's checklist (9/25)"],
+        ["Lead-based paint brochure given to the client", "Built before 1978", "Thomas's checklist (9/25)"],
+        ["County or city lease addenda", "As the jurisdiction requires", "Thomas's checklist (9/25)"]
+      ]},
+      { title: "Blue Ribbon required", items: [
+        ["Bright MLS printout", "", "Thomas's checklist (9/25)"],
+        ["Tax or public record", "", "Thomas's checklist (9/25)"],
+        ["Copy of the rental application", "", "Thomas's checklist (9/25)"],
+        ["Copy of the security deposit", "", "Thomas's checklist (9/25)"],
+        ["Copy of the first month's rent", "", "Thomas's checklist (9/25)"]
       ]}
     ]
   }
@@ -162,8 +192,8 @@ function render(){
   $("draftNote").hidden = !d.draft;
 
   const groups = [...d[side]];
-  if (st === "MD" && d.county[cty]) groups.push(d.county[cty][side]);
-  if (!d.workflow) groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
+  if (st === "MD" && d.county[cty] && d.county[cty][side]) groups.push(d.county[cty][side]);
+  if (!d.workflow && side !== "rental") groups.push(side === "buyer" ? BROKERAGE_BUYER : BROKERAGE_LISTING);
 
   let html = "";
   groups.forEach((g, gi) => {
