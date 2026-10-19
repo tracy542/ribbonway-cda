@@ -146,7 +146,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 #logout:focus-visible{outline:2px solid #0B1F3A;outline-offset:2px}
 .linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
 [hidden]{display:none!important}
-.fcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:6px}
+.fcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:6px}
 @media (max-width:900px){.fcols{grid-template-columns:1fr}}
 .fcol{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .fcol h4{margin:0;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
@@ -228,7 +228,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
     <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
-    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: KJ findings, with Radar findings beside them once Radar is connected. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: KJ (Claude), Radar (ChatGPT) and Gemini findings side by side. When all three flag the same item, it's almost certainly real. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
   </header>
 
   <section class="tray" id="tray" aria-labelledby="trayTitle" hidden>
@@ -282,11 +282,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
     return {cls:"warn",label:"Not checked yet"};
   }
-  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Run once a day per deal. Results show within the hour.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
-  const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[]);
+  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}. Results will be in tomorrow.</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Checked tonight at 11:59 PM. Results will be in tomorrow.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[],(r.compliance||{}).gt||[]);
   /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
-     kept for the second checker (Radar/ChatGPT) once it is connected. Only the labels below say who checked. */
-  const COLS=[["radar","KJ Findings"],["kj","Radar Findings"]];
+     written by Radar (ChatGPT); src "gt" = compliance.gt, written by Gemini. Only the labels below say who checked. */
+  const COLS=[["radar","KJ Findings"],["kj","Radar Findings"],["gt","Gemini Findings"]];
   const dkey=(src,text)=>src+"|"+text;
   function reviewOf(r){
     const c=r.compliance||{}, saved=r.review||{}, l=local[r.id]||{};
@@ -295,7 +295,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const list=[];
     (c.items||[]).forEach(t=>list.push({src:"radar",text:String(t)}));
     (c.kj||[]).forEach(t=>list.push({src:"kj",text:String(t)}));
-    added.forEach((a,ai)=>{ if(a&&a.text) list.push({src:a.src==="kj"?"kj":"radar",text:String(a.text),mine:true,ai,by:a.by||""}); });
+    (c.gt||[]).forEach(t=>list.push({src:"gt",text:String(t)}));
+    added.forEach((a,ai)=>{ if(a&&a.text) list.push({src:a.src==="kj"?"kj":a.src==="gt"?"gt":"radar",text:String(a.text),mine:true,ai,by:a.by||""}); });
     const decisions=list.map(x=>{ const k=dkey(x.src,x.text), s=sd[k]||sd["*|"+x.text]||{};
       return Object.assign({},x,{key:k,include:(l.dec&&l.dec[k]!==undefined)?l.dec[k]:(s.include||""),direction:(l.dir&&l.dir[k]!==undefined)?l.dir[k]:(s.direction||"")}); });
     const cc={gavin:true,tracy:false,...(saved.cc||{}),...(l.cc||{})};
@@ -440,7 +441,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
           </div>
           ${d.include==="yes"?`<input class="dir" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="What we need the agent to do (goes in the email)" aria-label="Direction for this finding" ${dis}>`:""}
         </li>`).join("");
-      const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:"Radar isn't connected yet."}</p>`;
+      const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:(c.secondAt?`${src==="kj"?"Radar":"Gemini"} found no problems.`:`${src==="kj"?"Radar":"Gemini"} checks with KJ on the next nightly run.`)}</p>`;
       const add=dis?"":`<div class="fadd"><input id="add-${id}-${src}" data-addin="${id}" data-col="${src}" placeholder="• Type a finding…" aria-label="Add a ${esc(label)} item"><button type="button" class="vbtn" data-add="${id}" data-col="${src}">Add</button></div>`;
       return `<div class="fcol"><h4>${esc(label)} <small>${items.length} · ${v} verified</small></h4>${empty}<ul class="fb">${li}</ul>${add}</div>`;
     };
@@ -527,8 +528,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const cards=mine.map(r=>{
       const cs=compState(r), id=esc(r.id), rc=r.recheck||{}, items=released(r), c=r.compliance||{};
       const code=codeOf(r);
-      const btn= rc.status==="requested" ? `<button class="btn big" disabled>Requested — checking</button><span class="foot">Asked ${fmtDate(rc.requestedAt)}. The office re-checks within the hour.</span>`
-        : `<button class="btn big" data-recheck="${id}">Check again</button><span class="foot">Once a day per deal. Results show within the hour.</span>${(rc.doneAt||c.checkedAt)?`<span class="foot">Checked ${fmtDate(rc.doneAt||c.checkedAt)}</span>`:""}`;
+      const btn= rc.status==="requested" ? `<button class="btn big" disabled>Requested — checking</button><span class="foot">Asked ${fmtDate(rc.requestedAt)}. Checked tonight at 11:59 PM. Results will be in tomorrow.</span>`
+        : `<button class="btn big" data-recheck="${id}">Check again</button><span class="foot">Checked tonight at 11:59 PM. Results will be in tomorrow.</span>${(rc.doneAt||c.checkedAt)?`<span class="foot">Checked ${fmtDate(rc.doneAt||c.checkedAt)}</span>`:""}`;
       return `<article class="deal s-${cs.cls}">
         <h2>${esc(r.address||"Address not set")}</h2>
         <dl class="facts">
