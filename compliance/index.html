@@ -215,7 +215,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="empty">Loading CDAs… Each CDA the office saves shows up here with its code, the agent, and the compliance results.</div>
   </div>
 
-  <p class="foot">New Bright deals land in "New in Bright" above, from Bright's CDA Feed emails; Start CDA puts them on this list. Non-MLS deals agents save at https://cda.ribbonway.com show here too. CDA codes are the ones agents enter under "Resume". "Send to Tracy" emails Tracy from compliance@ with the verified items. The only email that goes to an agent from this page is the one Start CDA sends, asking them to finish their CDA.</p>
+  <p class="foot">New Bright deals land in "New in Bright" above, from Bright's CDA Feed emails; Start CDA puts them on this list. A row that says "No CDA yet" has its own Start CDA button that uses the agent and side on that row. Non-MLS deals agents save at https://cda.ribbonway.com show here too. CDA codes are the ones agents enter under "Resume". "Send to Tracy" emails Tracy from compliance@ with the verified items. The only email that goes to an agent from this page is the one Start CDA sends, asking them to finish their CDA.</p>
   </div>
 </div>
 
@@ -387,7 +387,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
         <td class="nw code">${cdaLink(codeOf(r))}</td>
-        <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
+        <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${(r.cdaStatus==="none"||rowMsg[r.id])?rowStartBtn(r)+"<br>":""}${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
@@ -473,7 +473,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const list=(Array.isArray(d.agents)?d.agents:[]).filter(a=>String(a.active)!=="false"&&a.name).sort((x,y)=>String(x.name).localeCompare(String(y.name)));
       if(!list.length) throw new Error("empty");
       AGENTS=list; try{localStorage.setItem("wbr.cda.agents",JSON.stringify(list))}catch(_){}
-      renderTray();
+      render();
     }).catch(()=>{ if(tries<3) setTimeout(()=>loadAgents(tries+1),2000*tries); });
   }
   const trayRows=()=>rows.filter(r=>r.tray&&!r.started&&!isRemoved(r)).sort((a,b)=>String((b.feed||{}).seenAt||"").localeCompare(String((a.feed||{}).seenAt||"")));
@@ -547,6 +547,24 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   const genCode=()=>String(Math.floor(1000000+Math.random()*9000000));
   const ROLE={Listing:"Listing",Buyer:"Buyer"}, TYPE={Listing:"Listing Side",Buyer:"Buyer Side"}, STAGE={Listing:"listing_taken",Buyer:"contract"};
+  async function saveToMake(r,a,sides,codes,office,note){
+    for(const sd of sides){
+      const other=sides.length>1?codes[sd==="Listing"?"Buyer":"Listing"]:"";
+      const slot={slot_office:office,agent_pick:a.agent_id,agent_search:a.name,agent_id:a.agent_id,name:a.name,email:a.email||"",mls_id:a.mls_agent_id||"",cell_phone:a.cell_phone||"",license_numbers:a.license_numbers||"",license_state:a.license_state||"",standard_split_pct:a.standard_split_pct!=null?String(a.standard_split_pct):"",arf_pct:a.arf_pct!=null?String(a.arf_pct):"",team_name:a.team_name||"",team_leader_or_agent:a.team_leader_or_agent||"",deal_role:ROLE[sd],agent_company:a.office==="REF"?"Blue Ribbon Referral Agency":"Weichert Blue Ribbon",split_percent:"100",closing_fees:[],post_adjustments:[]};
+      const snap={simple:{transactionType:TYPE[sd],officeCode:office,mlsNumber:r.mls||"",propStreet:r.street||"",propCity:r.city||"",propState:r.state||"",propZip:r.zip||"",dealStage:STAGE[sd],dualAgency:sides.length>1,linkedCdaCode:other,submitterPick:a.agent_id,submitterAgentId:a.agent_id,submitterName:a.name,submitterEmail:a.email||"",transactionNotes:note},buyers:[],sellers:[],adminFees:[],reimb:[],agents:[slot],radios:{}};
+      const fd=new FormData();
+      const put=(k,v)=>fd.append(k,v==null?"":String(v));
+      put("cda_record_id",codes[sd]); put("record_status","projected"); put("deal_stage",STAGE[sd]); put("office_code",office); put("transaction_type",TYPE[sd]);
+      put("dual_agency",sides.length>1?"true":"false"); put("linked_cda_code",other); put("property_address",r.address||"");
+      put("submitter_name",a.name); put("submitter_email",a.email||""); put("gross_commission","0"); put("sale_price","0");
+      put("agents_json",JSON.stringify([{name:a.name,email:a.email||"",mls_id:a.mls_agent_id||"",deal_role:ROLE[sd],agent_company:slot.agent_company,arf_pct:slot.arf_pct,allocation_method:"Percent",split_percent:"100",closing_fees:[],post_adjustments:[]}]));
+      put("admin_fees_json","[]"); put("reimbursables_json","[]"); put("external_referral_owed","false"); put("extra_admin_fee_collected","false");
+      put("mls_number",r.mls||""); put("transaction_notes",note); put("form_version","v2"); put("started_by","Compliance Desk");
+      put("client_snapshot_json",JSON.stringify(snap));
+      const resp=await fetch(SAVE_HOOK,{method:"POST",body:fd});
+      if(!resp.ok) throw new Error("save_"+resp.status);
+    }
+  }
   async function startCda(id){
     const r=rows.find(x=>String(x.id)===String(id)); const pk=trayPick[id]||{};
     const a=AGENTS.find(x=>String(x.agent_id)===String(pk.agent)); if(!r||!a||!pk.side) return;
@@ -559,22 +577,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const now=new Date().toISOString(); const who="Compliance";
     const note="Started from the Compliance Desk "+new Date().toLocaleDateString()+". Bright list price "+money(r.price)+".";
     try{
-      for(const sd of sides){
-        const other=sides.length>1?codes[sd==="Listing"?"Buyer":"Listing"]:"";
-        const slot={slot_office:office,agent_pick:a.agent_id,agent_search:a.name,agent_id:a.agent_id,name:a.name,email:a.email||"",mls_id:a.mls_agent_id||"",cell_phone:a.cell_phone||"",license_numbers:a.license_numbers||"",license_state:a.license_state||"",standard_split_pct:a.standard_split_pct!=null?String(a.standard_split_pct):"",arf_pct:a.arf_pct!=null?String(a.arf_pct):"",team_name:a.team_name||"",team_leader_or_agent:a.team_leader_or_agent||"",deal_role:ROLE[sd],agent_company:a.office==="REF"?"Blue Ribbon Referral Agency":"Weichert Blue Ribbon",split_percent:"100",closing_fees:[],post_adjustments:[]};
-        const snap={simple:{transactionType:TYPE[sd],officeCode:office,mlsNumber:r.mls||"",propStreet:r.street||"",propCity:r.city||"",propState:r.state||"",propZip:r.zip||"",dealStage:STAGE[sd],dualAgency:sides.length>1,linkedCdaCode:other,submitterPick:a.agent_id,submitterAgentId:a.agent_id,submitterName:a.name,submitterEmail:a.email||"",transactionNotes:note},buyers:[],sellers:[],adminFees:[],reimb:[],agents:[slot],radios:{}};
-        const fd=new FormData();
-        const put=(k,v)=>fd.append(k,v==null?"":String(v));
-        put("cda_record_id",codes[sd]); put("record_status","projected"); put("deal_stage",STAGE[sd]); put("office_code",office); put("transaction_type",TYPE[sd]);
-        put("dual_agency",sides.length>1?"true":"false"); put("linked_cda_code",other); put("property_address",r.address||"");
-        put("submitter_name",a.name); put("submitter_email",a.email||""); put("gross_commission","0"); put("sale_price","0");
-        put("agents_json",JSON.stringify([{name:a.name,email:a.email||"",mls_id:a.mls_agent_id||"",deal_role:ROLE[sd],agent_company:slot.agent_company,arf_pct:slot.arf_pct,allocation_method:"Percent",split_percent:"100",closing_fees:[],post_adjustments:[]}]));
-        put("admin_fees_json","[]"); put("reimbursables_json","[]"); put("external_referral_owed","false"); put("extra_admin_fee_collected","false");
-        put("mls_number",r.mls||""); put("transaction_notes",note); put("form_version","v2"); put("started_by","Compliance Desk");
-        put("client_snapshot_json",JSON.stringify(snap));
-        const resp=await fetch(SAVE_HOOK,{method:"POST",body:fd});
-        if(!resp.ok) throw new Error("save_"+resp.status);
-      }
+      await saveToMake(r,a,sides,codes,office,note);
       const newRows=sides.map(sd=>({id:r.mls+(sd==="Listing"?"-L":"-B"),source:"mls",mls:r.mls,address:r.address,street:r.street,city:r.city,state:r.state,zip:r.zip,price:r.price,type:r.type,office,agent:a.name,agentEmail:a.email||"",side:TYPE[sd],stage:sd==="Listing"?"Listing taken":"Under contract",mlsStatus:"",closing:"",cdaCode:codes[sd],cdaStatus:"saved",savedAt:now,startedBy:who,agentEmailed:now,feed:r.feed||{},title:"",notes:"",work:{status:"open",note:"",by:"",at:""},compliance:{status:"pending",items:[]}}));
       const trayDoc=Object.assign({},r,{started:{at:now,by:who,codes:sides.map(sd=>codes[sd]),rowIds:newRows.map(x=>x.id),agent:a.name}});
       const sr=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"sync",rows:JSON.stringify(newRows.concat([trayDoc]))})});
@@ -589,6 +592,51 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const m=document.getElementById("terr-"+id); if(m){ m.hidden=false; m.textContent="Couldn't start the CDA. Nothing was sent if this happened on the first step. Try again in a minute, or tell Tracy."; }
     }
   }
+  /* ---- Start CDA on a main-list row that says "No CDA yet" (10/18). Uses the agent and side already on the row,
+     saves through the same save bot as the New in Bright cards (ACB-003, which emails the agent), and puts the
+     code on the row. Human click only. ---- */
+  const rowBusy=new Set(); const rowMsg={};
+  function rowStartInfo(r){
+    const side=sideOf(r.side)||(/-L$/i.test(r.id)?"Listing":/-B$/i.test(r.id)?"Buyer":"");
+    if(!r.agent) return {why:"No agent on this row"};
+    if(!AGENTS.length) return {why:"Loading agents…"};
+    const a=findAgent(r.agent,r.agentId||r.agent_id);
+    if(!a) return {why:esc(r.agent)+" isn't in the agent list"};
+    if(!side) return {why:"No side on this row"};
+    return {a,side};
+  }
+  function rowStartBtn(r){
+    const id=esc(r.id), m=rowMsg[r.id];
+    if(isRemoved(r)||r.cdaCode) return m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:"";
+    if(rowBusy.has(r.id)) return `<button class="btn" disabled>Starting…</button>`;
+    const inf=rowStartInfo(r);
+    const lbl=inf.a?`Start CDA for ${esc(String(inf.a.name).split(" ")[0])} (${inf.side==="Both"?"both sides":inf.side.toLowerCase()})`:"Start CDA";
+    return `<button class="btn" data-rstart="${id}" ${inf.a?"":"disabled"}>${lbl}</button>${inf.why?`<span class="mainnote">${inf.why}</span>`:""}${m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:""}`;
+  }
+  async function startRowCda(id){
+    const r=rows.find(x=>String(x.id)===String(id)); if(!r||r.cdaCode||rowBusy.has(r.id)) return;
+    const inf=rowStartInfo(r); if(!inf.a) return;
+    const a=inf.a, sides=inf.side==="Both"?["Listing","Buyer"]:[inf.side];
+    const base=genCode(); const codes={Listing:base,Buyer:sides.length>1?"B"+base:base};
+    const office=OFF_ALIAS[a.office]||a.office||r.office||"";
+    const now=new Date().toISOString();
+    const note="Started from the Compliance Desk list "+new Date().toLocaleDateString()+"."+(r.price?" Bright price "+money(r.price)+".":"");
+    const src=Object.assign({},r,{street:r.street||String(r.address||"").split(",")[0]});
+    rowBusy.add(r.id); delete rowMsg[r.id]; rerenderRow(r.id);
+    try{
+      await saveToMake(src,a,sides,codes,office,note);
+      const upd=Object.assign({},r,{office:r.office||office,agentEmail:a.email||r.agentEmail||"",cdaCode:sides.map(sd=>codes[sd]).join(" + "),cdaStatus:"saved",savedAt:now,startedBy:"Compliance",agentEmailed:now,compliance:Object.assign({},r.compliance||{},{status:"pending",items:(r.compliance||{}).items||[]})});
+      if(sides.length===1) upd.cdaCode=codes[sides[0]];
+      const sr=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"sync",rows:JSON.stringify([upd])})});
+      Object.assign(r,upd);
+      rowMsg[r.id]={ok:true,text:`CDA ${sides.map(sd=>esc(codes[sd])).join(" + ")} started for ${esc(a.name)}. Agent emailed.${sr.ok?"":" (The list may take a minute to show it.)"}`};
+    }catch(e){
+      rowMsg[r.id]={ok:false,text:"Couldn't start the CDA. Try again in a minute, or tell Tracy."};
+    }
+    rowBusy.delete(r.id); rerenderRow(r.id);
+  }
+  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-rstart]"); if(b){ e.stopPropagation(); b.disabled=true; startRowCda(b.dataset.rstart); } },true);
+
   document.addEventListener("change",e=>{
     const ag=e.target.closest&&e.target.closest("[data-tagent]"), sd=e.target.closest&&e.target.closest("[data-tside]");
     if(!ag&&!sd) return;
