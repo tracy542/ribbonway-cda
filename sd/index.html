@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Seller Disclosure – Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--navy:#13294b;--gold:#c9a227;--bg:#f4f6fa;--ink:#1b1f27;--muted:#3d4757;--line:#9aa6b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:18px;line-height:1.4}
+header{background:var(--navy);color:#fff;padding:14px 20px;font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header span{color:#f2d27a;font-size:14px;font-weight:600}
+main{max-width:860px;margin:0 auto;padding:20px 16px 80px}
+h1{color:var(--navy);font-size:28px;margin:0 0 6px;font-weight:800}
+.lead{color:var(--muted);margin:0 0 18px}
+fieldset{border:2px solid var(--navy);border-radius:10px;background:#fff;margin:0 0 16px;padding:6px 18px 18px}
+legend{font-weight:800;color:var(--navy);font-size:18px;padding:0 8px;cursor:pointer;user-select:none}
+legend button{all:unset;cursor:pointer}
+fieldset.closed > :not(legend){display:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+label.l,.l{display:block;font-size:16px;font-weight:700;color:var(--navy);margin:0 0 6px}
+input[type=text],input[type=email],input[type=date],select,textarea{width:100%;font:inherit;font-size:18px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],input[type=date],select{height:52px}
+textarea{min-height:70px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:16px;font-weight:600;min-height:44px;padding:0 14px;border-radius:22px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.q{border:1px solid #c9d1dd;border-radius:10px;padding:14px;margin:14px 0 0}
+.qt{font-weight:600;margin:0 0 10px}
+.sub{margin:12px 0 0}
+.sub .qt{font-weight:600;font-size:17px}
+.ans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:520px}
+.ans.five{grid-template-columns:repeat(5,minmax(0,1fr));max-width:640px}
+.ans.three{grid-template-columns:repeat(3,minmax(0,1fr));max-width:400px}
+.ans button{font:inherit;font-size:15px;font-weight:700;min-height:46px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;padding:0 4px}
+.ans button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.cmt{margin-top:10px}
+.cmt.need label{color:#8a1c1c}
+.note{background:#fbf1d3;border-radius:8px;padding:10px 12px;font-size:16px;color:#4a3b00;margin:10px 0}
+.btn{font:inherit;font-weight:800;font-size:18px;border-radius:10px;padding:14px 24px;cursor:pointer;border:2px solid var(--navy)}
+.primary{background:var(--navy);color:#fff}
+.secondary{background:#fff;color:var(--navy)}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:18px 0}
+.err{color:#8a1c1c;font-weight:700}
+.choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.choice{grid-template-columns:1fr}}
+.choice button{font:inherit;text-align:left;border:2px solid var(--navy);border-radius:10px;padding:14px 16px;background:#fff;color:var(--navy);cursor:pointer}
+.choice button.on{background:var(--navy);color:#fff}
+.choice b{display:block;font-size:18px}
+.choice small{font-size:15px}
+#done{display:none}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>Weichert, Realtors – Blue Ribbon <span>Seller Disclosure</span></header>
+<main>
+<div id="form">
+<h1>Tell us about your home</h1>
+<p class="lead">West Virginia Voluntary Residential Property Disclosure. Answer to the best of your knowledge. Your agent reviews it with you before anything is signed. Your answers save on this device as you go.</p>
+
+<fieldset id="s0"><legend><button type="button">▼ 1 Your agent &amp; the property ▼</button></legend>
+<div class="grid">
+<div class="full"><label class="l" for="agent">Your listing agent *</label><select id="agent"><option value="">Loading agents…</option></select></div>
+<div class="full"><label class="l" for="address">Property address *</label><input type="text" id="address" placeholder="Street, city, WV zip" autocomplete="street-address"></div>
+<div class="full"><label class="l" for="legal">Legal description (if you know it)</label><input type="text" id="legal"></div>
+<div><label class="l" for="seller1">Seller name *</label><input type="text" id="seller1" autocomplete="name"></div>
+<div><label class="l" for="seller2">Second seller name</label><input type="text" id="seller2"></div>
+<div class="full"><label class="l" for="email">Your email *</label><input type="email" id="email" autocomplete="email"></div>
+</div>
+<p class="l" style="margin-top:16px">How do you want to sell?</p>
+<div class="choice">
+<button type="button" data-mode="disclose" class="on"><b>Fill out the disclosure</b><small>Most sellers pick this</small></button>
+<button type="button" data-mode="disclaim"><b>Sell as-is (Disclaimer)</b><small>No disclosure. List only defects you know of.</small></button>
+</div>
+</fieldset>
+
+<div id="discloseBlock"></div>
+
+<fieldset id="disclaimBlock" class="hide"><legend><button type="button">▼ Disclaimer – sell as-is ▼</button></legend>
+<p class="note">Sign this only if you elect to sell without representations and warranties as to condition, except as provided in the sales contract and the latent defects listed below. The purchaser receives the property "as is," with all defects, including latent defects, which may exist.</p>
+<label class="l" for="latent">The Seller has actual knowledge of the following latent defects:</label>
+<textarea id="latent" placeholder="List any, or write None"></textarea>
+</fieldset>
+
+<div class="bar">
+<button type="button" class="btn primary" id="submit">Submit to my agent</button>
+<span id="msg"></span>
+</div>
+</div>
+
+<div id="done">
+<h1>Sent to your agent</h1>
+<p class="lead">Thank you. Your agent has your answers as a PDF and will review them with you, then send the official form for your signature.</p>
+<div class="bar">
+<a class="btn primary" href="../itc/" style="text-decoration:none">Next: Items to Convey</a>
+<button type="button" class="btn secondary" id="dl">Download my copy (PDF)</button>
+</div>
+</div>
+</main>
+
+<script>
+const HOOK_AGENTS = 'https://hook.us2.make.com/6s0mb4bs03ffh34kynx33f3i6m2fkipj';
+const HOOK_SUBMIT = 'https://hook.us2.make.com/47x58wkagnptxr4neu3dyjnom9to74my';
+const STORE = 'br_sd_draft_v1';
+const SHARED = 'br_seller_shared_v1';
+const YN = ['Yes','No','Unknown','N/A'];
+const OFFICES = {MBG:'Martinsburg',Bow:'Bowie',BOW:'Bowie',FR:'Front Royal',FRO:'Front Royal',REF:'Referral'};
+
+// Property systems (checkbox chips)
+const SYSTEMS = [
+ {id:'water',label:'Water supply',opts:['Public','Well','Other'],extra:[{id:'water_other',label:'If other, what?'}]},
+ {id:'sewage',label:'Sewage disposal',opts:['Public','Septic system'],extra:[{id:'septic_br',label:'Septic approved for how many bedrooms?'}]},
+ {id:'heat',label:'Heating',opts:['Oil','Natural gas','Electric','Bottled','Heat pump','Other'],extra:[{id:'heat_age',label:'Heat pump age'}]},
+ {id:'ac',label:'Air conditioning',opts:['Oil','Natural gas','Electric','Bottled','Heat pump','Other'],extra:[{id:'ac_age',label:'Heat pump age'}]},
+ {id:'hw',label:'Hot water',opts:['Oil','Natural gas','Electric','Other'],extra:[{id:'hw_cap',label:'Electric capacity'},{id:'hw_age',label:'Age'}]},
+ {id:'net',label:'Internet access in home',opts:['Yes','No'],single:true,extra:[{id:'net_provider',label:'Current provider'}]}
+];
+
+// Questions: id, text, subs (extra Y/N items), fields (extra text inputs), cmt label
+const GROUPS = [
+ {title:'Structure', qs:[
+  {n:1,t:'Foundation: Any settlement or other problems?'},
+  {n:2,t:'Basement/Crawlspace/Cellar: Any leaks or evidence of moisture?'},
+  {n:3,t:'Roof: Any leaks or evidence of moisture?',fields:[{id:'roof_type',label:'Type of roof'},{id:'roof_age',label:'Roof age'}],subs:[{id:'3b',t:'Is there any existing fire-retardant treated plywood?'}]},
+  {n:4,t:'Other structural systems, including exterior walls and floors: Any defects (structural or otherwise)?'}]},
+ {title:'Plumbing, heat, A/C & electric', qs:[
+  {n:5,t:'Plumbing system: Is the system in operating condition?'},
+  {n:6,t:'Heating systems: Is heat supplied to all finished rooms?',subs:[{id:'6b',t:'Are the systems in operating condition?'}]},
+  {n:7,t:'Air conditioning: Is cooling supplied to all finished rooms?',subs:[{id:'7b',t:'Is the system in operating condition?'}]},
+  {n:8,t:'Electric systems: Are there any problems with electrical fuses, circuit breakers, outlets or wiring?'}]},
+ {title:'Septic & water', qs:[
+  {n:9,t:'Septic systems: Is the septic system functioning properly?',fields:[{id:'septic_pumped',label:'When was the system last pumped? (date or "Unknown")'}]},
+  {n:10,t:'Water supply: Any problem with water supply?',subs:[{id:'10b',t:'Home water treatment system:',opts:['Yes','No','Unknown','N/A','Leased']},{id:'10c',t:'Fire sprinkler system:'},{id:'10d',t:'Are the systems in operating condition?'}]}]},
+ {title:'Insulation, drainage & pests', qs:[
+  {n:12,t:'Insulation: In exterior walls?',subs:[{id:'12b',t:'In ceiling/attic?'},{id:'12c',t:'In any other areas?'}],fields:[{id:'insul_where',label:'Other areas – where?'}]},
+  {n:13,t:'Exterior drainage: Does water stand on the property for more than 24 hours after rain?',subs:[{id:'13b',t:'Are gutters and downspouts in good repair?'}]},
+  {n:14,t:'Wood-destroying insects: Any infestation and/or prior damage?',subs:[{id:'14b',t:'Any treatments or repairs?',opts:['Yes','No','Unknown']},{id:'14c',t:'Any warranties?',opts:['Yes','No','Unknown']}]}]},
+ {title:'Safety & hazards', qs:[
+  {n:15,t:'Are there any hazardous or regulated materials (including, but not limited to, licensed landfills, asbestos, methamphetamine lab, radon gas, lead-based paint, underground storage tanks, mining operations or other past contamination) on the property?',cl:'If yes, please specify'},
+  {n:16,t:'If the property relies on the combustion of a fossil fuel for heat, ventilation, hot water, or clothes dryer operation, is a carbon monoxide alarm installed in the property?'},
+  {n:17,t:'Are there fireplace(s)/woodstove(s)/chimney(s)?',subs:[{id:'17b',t:'In good working condition?'}]}]},
+ {title:'Land, permits & HOA', qs:[
+  {n:11,t:'Public service connections: Has Seller received any communication regarding public service connection requirements?'},
+  {n:18,t:'Are there any zoning violations, nonconforming uses, violation of building restrictions or setback requirements or any recorded or unrecorded easement, except for utilities, on or affecting the property?',cl:'If yes, please specify'},
+  {n:19,t:'If you or a contractor has made improvements to the property, were the required permits pulled from the county or local permitting office?'},
+  {n:20,t:'Is the property located in a flood zone, farmland/conservation area, wetland area and/or historic district designated by locality?'},
+  {n:21,t:'Is the property subject to any restrictions imposed by a Home Owners Association, community association or any deed restrictions?'}]},
+ {title:'Anything else', qs:[
+  {n:22,t:'Are there any other material defects, including latent defects, affecting the physical condition of the property?'}]}
+];
+
+let state = {mode:'disclose', a:{}, sys:{}, f:{}};
+try { const s = JSON.parse(localStorage.getItem(STORE)||'null'); if (s) state = Object.assign(state, s); } catch(e){}
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function ansRow(key, opts){
+  opts = opts || YN;
+  const cls = opts.length===5?'ans five':opts.length===3?'ans three':'ans';
+  return '<div class="'+cls+'" data-key="'+key+'">'+opts.map(o=>'<button type="button" data-v="'+o+'"'+(state.a[key]===o?' class="on"':'')+'>'+o+'</button>').join('')+'</div>';
+}
+function field(id,label,ta){
+  const v = esc(state.f[id]||'');
+  return '<div class="cmt"><label class="l" for="f_'+id+'">'+label+'</label>'+(ta?'<textarea id="f_'+id+'" data-f="'+id+'">'+v+'</textarea>':'<input type="text" id="f_'+id+'" data-f="'+id+'" value="'+v+'">')+'</div>';
+}
+function render(){
+  let h = '<fieldset><legend><button type="button">▼ 2 About the property ▼</button></legend><div class="grid">';
+  h += '<div>'+'<label class="l" for="f_year">Year built?</label><input type="text" id="f_year" data-f="year" value="'+esc(state.f.year||'')+'"></div>';
+  h += '<div><label class="l" for="f_owned">How long have you owned the property?</label><input type="text" id="f_owned" data-f="owned" value="'+esc(state.f.owned||'')+'"></div>';
+  h += '<div class="full"><label class="l" for="f_lived">Dates lived in the property</label><input type="text" id="f_lived" data-f="lived" placeholder="e.g. 2013 – present" value="'+esc(state.f.lived||'')+'"></div></div>';
+  h += '<p class="note">Property systems – check all that apply.</p>';
+  SYSTEMS.forEach(s=>{
+    const sel = state.sys[s.id]||[];
+    h += '<div class="q"><div class="qt">'+s.label+'</div><div class="chips" data-sys="'+s.id+'"'+(s.single?' data-single="1"':'')+'>'+s.opts.map(o=>'<button type="button" class="chip'+(sel.includes(o)?' on':'')+'" data-v="'+o+'">'+o+'</button>').join('')+'</div>';
+    (s.extra||[]).forEach(x=>{ h += field(x.id,x.label); });
+    h += '</div>';
+  });
+  h += field('sys_comments','Comments on property systems',true);
+  h += '</fieldset>';
+  GROUPS.forEach((g,gi)=>{
+    h += '<fieldset class="'+(gi===0?'':'closed')+'"><legend><button type="button">'+(gi===0?'▼':'▶')+' '+(gi+3)+' '+esc(g.title)+' ▼</button></legend>';
+    g.qs.forEach(q=>{
+      h += '<div class="q"><div class="qt">'+q.n+'. '+esc(q.t)+'</div>'+ansRow(String(q.n));
+      (q.subs||[]).forEach(s=>{ h += '<div class="sub"><div class="qt">'+esc(s.t)+'</div>'+ansRow(s.id, s.opts)+'</div>'; });
+      (q.fields||[]).forEach(x=>{ h += field(x.id,x.label); });
+      h += '<div class="cmt" data-cmt="'+q.n+'"><label class="l" for="f_c'+q.n+'">'+(q.cl||'Comments')+'</label><textarea id="f_c'+q.n+'" data-f="c'+q.n+'">'+esc(state.f['c'+q.n]||'')+'</textarea></div>';
+      h += '</div>';
+    });
+    h += '</fieldset>';
+  });
+  h += '<p class="note">Seller may wish to disclose the condition of other buildings on the property on a separate disclosure statement. Tell your agent.</p>';
+  document.getElementById('discloseBlock').innerHTML = h;
+  markNeeds();
+}
+function markNeeds(){
+  GROUPS.forEach(g=>g.qs.forEach(q=>{
+    const el = document.querySelector('[data-cmt="'+q.n+'"]'); if(!el) return;
+    const keys=[String(q.n)].concat((q.subs||[]).map(s=>s.id));
+    el.classList.toggle('need', keys.some(k=>state.a[k]==='Yes'));
+  }));
+}
+function setMode(m){
+  state.mode=m; save();
+  document.querySelectorAll('.choice button').forEach(b=>b.classList.toggle('on', b.dataset.mode===m));
+  document.getElementById('discloseBlock').classList.toggle('hide', m!=='disclose');
+  document.getElementById('disclaimBlock').classList.toggle('hide', m!=='disclaim');
+}
+
+document.addEventListener('click', e=>{
+  const lg = e.target.closest('legend');
+  if (lg){ const fs=lg.parentElement; fs.classList.toggle('closed'); const b=lg.querySelector('button'); b.textContent=b.textContent.replace(/^[▼▶]/, fs.classList.contains('closed')?'▶':'▼'); return; }
+  const ab = e.target.closest('.ans button');
+  if (ab){ const k=ab.parentElement.dataset.key; state.a[k] = state.a[k]===ab.dataset.v?undefined:ab.dataset.v; ab.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.v===state.a[k])); markNeeds(); save(); return; }
+  const ch = e.target.closest('.chip');
+  if (ch){ const box=ch.parentElement, id=box.dataset.sys; let sel=state.sys[id]||[]; const v=ch.dataset.v;
+    if (box.dataset.single) sel = sel.includes(v)?[]:[v]; else sel = sel.includes(v)?sel.filter(x=>x!==v):sel.concat(v);
+    state.sys[id]=sel; box.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on', sel.includes(b.dataset.v))); save(); return; }
+  const mb = e.target.closest('.choice button'); if (mb){ setMode(mb.dataset.mode); return; }
+});
+document.addEventListener('input', e=>{
+  const t=e.target;
+  if (t.dataset.f){ state.f[t.dataset.f]=t.value; save(); return; }
+  if (['agent','address','legal','seller1','seller2','email','latent'].includes(t.id)){ state.f['top_'+t.id]=t.value; save(); }
+});
+document.addEventListener('change', e=>{ if (e.target.id==='agent'){ state.f.top_agent=e.target.value; save(); } });
+
+render();
+['address','legal','seller1','seller2','email','latent'].forEach(id=>{ const v=state.f['top_'+id]; if(v) document.getElementById(id).value=v; });
+setMode(state.mode||'disclose');
+
+// Agent list from roster (names only)
+let AGENTS=[];
+fetch(HOOK_AGENTS,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"form":"sd"}'}).then(r=>r.json()).then(d=>{
+  AGENTS=(d.agents||[]).filter(a=>String(a.active)!=='false' && a.name).sort((a,b)=>a.name.localeCompare(b.name));
+  const sel=document.getElementById('agent');
+  sel.innerHTML='<option value="">Pick your agent…</option>'+AGENTS.map(a=>'<option value="'+esc(a.agent_id)+'">'+esc(a.name)+(a.office?' – '+esc(OFFICES[a.office]||a.office):'')+'</option>').join('');
+  if (state.f.top_agent) sel.value=state.f.top_agent;
+}).catch(()=>{ document.getElementById('agent').innerHTML='<option value="">Could not load agents – refresh the page</option>'; });
+
+function answerText(k){ return state.a[k]||'—'; }
+function buildPdf(){
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt',format:'letter'});
+  const W=612, M=48; let y=56;
+  const line=(txt,opt)=>{ opt=opt||{}; doc.setFont('helvetica',opt.b?'bold':'normal'); doc.setFontSize(opt.s||10.5);
+    const parts=doc.splitTextToSize(String(txt), W-2*M-(opt.indent||0));
+    parts.forEach(p=>{ if(y>740){doc.addPage(); y=56;} doc.text(p, M+(opt.indent||0), y); y+=(opt.s||10.5)+4; }); };
+  const gap=n=>{y+=n||6;};
+  line('West Virginia',{b:true,s:12}); line('VOLUNTARY RESIDENTIAL PROPERTY DISCLOSURE STATEMENT – seller answers',{b:true,s:13});
+  line('Seller-entered worksheet for agent review. Agent transfers answers to the official form for signatures. This is not a warranty of the property condition.',{s:9}); gap(6);
+  const ag=AGENTS.find(a=>a.agent_id===state.f.top_agent);
+  line('Property address: '+(state.f.top_address||''),{b:true}); line('Legal description: '+(state.f.top_legal||''));
+  line('Seller(s): '+[state.f.top_seller1,state.f.top_seller2].filter(Boolean).join(', ')+'    Email: '+(state.f.top_email||''));
+  line('Listing agent: '+(ag?ag.name:'')+'    Submitted: '+new Date().toLocaleString()); gap(8);
+  if (state.mode==='disclaim'){
+    line('DISCLAIMER – Seller elects to sell as-is',{b:true,s:12});
+    line('The Seller has actual knowledge of the following latent defects:'); line(state.f.top_latent||'(none entered)',{indent:12});
+    return doc;
+  }
+  line('SELLER',{b:true,s:12}); line('1. Year built: '+(state.f.year||'')); line('2. How long owned: '+(state.f.owned||'')); line('3. Dates lived in the property: '+(state.f.lived||'')); gap(4);
+  line('Property systems',{b:true});
+  SYSTEMS.forEach(s=>{ const ex=(s.extra||[]).map(x=>state.f[x.id]?x.label+': '+state.f[x.id]:'').filter(Boolean).join('; ');
+    line(s.label+': '+((state.sys[s.id]||[]).join(', ')||'—')+(ex?'  ('+ex+')':''),{indent:8}); });
+  if (state.f.sys_comments) line('Comments: '+state.f.sys_comments,{indent:8});
+  gap(6);
+  const all=[]; GROUPS.forEach(g=>g.qs.forEach(q=>all.push(q))); all.sort((a,b)=>a.n-b.n);
+  all.forEach(q=>{
+    line(q.n+'. '+q.t,{b:true}); line('Answer: '+answerText(String(q.n)),{indent:12});
+    (q.subs||[]).forEach(s=>line(s.t+' '+answerText(s.id),{indent:12}));
+    (q.fields||[]).forEach(x=>{ if(state.f[x.id]) line(x.label+': '+state.f[x.id],{indent:12}); });
+    if (state.f['c'+q.n]) line((q.cl||'Comments')+': '+state.f['c'+q.n],{indent:12});
+    gap(3);
+  });
+  return doc;
+}
+let lastPdf=null;
+document.getElementById('submit').addEventListener('click', async ()=>{
+  const msg=document.getElementById('msg'); msg.className=''; msg.textContent='';
+  const need=[['agent','your listing agent'],['address','the property address'],['seller1','your name'],['email','your email']].filter(([id])=>!document.getElementById(id).value.trim());
+  if (need.length){ msg.className='err'; msg.textContent='Please add '+need.map(n=>n[1]).join(', ')+'.'; document.getElementById('s0').classList.remove('closed'); window.scrollTo({top:0,behavior:'smooth'}); return; }
+  ['agent','address','legal','seller1','seller2','email','latent'].forEach(id=>state.f['top_'+id]=document.getElementById(id).value); save();
+  const btn=document.getElementById('submit'); btn.disabled=true; btn.textContent='Sending…';
+  try{
+    const doc=buildPdf(); lastPdf=doc;
+    const b64=doc.output('datauristring').split(',')[1];
+    const ag=AGENTS.find(a=>a.agent_id===state.f.top_agent);
+    const street=(state.f.top_address||'Property').split(',')[0].replace(/[^A-Za-z0-9 ]/g,'').trim();
+    const label=state.mode==='disclaim'?'Seller Disclaimer (as-is)':'Seller Disclosure (VRPDS)';
+    const payload={form:'SD',form_label:label,agent_id:state.f.top_agent,agent_name:ag?ag.name:'',address:state.f.top_address,seller_names:[state.f.top_seller1,state.f.top_seller2].filter(Boolean).join(', '),seller_email:state.f.top_email,filename:street+' - Seller Disclosure.pdf',pdf_base64:b64};
+    const r=await fetch(HOOK_SUBMIT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('send failed');
+    try{ localStorage.setItem(SHARED, JSON.stringify({agent:state.f.top_agent,address:state.f.top_address,seller1:state.f.top_seller1,seller2:state.f.top_seller2,email:state.f.top_email})); }catch(e){}
+    document.getElementById('form').style.display='none'; document.getElementById('done').style.display='block'; window.scrollTo({top:0});
+  }catch(e){ msg.className='err'; msg.textContent='Something went wrong sending it. Please try again, or email compliance@blueribbonrealty.com.'; }
+  btn.disabled=false; btn.textContent='Submit to my agent';
+});
+document.getElementById('dl').addEventListener('click', ()=>{ (lastPdf||buildPdf()).save('Seller Disclosure.pdf'); });
+</script>
+</body>
+</html>
