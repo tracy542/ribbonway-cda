@@ -414,7 +414,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const first=String(r.agent||"").split(" ")[0]||"there";
     const yes=rv.decisions.filter(d=>d.include==="yes").map(d=>"- "+d.text+(d.direction?"\n  What we need: "+d.direction:"")).join("\n");
     const cc=["Gavin","Tracy"].filter(n=>rv.cc[n.toLowerCase()]);
-    return `To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},\n\nBLUF: Your file for ${r.address||"this deal"} needs the items below before it can close out.\n\n${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
+    return `To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},\n\nBottom Line: Your file for ${r.address||"this deal"} needs the items below before it can close out.\n\n${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
   }
 
   function reviewHtml(r){
