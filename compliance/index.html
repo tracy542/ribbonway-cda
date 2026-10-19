@@ -141,6 +141,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .gate-card input,.gate-card select{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .gate-card .btn{width:100%;font-size:1.1rem;padding:12px}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+#logout{background:#C9A227;color:#0B1F3A;font-size:18px;font-weight:600;padding:6px 16px;border-radius:6px;border:0}
+#logout:hover{filter:brightness(1.08)}
+#logout:focus-visible{outline:2px solid #0B1F3A;outline-offset:2px}
 .linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
 [hidden]{display:none!important}
 .fcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:6px}
@@ -199,7 +202,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="agentView" hidden></div>
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
-    <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Lock this page</button></div>
+    <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
     <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: Radar findings and KJ findings side by side. Verify what should go to the agent, archive the rest, or type in your own. Send to Tracy emails her the verified items to review and forward.</p>
   </header>
 
