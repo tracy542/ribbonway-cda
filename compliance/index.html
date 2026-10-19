@@ -108,6 +108,10 @@ summary::-webkit-details-marker{display:none}
 .who label{display:flex;gap:8px;align-items:center;font-weight:600}
 .who input{width:20px;height:20px}
 .preview{white-space:pre-wrap;font:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0;max-width:70ch;overflow-wrap:anywhere}
+.preview pre{white-space:pre-wrap;font:inherit;margin:0;overflow-wrap:anywhere}
+.preview .notebox{display:flex;flex-direction:column;gap:4px;margin:0 0 1em}
+.preview .notebox b{font-weight:700}
+.preview .notebox textarea{font:inherit;width:100%;min-height:4.5em;padding:8px 10px;border:2px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical}
 .work{display:flex;flex-direction:column;gap:10px}
 .work label{font-weight:600}
 select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
@@ -288,6 +292,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
      written by Radar (ChatGPT); src "gt" = compliance.gt, written by Gemini. Only the labels below say who checked. */
   const COLS=[["radar","KJ Findings"],["kj","Radar Findings"],["gt","Gemini Findings"]];
   const dkey=(src,text)=>src+"|"+text;
+  const defaultNote=r=>`Your file for ${r.address||"this deal"} needs the items below before it can close out.`;
   function reviewOf(r){
     const c=r.compliance||{}, saved=r.review||{}, l=local[r.id]||{};
     const added=l.added||saved.added||[];
@@ -300,7 +305,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const decisions=list.map(x=>{ const k=dkey(x.src,x.text), s=sd[k]||sd["*|"+x.text]||{};
       return Object.assign({},x,{key:k,include:(l.dec&&l.dec[k]!==undefined)?l.dec[k]:(s.include||""),direction:(l.dir&&l.dir[k]!==undefined)?l.dir[k]:(s.direction||"")}); });
     const cc={gavin:true,tracy:false,...(saved.cc||{}),...(l.cc||{})};
-    return {decisions,added,cc,status:saved.status||"open",saved};
+    const note=(l.note!==undefined)?l.note:(saved.note!==undefined?saved.note:defaultNote(r));
+    return {decisions,added,cc,note,status:saved.status||"open",saved};
   }
   const hasReviewItems=r=>findings(r).length||((r.review||{}).added||[]).length;
   const reviewPending=r=>hasReviewItems(r) && !["ready","drafted","none","sent"].includes((r.review||{}).status);
@@ -413,11 +419,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
       `<button type="button" class="count" data-f="all" aria-pressed="${filter==="all"}"><b>${live.length}</b><span>transactions in all</span></button>`;
   }
 
-  function emailText(r,rv){
+  function emailParts(r,rv){
     const first=String(r.agent||"").split(" ")[0]||"there";
-    const yes=rv.decisions.filter(d=>d.include==="yes").map(d=>"- "+d.text+(d.direction?"\n  What we need: "+d.direction:"")).join("\n");
+    const yes=rv.decisions.filter(d=>d.include==="yes").map(d=>"- "+d.text).join("\n");
     const cc=["Gavin","Tracy"].filter(n=>rv.cc[n.toLowerCase()]);
-    return `To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},\n\nBottom Line: Your file for ${r.address||"this deal"} needs the items below before it can close out.\n\n${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
+    const top=`To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},`;
+    const bottom=`${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
+    return {top,bottom};
   }
 
   function reviewHtml(r){
@@ -439,7 +447,6 @@ textarea{width:100%;min-height:80px;resize:vertical}
             <button type="button" class="vbtn a" data-a="${id}" data-i="${i}" aria-pressed="${d.include==="no"}" ${dis}>${d.include==="no"?"Archived":"Archive"}</button>
             ${d.mine&&!dis?`<button type="button" class="linkbtn" data-del="${id}" data-ai="${d.ai}">Delete</button>`:""}
           </div>
-          ${d.include==="yes"?`<input class="dir" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="What we need the agent to do (goes in the email)" aria-label="Direction for this finding" ${dis}>`:""}
         </li>`).join("");
       const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:(c.secondAt?`${src==="kj"?"Radar":"Gemini"} found no problems.`:`${src==="kj"?"Radar":"Gemini"} checks with KJ on the next nightly run.`)}</p>`;
       const add=dis?"":`<div class="fadd"><input id="add-${id}-${src}" data-addin="${id}" data-col="${src}" placeholder="• Type a finding…" aria-label="Add a ${esc(label)} item"><button type="button" class="vbtn" data-add="${id}" data-col="${src}">Add</button></div>`;
@@ -455,7 +462,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     else if(anyYes){ action=`<button class="btn" data-send="${id}" ${canWrite?"":"disabled"}>${rv.status==="sent"?"Send compliance findings again":"Send compliance findings"}</button>`; note=sentNote+"Emails Tracy and Gavin from compliance@ with the verified items, ready to forward to the agent."+(undecided?` ${undecided} item${undecided>1?"s":""} not verified or archived yet will be left out.`:""); }
     else if(allNo){ action=`<button class="btn ghost" data-ready="${id}" ${canWrite?"":"disabled"}>No email needed</button>`; note=rv.status==="none"?"Marked: no email needed.":"Everything is archived, so there's nothing to send."; }
     else if(rv.decisions.length){ action=`<button class="btn" disabled>Send compliance findings</button>`; note="Click Verify on each item that should go to the agent, then Send compliance findings. Archive the rest."; }
-    const preview=anyYes?`<h3>Email preview</h3><pre class="preview">${esc(emailText(r,rv))}</pre>`:"";
+    const ep=anyYes?emailParts(r,rv):null;
+    const preview=anyYes?`<h3>Email preview</h3><div class="preview"><pre>${esc(ep.top)}</pre><pre> </pre><label class="notebox"><b>NOTE:</b><textarea data-note="${id}" aria-label="Note at the top of the email" placeholder="Type a note for the agent (goes at the top of the email)" ${dis}>${esc(rv.note)}</textarea></label><pre>${esc(ep.bottom)}</pre></div>`:"";
     return `<div><h3>Compliance check</h3><div class="fcols">${COLS.map(([s,l])=>col(s,l)).join("")}</div></div>
       ${anyYes?`<div class="workline"><b>Email goes to:</b>${who}</div>`:""}
       ${preview}
@@ -799,7 +807,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(!db) return false;
     try{
       const r=rows.find(x=>String(x.id)===String(id)), rv=reviewOf(r), by=user?await user.id():"";
-      const review={decisions:rv.decisions.filter(d=>d.include||d.direction).map(d=>({src:d.src,text:d.text,include:d.include,direction:d.direction})),added:rv.added,cc:rv.cc,status:rv.status==="drafted"?"drafted":"open",by:by||"",at:new Date().toISOString(),...patch};
+      const review={decisions:rv.decisions.filter(d=>d.include||d.direction).map(d=>({src:d.src,text:d.text,include:d.include,direction:d.direction})),added:rv.added,cc:rv.cc,note:rv.note,status:rv.status==="drafted"?"drafted":"open",by:by||"",at:new Date().toISOString(),...patch};
       ["draftAt","sentAt","sentBy"].forEach(k=>{ if(rv.saved[k]) review[k]=rv.saved[k]; });
       await db.collection("cdas").doc(String(id)).update({review});
       r.review=review; delete local[id];
@@ -820,6 +828,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   document.addEventListener("change",async e=>{
     const dr=e.target.closest("[data-dir]");
     if(dr){ const id=dr.dataset.dir, i=+dr.dataset.i; const {rv,l}=edit(id); l.dir[rv.decisions[i].key]=dr.value.trim(); await commit(id); return; }
+    const nb=e.target.closest("[data-note]");
+    if(nb){ const id=nb.dataset.note; const {l}=edit(id); l.note=nb.value; await saveReview(id,{},document.getElementById("rmsg-"+id)); return; }
     const c=e.target.closest("[data-cc]");
     if(c){ const id=c.dataset.id; const {l}=edit(id); l.cc[c.dataset.cc]=c.checked; await commit(id); }
   });
@@ -832,6 +842,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(dl){ const id=dl.dataset.del, ai=+dl.dataset.ai; const {l}=edit(id); l.added.splice(ai,1); await commit(id); return; }
     const sd=e.target.closest("[data-send]");
     if(sd){ const id=sd.dataset.send, msg=document.getElementById("rmsg-"+id); sd.disabled=true; msg.className=""; msg.textContent="Sending to Tracy and Gavin…";
+      const nbx=document.querySelector(`[data-note="${CSS.escape(String(id))}"]`); if(nbx){ edit(id).l.note=nbx.value; }
       const ok=await saveReview(id,{},null);
       if(!ok){ sd.disabled=false; msg.className="err"; msg.textContent="Couldn't save first. Try again."; return; }
       try{ const j=await call({action:"send",id:String(id),by:BY||"Office"});
