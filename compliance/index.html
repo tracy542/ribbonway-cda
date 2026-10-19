@@ -228,7 +228,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
     <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
-    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: Radar findings and KJ findings side by side. Verify what should go to the agent, archive the rest, or type in your own. Send to Tracy emails her the verified items to review and forward.</p>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: Radar findings and KJ findings side by side. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
   </header>
 
   <section class="tray" id="tray" aria-labelledby="trayTitle" hidden>
@@ -253,7 +253,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="empty">Loading CDAs… Each CDA the office saves shows up here with its code, the agent, and the compliance results.</div>
   </div>
 
-  <p class="foot">New Bright deals land in "New in Bright" above, from Bright's CDA Feed emails; Start CDA puts them on this list. A row that says "No CDA yet" has its own Start CDA button that uses the agent and side on that row. Non-MLS deals agents save at https://cda.ribbonway.com show here too. CDA codes are the ones agents enter under "Resume". "Send to Tracy" emails Tracy from compliance@ with the verified items. The only email that goes to an agent from this page is the one Start CDA sends, asking them to finish their CDA.</p>
+  <p class="foot">New Bright deals land in "New in Bright" above, from Bright's CDA Feed emails; Start CDA puts them on this list. A row that says "No CDA yet" has its own Start CDA button that uses the agent and side on that row. Non-MLS deals agents save at https://cda.ribbonway.com show here too. CDA codes are the ones agents enter under "Resume". "Send compliance findings" emails Tracy and Gavin from compliance@ with the verified items. The only email that goes to an agent from this page is the one Start CDA sends, asking them to finish their CDA.</p>
   </div>
 </div>
 
@@ -261,7 +261,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 (function(){
   const OFFICES={MBG:"Martinsburg",FR:"Front Royal",Bow:"Bowie",REF:"Referral"};
   const WORK={open:"Not started",working:"Working",done:"Done"};
-  const REVIEW={open:"To review",ready:"Ready to draft",drafted:"Email drafted",sent:"Sent to Tracy",none:"No email needed"};
+  const REVIEW={open:"To review",ready:"Ready to draft",drafted:"Email drafted",sent:"Findings sent",none:"No email needed"};
   const HISTORY_STATUSES=["closed","withdrawn","canceled","cancelled","expired"];
   let rows=[], filter="all", db=null, user=null, canWrite=true, names={}, openIds=new Set();
   const local={}; // unsaved review edits per CDA: {decisions:[], cc:{gavin,tracy}}
@@ -447,11 +447,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <label><input type="checkbox" id="cc-g-${id}" data-cc="gavin" data-id="${id}" ${rv.cc.gavin?"checked":""} ${dis}> Gavin</label>
         <label><input type="checkbox" id="cc-t-${id}" data-cc="tracy" data-id="${id}" ${rv.cc.tracy?"checked":""} ${dis}> Tracy</label></div>`;
     let action="", note="";
-    const sentNote=rv.status==="sent"?`Sent to Tracy ${fmtDate(rv.saved.sentAt)}${rv.saved.sentBy?" by "+esc(rv.saved.sentBy):""}. `:"";
+    const sentNote=rv.status==="sent"?`Sent to Tracy and Gavin ${fmtDate(rv.saved.sentAt)}${rv.saved.sentBy?" by "+esc(rv.saved.sentBy):""}. `:"";
     if(locked){ note=`Email drafted ${fmtDate(rv.saved.draftAt)} in Tracy's Outlook drafts.`; }
-    else if(anyYes){ action=`<button class="btn" data-send="${id}" ${canWrite?"":"disabled"}>${rv.status==="sent"?"Send to Tracy again":"Send to Tracy"}</button>`; note=sentNote+"Emails Tracy from compliance@ with the verified items. She reviews and forwards it to the agent."+(undecided?` ${undecided} item${undecided>1?"s":""} not verified or archived yet will be left out.`:""); }
+    else if(anyYes){ action=`<button class="btn" data-send="${id}" ${canWrite?"":"disabled"}>${rv.status==="sent"?"Send compliance findings again":"Send compliance findings"}</button>`; note=sentNote+"Emails Tracy and Gavin from compliance@ with the verified items, ready to forward to the agent."+(undecided?` ${undecided} item${undecided>1?"s":""} not verified or archived yet will be left out.`:""); }
     else if(allNo){ action=`<button class="btn ghost" data-ready="${id}" ${canWrite?"":"disabled"}>No email needed</button>`; note=rv.status==="none"?"Marked: no email needed.":"Everything is archived, so there's nothing to send."; }
-    else if(rv.decisions.length){ note="Verify the items that should go to the agent. Archive the rest."; }
+    else if(rv.decisions.length){ action=`<button class="btn" disabled>Send compliance findings</button>`; note="Click Verify on each item that should go to the agent, then Send compliance findings. Archive the rest."; }
     const preview=anyYes?`<h3>Email preview</h3><pre class="preview">${esc(emailText(r,rv))}</pre>`:"";
     return `<div><h3>Compliance check</h3><div class="fcols">${COLS.map(([s,l])=>col(s,l)).join("")}</div></div>
       ${anyYes?`<div class="workline"><b>Email goes to:</b>${who}</div>`:""}
@@ -823,13 +823,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const dl=e.target.closest("[data-del]");
     if(dl){ const id=dl.dataset.del, ai=+dl.dataset.ai; const {l}=edit(id); l.added.splice(ai,1); await commit(id); return; }
     const sd=e.target.closest("[data-send]");
-    if(sd){ const id=sd.dataset.send, msg=document.getElementById("rmsg-"+id); sd.disabled=true; msg.className=""; msg.textContent="Sending to Tracy…";
+    if(sd){ const id=sd.dataset.send, msg=document.getElementById("rmsg-"+id); sd.disabled=true; msg.className=""; msg.textContent="Sending to Tracy and Gavin…";
       const ok=await saveReview(id,{},null);
       if(!ok){ sd.disabled=false; msg.className="err"; msg.textContent="Couldn't save first. Try again."; return; }
       try{ const j=await call({action:"send",id:String(id),by:BY||"Office"});
         if(!j||j.ok!==true||!j.row) throw new Error("not_sent");
         const r=rows.find(x=>String(x.id)===String(id)); if(r) Object.assign(r,j.row);
-        rerenderRow(id); const m2=document.getElementById("rmsg-"+id); if(m2){ m2.className="saved"; m2.textContent="Sent to Tracy"; }
+        rerenderRow(id); const m2=document.getElementById("rmsg-"+id); if(m2){ m2.className="saved"; m2.textContent="Sent to Tracy and Gavin"; }
       }catch(err){ sd.disabled=false; msg.className="err"; msg.textContent="Couldn't send. Tell Tracy, or try again in a minute."; }
       return; }
   });
