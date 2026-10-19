@@ -177,6 +177,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .nrow:not(.dup) .nbtns{grid-column:2/span 2;justify-content:flex-start}
 .ndone{grid-column:1/-1;background:var(--good-bg);color:var(--good);font-weight:600;padding:8px 12px;border-radius:6px}
 .nerr{grid-column:1/-1;color:var(--bad);font-weight:600}
+.rbtns{display:flex;flex-wrap:nowrap;gap:6px;align-items:center}
+.rpick{display:block;margin-top:6px;font:inherit;font-size:14px;max-width:220px}
+.cdac .mainnote{white-space:normal;max-width:240px}
 .nfill{display:inline-block;align-self:flex-start;padding:0 6px;border-radius:4px;background:var(--new-bg);color:var(--new);font-weight:600;font-size:.8rem}
 .nfill.warn{background:var(--warn-bg);color:var(--warn);white-space:normal}
 .nrow.dup{grid-template-columns:minmax(0,2.2fr) minmax(0,2.4fr) auto;border-left:4px solid var(--warn)}
@@ -281,7 +284,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
   let sortKey="closing", sortDir=1, query="", officeF="", agentF="", colF={};
-  const COLDEFS=[["mlsStatus","MLS status"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
+  const COLDEFS=[["mlsStatus","MLS status"],["cda","CDA"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
   const TEXTF=new Set(["address","price","mls"]);
   function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; default: return String(r[k]||""); } }
   /* Text columns hold a string. Pick columns hold undefined (all, boxes checked) or an array of picked values; an empty array means "cleared" (boxes unchecked, nothing filtered). */
@@ -444,6 +447,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td class="stc">${esc(r.mlsStatus||"")}</td>
+        <td class="nw cdac">${(r.cdaStatus==="none"||rowMsg[r.id])&&!codeOf(r)?rowStartBtn(r):`<span class="code">${cdaLink(codeOf(r))}</span>`}${codeOf(r)&&rowMsg[r.id]?rowStartBtn(r):""}</td>
         <td class="nw">${esc(r.closing||"")}</td>
         <td class="addrc">${esc(r.address||"Address not set")}${r.brightChange&&r.brightChange.note?`<span class="bchg">Changed in Bright ${fmtDate(r.brightChange.seenAt||r.brightChange.at)}: ${esc(r.brightChange.note)}</span>`:""}</td>
         <td class="num">${money(r.price)}</td>
@@ -451,8 +455,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${esc(r.side||"")}</td>
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
-        <td class="nw code">${cdaLink(codeOf(r))}</td>
-        <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${(r.cdaStatus==="none"||rowMsg[r.id])?rowStartBtn(r)+"<br>":""}${runBtn(r)}</td>
+        <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
@@ -551,12 +554,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const normName=v=>String(v||"").toLowerCase().replace(/[^a-z]+/g," ").trim();
   const sideOf=s=>{ const t=String(s||"").toLowerCase(); if(/dual|both/.test(t)) return "Both"; if(/list|sell(er)?\b/.test(t)&&!/selling/.test(t)) return "Listing"; if(/buy|selling/.test(t)) return "Buyer"; return ""; };
   const hasCda=r=>!!(r.cdaCode||["saved","submitted"].includes(r.cdaStatus)||(r.source&&r.source!=="mls"));
+  const SUFFIX=new Set(["jr","sr","ii","iii","iv"]);
+  const nameToks=v=>{ const l=String(v||"").toLowerCase(); const nick=(l.match(/\(([^)]*)\)/g)||[]).map(x=>normName(x)); const t=normName(l.replace(/\([^)]*\)/g," ")).split(" ").filter(x=>x&&!SUFFIX.has(x)); return {t,nick}; };
   function findAgent(name,agentId){
     if(agentId){ const a=AGENTS.find(x=>String(x.agent_id)===String(agentId)); if(a) return a; }
     const n=normName(name); if(!n) return null;
     const exact=AGENTS.filter(x=>normName(x.name)===n); if(exact.length===1) return exact[0];
-    const p=n.split(" "), first=p[0], last=p[p.length-1];
-    const loose=AGENTS.filter(x=>{ const q=normName(x.name).split(" "); return q[0]===first&&q[q.length-1]===last; });
+    const b=nameToks(name).t; if(!b.length) return null;
+    const first=b[0], last=b[b.length-1];
+    const loose=AGENTS.filter(x=>{ const d=nameToks(x.name); return d.t.length&&d.t[d.t.length-1]===last&&(d.t[0]===first||d.nick.includes(first)); });
     return loose.length===1?loose[0]:null;
   }
   function brightMatch(t){
@@ -665,18 +671,21 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const side=sideOf(r.side)||(/-L$/i.test(r.id)?"Listing":/-B$/i.test(r.id)?"Buyer":"");
     if(!r.agent) return {why:"No agent on this row"};
     if(!AGENTS.length) return {why:"Loading agents…"};
-    const a=findAgent(r.agent,r.agentId||r.agent_id);
-    if(!a) return {why:esc(r.agent)+" isn't in the agent list"};
+    const a=(rowPick[r.id]&&AGENTS.find(x=>String(x.agent_id)===String(rowPick[r.id])))||findAgent(r.agent,r.agentId||r.agent_id);
+    if(!a) return {why:"Bright says "+esc(r.agent)+". Not in the agent list. Pick one.",pick:true};
     if(!side) return {why:"No side on this row"};
     return {a,side};
   }
+  const rowPick={};
   function rowStartBtn(r){
     const id=esc(r.id), m=rowMsg[r.id];
-    if(isRemoved(r)||r.cdaCode) return m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:"";
-    if(rowBusy.has(r.id)) return `<button class="btn" disabled>Starting…</button>`;
+    const msg=m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:"";
+    if(isRemoved(r)||r.cdaCode) return msg;
+    if(rowBusy.has(r.id)) return `<div class="rbtns"><button class="btn" disabled>Starting…</button></div>`;
     const inf=rowStartInfo(r);
-    const lbl=inf.a?`Start CDA for ${esc(String(inf.a.name).split(" ")[0])} (${inf.side==="Both"?"both sides":inf.side.toLowerCase()})`:"Start CDA";
-    return `<button class="btn" data-rstart="${id}" ${inf.a?"":"disabled"}>${lbl}</button>${inf.why?`<span class="mainnote">${inf.why}</span>`:""}${m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:""}`;
+    const lbl=inf.a?`Start CDA for ${esc(String(inf.a.name).split(" ")[0])}`:"Start CDA";
+    const pick=inf.pick?`<select class="rpick" data-rpick="${id}" aria-label="Pick agent"><option value="">Pick agent…</option>${AGENTS.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))).map(a=>`<option value="${esc(a.agent_id)}">${esc(a.name)}</option>`).join("")}</select>`:"";
+    return `<div class="rbtns"><button class="btn" data-rstart="${id}" ${inf.a?"":"disabled"}>${lbl}</button><button class="btn ghost" data-rno="${id}">Not ours</button></div>${pick}${inf.why?`<span class="mainnote">${inf.why}</span>`:""}${msg}`;
   }
   async function startRowCda(id){
     const r=rows.find(x=>String(x.id)===String(id)); if(!r||r.cdaCode||rowBusy.has(r.id)) return;
@@ -700,7 +709,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
     }
     rowBusy.delete(r.id); rerenderRow(r.id);
   }
-  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-rstart]"); if(b){ e.stopPropagation(); b.disabled=true; startRowCda(b.dataset.rstart); } },true);
+  document.addEventListener("click",e=>{
+    const b=e.target.closest&&e.target.closest("[data-rstart]"); if(b){ e.stopPropagation(); b.disabled=true; startRowCda(b.dataset.rstart); return; }
+    const no=e.target.closest&&e.target.closest("[data-rno]");
+    if(no){ e.stopPropagation(); const id=no.dataset.rno; no.disabled=true;
+      db.collection("cdas").doc(id).update({archived:{at:new Date().toISOString(),by:BY||"Compliance",reason:"Not ours (from the list)"}}).catch(()=>{ no.disabled=false; rowMsg[id]={ok:false,text:"Couldn't archive it. Try again."}; rerenderRow(id); });
+      return; }
+    if(e.target.closest&&e.target.closest("[data-rpick]")) e.stopPropagation();
+  },true);
+  document.addEventListener("change",e=>{ const p=e.target.closest&&e.target.closest("[data-rpick]"); if(p){ rowPick[p.dataset.rpick]=p.value; rerenderRow(p.dataset.rpick); } });
 
   document.addEventListener("change",e=>{
     const ag=e.target.closest&&e.target.closest("[data-tagent]"), sd=e.target.closest&&e.target.closest("[data-tside]");
@@ -840,7 +857,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
