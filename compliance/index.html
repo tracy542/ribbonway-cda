@@ -228,7 +228,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
     <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
-    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: Radar findings and KJ findings side by side. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: KJ findings, with Radar findings beside them once Radar is connected. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
   </header>
 
   <section class="tray" id="tray" aria-labelledby="trayTitle" hidden>
@@ -284,7 +284,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Run once a day per deal. Results show within the hour.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[]);
-  const COLS=[["radar","Radar Findings"],["kj","KJ Findings"]];
+  /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
+     kept for the second checker (Radar/ChatGPT) once it is connected. Only the labels below say who checked. */
+  const COLS=[["radar","KJ Findings"],["kj","Radar Findings"]];
   const dkey=(src,text)=>src+"|"+text;
   function reviewOf(r){
     const c=r.compliance||{}, saved=r.review||{}, l=local[r.id]||{};
@@ -424,7 +426,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const allNo=rv.decisions.length&&rv.decisions.every(d=>d.include==="no");
     const undecided=rv.decisions.filter(d=>!d.include).length;
     const dis=(!canWrite||locked)?"disabled":"";
-    const radarEmpty=c.status==="clean"?"Radar found no problems.":c.status==="not_found"?"Couldn't find the deal in zipForm or dotloop.":"Radar hasn't checked this one yet.";
+    const radarEmpty=c.status==="clean"?"KJ found no problems.":c.status==="not_found"?"Couldn't find the deal in zipForm or dotloop.":"KJ hasn't checked this one yet.";
     const col=(src,label)=>{
       const items=rv.decisions.map((d,i)=>[d,i]).filter(([d])=>d.src===src);
       const v=items.filter(([d])=>d.include==="yes").length;
@@ -438,7 +440,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
           </div>
           ${d.include==="yes"?`<input class="dir" data-dir="${id}" data-i="${i}" value="${esc(d.direction)}" placeholder="What we need the agent to do (goes in the email)" aria-label="Direction for this finding" ${dis}>`:""}
         </li>`).join("");
-      const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:"No KJ findings."}</p>`;
+      const empty=items.length?"":`<p class="fempty">${src==="radar"?radarEmpty:"Radar isn't connected yet."}</p>`;
       const add=dis?"":`<div class="fadd"><input id="add-${id}-${src}" data-addin="${id}" data-col="${src}" placeholder="• Type a finding…" aria-label="Add a ${esc(label)} item"><button type="button" class="vbtn" data-add="${id}" data-col="${src}">Add</button></div>`;
       return `<div class="fcol"><h4>${esc(label)} <small>${items.length} · ${v} verified</small></h4>${empty}<ul class="fb">${li}</ul>${add}</div>`;
     };
