@@ -27,7 +27,7 @@
   --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; --idle-bg:#242d3e; --new:#9dbcf3; --new-bg:#1c2a45; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45;padding-inline:16px;padding-block:20px 48px}
-.wrap{max-width:1400px;display:flex;flex-direction:column;gap:20px}
+.wrap{max-width:1880px;display:flex;flex-direction:column;gap:20px}
 #masterView .sub,#masterView .foot{max-width:90ch}
 h1{font-family:var(--f-display);font-weight:600;font-size:2rem;margin:0;text-wrap:balance}
 h1 .today{font-family:var(--f-body);font-weight:600;font-size:1.1rem;color:var(--muted);margin-left:10px;white-space:nowrap}
@@ -179,7 +179,28 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .nerr{grid-column:1/-1;color:var(--bad);font-weight:600}
 .rbtns{display:flex;flex-wrap:nowrap;gap:6px;align-items:center}
 .rpick{display:block;margin-top:6px;font:inherit;font-size:14px;max-width:220px}
-.cdac .mainnote{white-space:normal;max-width:240px}
+.cdac .mainnote{white-space:normal;max-width:200px}
+/* fit all columns on screen (10/18) */
+.sheet td{font-size:15px}
+.sheet thead tr:first-child th{white-space:normal}
+.sheet td.nw{white-space:normal}
+.sheet td.code,.sheet tr.main td:nth-child(3),.sheet td.num,.sheet td.stc{white-space:nowrap}
+.sheet td.addrc{min-width:170px}
+.sheet td .btn{padding:6px 10px;font-size:14px;white-space:nowrap}
+.sheet td .mainnote{max-width:190px}
+.sheet td .pill{white-space:nowrap}
+.rbtns{flex-wrap:wrap}
+.sheet td{padding:6px 7px}
+.sheet th{padding:8px 7px}
+.sheet td.stc{white-space:normal;width:auto;min-width:80px}
+.sheet tr.frow button.mf{min-width:62px}
+.sheet tr.frow input{min-width:56px}
+.sheet tr.main.hasstart td{border-bottom:0}
+.sheet tr.startrow td{padding-top:0;padding-bottom:10px}
+.sheet tr.startrow td:first-child{border-left:5px solid var(--line)}
+.sheet tbody.s-bad tr.startrow td:first-child{border-left-color:var(--bad)} .sheet tbody.s-warn tr.startrow td:first-child{border-left-color:var(--warn)} .sheet tbody.s-good tr.startrow td:first-child{border-left-color:var(--good)}
+.sheet tr.startrow .mainnote{max-width:420px}
+@media (max-width:1380px){.sheet td.code{font-size:13px}.sheet td.addrc{min-width:140px}.sheet td .mainnote{max-width:140px}.sheet td,.sheet th{padding-left:5px;padding-right:5px}.sheet td{font-size:14px}}
 .nfill{display:inline-block;align-self:flex-start;padding:0 6px;border-radius:4px;background:var(--new-bg);color:var(--new);font-weight:600;font-size:.8rem}
 .nfill.warn{background:var(--warn-bg);color:var(--warn);white-space:normal}
 .nrow.dup{grid-template-columns:minmax(0,2.2fr) minmax(0,2.4fr) auto;border-left:4px solid var(--warn)}
@@ -261,7 +282,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
     return {cls:"warn",label:"Not checked yet"};
   }
-  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Click HERE now to check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Run once a day per deal. Results show within the hour.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Run once a day per deal. Results show within the hour.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[]);
   const COLS=[["radar","Radar Findings"],["kj","KJ Findings"]];
   const dkey=(src,text)=>src+"|"+text;
@@ -445,9 +466,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const rs=hasReviewItems(r)?(r.review||{}).status||"open":"";
     const findBlock=reviewHtml(r);
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
-      <tr class="main" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
+      <tr class="main${showStart(r)?" hasstart":""}" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td class="stc">${esc(r.mlsStatus||"")}</td>
-        <td class="nw cdac">${(r.cdaStatus==="none"||rowMsg[r.id])&&!codeOf(r)?rowStartBtn(r):`<span class="code">${cdaLink(codeOf(r))}</span>`}${codeOf(r)&&rowMsg[r.id]?rowStartBtn(r):""}</td>
+        <td class="nw cdac"><span class="code">${cdaLink(codeOf(r))}</span></td>
         <td class="nw">${esc(r.closing||"")}</td>
         <td class="addrc">${esc(r.address||"Address not set")}${r.brightChange&&r.brightChange.note?`<span class="bchg">Changed in Bright ${fmtDate(r.brightChange.seenAt||r.brightChange.at)}: ${esc(r.brightChange.note)}</span>`:""}</td>
         <td class="num">${money(r.price)}</td>
@@ -459,6 +480,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
+      ${showStart(r)?`<tr class="startrow"><td colspan="6"></td><td colspan="6">${rowStartBtn(r)}</td></tr>`:""}
       <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="12"><div class="body">
         <div class="workline" style="margin-top:12px">
           <label for="st-${id}"><b>Work</b></label>
@@ -677,6 +699,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return {a,side};
   }
   const rowPick={};
+  const showStart=r=>!isRemoved(r)&&((r.cdaStatus==="none"&&!codeOf(r))||!!rowMsg[r.id]);
   function rowStartBtn(r){
     const id=esc(r.id), m=rowMsg[r.id];
     const msg=m?`<span class="mainnote ${m.ok?"saved":"err"}">${m.text}</span>`:"";
@@ -858,7 +881,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
     if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
-    if(tr){ const id=tr.dataset.toggle, det=tr.nextElementSibling; const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
+    if(tr){ const id=tr.dataset.toggle, det=tr.parentElement.querySelector("tr.det"); const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
   document.addEventListener("input",e=>{ const cf=e.target.closest&&e.target.closest("[data-cf]");
