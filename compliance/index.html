@@ -55,6 +55,16 @@ table.sheet{border-collapse:collapse;width:100%;min-width:1150px;font-size:16px;
 .sheet tr.frow th::after{content:none!important}
 .sheet tr.frow select,.sheet tr.frow input{font:inherit;font-size:13px;width:100%;min-width:70px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
 .sheet tr.frow .on{border-color:var(--accent);outline:1px solid var(--accent)}
+.sheet tr.frow button.mf{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%;min-width:90px;max-width:220px;font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink,inherit);cursor:pointer;text-align:left}
+.sheet tr.frow button.mf span:first-child{white-space:normal;line-height:1.3}
+.sheet tr.frow button.mf.on{font-weight:600;color:var(--accent)}
+.mfpanel{position:fixed;z-index:50;max-width:340px;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;font-size:15px}
+.mfhead{display:flex;align-items:center;gap:14px;padding:2px 4px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.mfhead b{flex:1}
+.mflist{max-height:320px;overflow-y:auto;display:flex;flex-direction:column}
+.mflist label{display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;border-radius:4px;white-space:nowrap}
+.mflist label:hover{background:var(--idle-bg)}
+.mflist input{width:18px;height:18px}
 #clearCF{font:inherit;font-size:.95rem;padding:6px 12px;border:1px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);cursor:pointer}
 .sheet tbody.s-bad tr.main td:first-child{border-left-color:var(--bad)} .sheet tbody.s-warn tr.main td:first-child{border-left-color:var(--warn)} .sheet tbody.s-good tr.main td:first-child{border-left-color:var(--good)}
 .sheet td.num{text-align:right;white-space:nowrap} .sheet td.nw{white-space:nowrap}
@@ -268,9 +278,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   let sortKey="closing", sortDir=1, query="", officeF="", agentF="", colF={};
   const COLDEFS=[["mlsStatus","MLS status"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["cda","CDA"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
-  const TEXTF=new Set(["address","price","mls","cda"]);
+  const TEXTF=new Set(["address","price","mls"]);
   function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; default: return String(r[k]||""); } }
-  const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip) return true; const f=colF[k]; if(!f) return true; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):(f==="(blank)"?t==="":t===f); });
+  /* Text columns hold a string. Pick columns hold undefined (all, boxes checked) or an array of picked values; an empty array means "cleared" (boxes unchecked, nothing filtered). */
+  const cfOn=k=>TEXTF.has(k)?!!colF[k]:(Array.isArray(colF[k])&&colF[k].length>0);
+  const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip||!cfOn(k)) return true; const f=colF[k]; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):f.includes(t===""?"(blank)":t); });
   const slug=n=>String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   function sortVal(r){ switch(sortKey){ case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
   const isRemoved=r=>!!(r.archived&&r.archived.at);
@@ -290,14 +302,63 @@ textarea{width:100%;min-height:80px;resize:vertical}
       return true;
     }).filter(r=>!officeF||r.office===officeF).filter(r=>!agentF||slug(r.agent)===agentF).filter(r=>{ if(!query) return true; const h=[r.address,r.agent,r.mls,codeOf(r),r.side,r.mlsStatus].join(" ").toLowerCase(); return h.includes(query); });
   }
+  function mfValues(k){
+    const vals=[...new Set(baseRows().filter(r=>cfMatch(r,k)).map(r=>{ const t=colText(r,k); return t===""?"(blank)":t; }))].sort((a,b)=>a==="(blank)"?1:b==="(blank)"?-1:a.localeCompare(b,undefined,{numeric:true}));
+    (Array.isArray(colF[k])?colF[k]:[]).forEach(v=>{ if(!vals.includes(v)) vals.push(v); });
+    return vals;
+  }
+  function mfSummary(k){
+    if(!cfOn(k)) return "All";
+    const f=colF[k]; return f.length<=2?f.join(" + "):f.slice(0,2).join(" + ")+" + "+(f.length-2)+" more";
+  }
   function filterRow(){
-    const base=baseRows();
     return `<tr class="frow">${COLDEFS.map(([k,l])=>{ const f=colF[k]||"";
       if(TEXTF.has(k)) return `<th><input type="search" data-cf="${k}" value="${esc(f)}" placeholder="Filter" aria-label="Filter ${esc(l)}" class="${f?"on":""}"></th>`;
-      const vals=[...new Set(base.filter(r=>cfMatch(r,k)).map(r=>colText(r,k)))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-      if(f&&!vals.includes(f==="(blank)"?"":f)) vals.push(f==="(blank)"?"":f);
-      return `<th><select data-cf="${k}" aria-label="Filter ${esc(l)}" class="${f?"on":""}"><option value="">All</option>${vals.map(v=>{ const ov=v===""?"(blank)":v; return `<option value="${esc(ov)}" ${ov===f?"selected":""}>${esc(ov)}</option>`; }).join("")}</select></th>`; }).join("")}</tr>`;
+      const on=cfOn(k);
+      return `<th><button type="button" class="mf ${on?"on":""}" data-mf="${k}" aria-haspopup="true" aria-expanded="${mfOpen===k}" aria-label="Filter ${esc(l)}: ${esc(mfSummary(k))}" title="${esc(on?colF[k].join(", "):"All")}"><span>${esc(mfSummary(k))}</span><span aria-hidden="true">▾</span></button></th>`; }).join("")}</tr>`;
   }
+  let mfOpen="";
+  function renderMf(){
+    let pn=document.getElementById("mfPanel");
+    if(!mfOpen){ if(pn) pn.remove(); return; }
+    const btn=document.querySelector(`button[data-mf="${mfOpen}"]`);
+    if(!btn){ mfOpen=""; if(pn) pn.remove(); return; }
+    if(!pn){ pn=document.createElement("div"); pn.id="mfPanel"; pn.className="mfpanel"; pn.setAttribute("role","dialog"); document.body.appendChild(pn); }
+    const k=mfOpen, label=(COLDEFS.find(c=>c[0]===k)||[])[1]||"", vals=mfValues(k), f=colF[k];
+    const keepScroll=(pn.querySelector(".mflist")||{}).scrollTop||0;
+    pn.setAttribute("aria-label","Filter "+label);
+    pn.innerHTML=`<div class="mfhead"><b>${esc(label)}</b><button type="button" class="linkbtn" data-mfall="${k}">All</button><button type="button" class="linkbtn" data-mfclear="${k}">Clear</button></div>
+      <div class="mflist">${vals.length?vals.map(v=>`<label><input type="checkbox" data-mfv="${esc(v)}" ${f===undefined||(Array.isArray(f)&&f.includes(v))?"checked":""}> ${esc(v)}</label>`).join(""):`<p class="foot">Nothing to pick.</p>`}</div>`;
+    pn.querySelector(".mflist").scrollTop=keepScroll;
+    placeMf();
+  }
+  function placeMf(){
+    const pn=document.getElementById("mfPanel"), btn=mfOpen&&document.querySelector(`button[data-mf="${mfOpen}"]`); if(!pn||!btn) return;
+    const b=btn.getBoundingClientRect(), w=Math.max(220,b.width);
+    pn.style.minWidth=w+"px";
+    pn.style.left=Math.max(8,Math.min(b.left,window.innerWidth-pn.offsetWidth-8))+"px";
+    pn.style.top=Math.min(b.bottom+4,window.innerHeight-Math.min(pn.offsetHeight,window.innerHeight-16)-8)+"px";
+  }
+  function mfToggle(k,v,checked){
+    const vals=mfValues(k); let f=Array.isArray(colF[k])?colF[k].slice():vals.slice();
+    if(checked){ if(!f.includes(v)) f.push(v); } else f=f.filter(x=>x!==v);
+    f.sort((a,b)=>vals.indexOf(a)-vals.indexOf(b));
+    colF[k]=(f.length&&vals.every(x=>f.includes(x)))?undefined:f;
+    render();
+  }
+  document.addEventListener("click",e=>{
+    const t=e.target;
+    const mb=t.closest&&t.closest("button[data-mf]");
+    if(mb){ mfOpen=mfOpen===mb.dataset.mf?"":mb.dataset.mf; render(); return; }
+    const all=t.closest&&t.closest("[data-mfall]");
+    if(all){ colF[all.dataset.mfall]=undefined; render(); return; }
+    const clr=t.closest&&t.closest("[data-mfclear]");
+    if(clr){ colF[clr.dataset.mfclear]=[]; render(); return; }
+    if(mfOpen&&!(t.closest&&t.closest("#mfPanel"))){ mfOpen=""; render(); }
+  });
+  document.addEventListener("change",e=>{ const cb=e.target.closest&&e.target.closest("#mfPanel [data-mfv]"); if(cb&&mfOpen) mfToggle(mfOpen,cb.dataset.mfv,cb.checked); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&mfOpen){ const k=mfOpen; mfOpen=""; render(); const b=document.querySelector(`button[data-mf="${k}"]`); if(b) b.focus(); } });
+  window.addEventListener("resize",placeMf); window.addEventListener("scroll",placeMf,true);
 
   function renderAgentFilter(){
     const sel=$("#agentF"); if(!sel) return;
@@ -669,10 +730,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
     renderCounts();
     const v=visible();
     if(!rows.length){ $("#list").innerHTML=`<div class="empty">No CDAs yet. When the office starts a CDA, it shows up here with its code and the compliance results.</div>`; return; }
-    const anyCF=Object.values(colF).some(Boolean); $("#clearCF").hidden=!anyCF;
+    const anyCF=Object.keys(colF).some(cfOn); $("#clearCF").hidden=!anyCF;
     if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been archived.":"Nothing in this view."}</div>`; return; }
     const cols=COLDEFS;
     $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="12" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
+    renderMf();
   }
   function rerenderRow(id){
     const r=rows.find(x=>String(x.id)===String(id)); if(!r) return render();
@@ -771,7 +833,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     }
   });
   document.addEventListener("click",e=>{
-    if(e.target.id==="clearCF"){ colF={}; render(); return; }
+    if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
     if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore]")) return; const tr=e.target.closest("tr.main[data-toggle]");
