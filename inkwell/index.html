@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ink Well · Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Ink Well: Tracy's signature folder. A bot reads his mailboxes every 15 minutes and drops anything
+   needing his signature, approval or review here. Left-aligned, large type, 48px+ tap targets. */
+:root{
+  --bg:#F7F6F2; --surface:#FFFFFF; --line:#D9D5CA; --ink:#1B2B4B; --muted:#4A5568; --soft:#EFEDE6;
+  --navy:#1B2B4B; --navy-ink:#FFFFFF; --gold:#B8892B;
+  --sign-bg:#1B2B4B; --sign-ink:#FFFFFF;
+  --appr-bg:#FBF0D9; --appr-ink:#7A4F00;
+  --rev-bg:#E3EEF6; --rev-ink:#1F4E73;
+  --ok:#1E6B3A; --bad:#B3261E;
+  --f-display:"Source Serif 4", Georgia, serif;
+  --f-body:Inter, "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161E; --surface:#1B2130; --line:#323B4D; --ink:#E8EBF2; --muted:#A9B2C4; --soft:#252D3D;
+  --navy:#8FB0E8; --navy-ink:#0E1420; --gold:#D9AE57;
+  --sign-bg:#8FB0E8; --sign-ink:#0E1420;
+  --appr-bg:#3A2E14; --appr-ink:#F2C877;
+  --rev-bg:#1C2D40; --rev-ink:#9CC6EA;
+  --ok:#7FD69B; --bad:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161E; --surface:#1B2130; --line:#323B4D; --ink:#E8EBF2; --muted:#A9B2C4; --soft:#252D3D;
+  --navy:#8FB0E8; --navy-ink:#0E1420; --gold:#D9AE57;
+  --sign-bg:#8FB0E8; --sign-ink:#0E1420;
+  --appr-bg:#3A2E14; --appr-ink:#F2C877;
+  --rev-bg:#1C2D40; --rev-ink:#9CC6EA;
+  --ok:#7FD69B; --bad:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45;padding:28px 16px 64px}
+a{color:var(--navy)}
+.wrap{max-width:1000px;display:flex;flex-direction:column;gap:22px}
+@media (min-width:900px){body{padding:36px 56px 72px}}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,7vw,56px);line-height:1;margin:0}
+h2{font-family:var(--f-display);font-weight:600;font-size:28px;margin:0}
+.head{display:flex;flex-direction:column;gap:8px;border-bottom:4px solid var(--gold);padding-bottom:16px}
+.head .big{font-size:22px;font-weight:600}
+.meta{font-size:16px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.mb{display:inline-block;margin-right:12px;white-space:nowrap}
+.mb.off{color:var(--bad)}
+.pills{display:flex;flex-wrap:wrap;gap:10px}
+.pill{min-height:48px;padding:0 20px;border-radius:24px;border:2px solid var(--navy);background:transparent;color:var(--navy);font:600 18px var(--f-body);cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--navy);color:var(--navy-ink)}
+section{display:flex;flex-direction:column;gap:12px}
+.list{display:flex;flex-direction:column;gap:14px}
+section[hidden]{display:none}
+.sec-sub{color:var(--muted);font-size:16px;margin:-6px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.card.gone{opacity:.45}
+.tags{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tag{font-size:14px;font-weight:600;letter-spacing:.03em;padding:4px 10px;border-radius:6px}
+.tag.sign{background:var(--sign-bg);color:var(--sign-ink)}
+.tag.approve{background:var(--appr-bg);color:var(--appr-ink)}
+.tag.review{background:var(--rev-bg);color:var(--rev-ink)}
+.age{font-size:15px;color:var(--muted)}
+.age.old{color:var(--bad);font-weight:600}
+.title{font-size:21px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.who{font-size:17px;color:var(--muted);overflow-wrap:anywhere}
+.docs{margin:0;padding-left:22px;font-size:16px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 22px;border-radius:8px;font:600 18px var(--f-body);text-decoration:none;cursor:pointer;border:2px solid var(--navy)}
+.btn.primary{background:var(--navy);color:var(--navy-ink)}
+.btn.ghost{background:transparent;color:var(--navy)}
+.btn.done{background:transparent;color:var(--ok);border-color:var(--ok)}
+@media (max-width:560px){.actions .btn{flex:1 1 100%}}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:22px;color:var(--muted)}
+details.donebox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+details.donebox summary{cursor:pointer;font-weight:600;min-height:32px}
+.donerow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.donerow span{color:var(--muted);overflow-wrap:anywhere}
+.foot{color:var(--muted);font-size:16px;max-width:65ch}
+.toast{position:fixed;left:16px;right:16px;bottom:16px;max-width:520px;background:var(--ink);color:var(--bg);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:17px}
+.toast[hidden]{display:none}
+.toast button{font:600 17px var(--f-body);background:transparent;color:var(--bg);border:2px solid var(--bg);border-radius:8px;min-height:44px;padding:0 14px;cursor:pointer}
+#gate{min-height:80vh;display:flex;align-items:center}
+#gate[hidden]{display:none}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:28px 24px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px}
+.gate-card label{font-weight:600}
+.gate-card input{font:inherit;width:100%;min-height:52px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.gate-card .msg{color:var(--bad);min-height:1.4em;margin:0}
+#app[hidden]{display:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px}
+.linkbtn{background:none;border:none;color:var(--muted);font:500 16px var(--f-body);text-decoration:underline;cursor:pointer;min-height:44px;padding:0}
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <form class="gate-card" id="gform" autocomplete="off">
+    <h1 style="font-size:40px">Ink Well</h1>
+    <p class="meta" style="margin:0">Tracy's signature folder. Enter the code to open it.</p>
+    <div><label for="gcode">Code</label><input id="gcode" type="password" autocomplete="off" spellcheck="false"></div>
+    <p class="msg" id="gmsg"></p>
+    <button class="btn primary" type="submit">Open Ink Well</button>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="head">
+    <h1>Ink Well</h1>
+    <div class="big" id="summary">Loading…</div>
+    <div class="meta" id="checked"></div>
+    <div class="meta" id="watching"></div>
+  </header>
+
+  <div class="pills" role="group" aria-label="Show">
+    <button class="pill" data-f="all" aria-pressed="true">All <span data-c="all"></span></button>
+    <button class="pill" data-f="sign" aria-pressed="false">Sign <span data-c="sign"></span></button>
+    <button class="pill" data-f="approve" aria-pressed="false">Approve <span data-c="approve"></span></button>
+    <button class="pill" data-f="review" aria-pressed="false">Review <span data-c="review"></span></button>
+  </div>
+
+  <section id="s-sign"><h2>Sign</h2><p class="sec-sub">E-sign requests and "Need signature" emails from agents.</p><div class="list"></div></section>
+  <section id="s-approve"><h2>Approve in zipForm</h2><p class="sec-sub">Agents submitted these for broker review.</p><div class="list"></div></section>
+  <section id="s-review"><h2>Review on Compliance Desk</h2><p class="sec-sub">Compliance finished these. Check them before they go to the agent.</p><div class="list"></div></section>
+
+  <details class="donebox" id="donebox"><summary>Done in the last 2 days (<span id="donecount">0</span>)</summary><div id="donelist"></div></details>
+
+  <p class="foot">Nothing is signed from this page. Each button opens the place where you sign or approve. Tap <b>Done</b> when you finish so it leaves the list.</p>
+  <div class="toolbar"><button class="linkbtn" id="refresh" type="button">Check list now</button><button class="linkbtn" id="logout" type="button">Lock this page</button></div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastmsg"></span><button type="button" id="undo">Undo</button></div>
+
+<script>
+(function(){
+  const API="https://hook.us2.make.com/u6p66e6jboah7805h7x3bwxlq632q5qu";
+  // Mailboxes the scanner watches; key matches the scanner's "_mb_" heartbeat record.
+  const WATCH=[
+    ["tracy@blueribbonrealty.com","tracy@"],
+    ["broker@blueribbonrealty.com","broker@"],
+    ["compliance@blueribbonrealty.com","compliance@"],
+    ["broker@weichertblueribbon.com","broker@weichert"]
+  ];
+  const mbKey=a=>"_mb_"+a.replace(/[@.]/g,"_");
+  let CODE=""; try{ CODE=localStorage.getItem("cdaDeskCode")||""; }catch(_){}
+  let items=[], meta={}, filter="all", lastUndo=null, toastTimer=null;
+  const $=s=>document.querySelector(s);
+  const esc=t=>String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const safeUrl=u=>/^https:\/\//i.test(String(u||""))?String(u):"";
+
+  async function call(body){
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({code:CODE},body))});
+    if(r.status===401){ const e=new Error("bad_code"); e.bad=true; throw e; }
+    if(!r.ok) throw new Error("http_"+r.status);
+    return r.json();
+  }
+
+  function age(iso){
+    const t=Date.parse(iso); if(!t) return {txt:"",old:false};
+    const h=(Date.now()-t)/36e5;
+    const txt=h<1?Math.max(1,Math.round(h*60))+" min":h<48?Math.round(h)+" hours":Math.round(h/24)+" days";
+    return {txt,old:h>=24};
+  }
+  const clock=iso=>{ const t=Date.parse(iso); return t?new Date(t).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):""; };
+
+  // Group rows for the same zipForm transaction (one email per document) into one card.
+  function groups(list){
+    const map=new Map();
+    for(const it of list){
+      const g=it.doc.kind==="approve"?"a|"+it.doc.title+"|"+it.doc.who:"i|"+it.key;
+      if(!map.has(g)) map.set(g,[]);
+      map.get(g).push(it);
+    }
+    return [...map.values()].map(rows=>{
+      rows.sort((a,b)=>Date.parse(b.doc.received||0)-Date.parse(a.doc.received||0));
+      return rows;
+    }).sort((a,b)=>Date.parse(a[a.length-1].doc.received||0)-Date.parse(b[b.length-1].doc.received||0));
+  }
+
+  function card(rows){
+    const d=rows[0].doc, kind=d.kind;
+    const oldest=rows[rows.length-1].doc.received;
+    const a=age(oldest);
+    const label={sign:"SIGN",approve:"APPROVE",review:"REVIEW"}[kind]||kind.toUpperCase();
+    const docs=[...new Set(rows.map(r=>r.doc.detail).filter(Boolean))];
+    const link=safeUrl(rows.find(r=>/transactionId=/.test(r.doc.link||""))?.doc.link||d.link);
+    const mail=safeUrl(d.mailLink);
+    const ids=rows.map(r=>r.key).join(",");
+    return `<article class="card" data-ids="${esc(ids)}">
+      <div class="tags"><span class="tag ${esc(kind)}">${label}</span><span class="age${a.old?" old":""}">${esc(a.txt)}${rows.length>1?" · "+rows.length+" docs":""}</span></div>
+      <div class="title">${esc(d.title)}</div>
+      <div class="who">${esc(d.who)}${kind!=="approve"&&d.detail?" · "+esc(d.detail):""}</div>
+      ${kind==="approve"&&docs.length?`<ul class="docs">${docs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+      <div class="actions">
+        ${link?`<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener">${esc(d.linkLabel||"Open")}</a>`:""}
+        ${mail&&mail!==link?`<a class="btn ghost" href="${esc(mail)}" target="_blank" rel="noopener">Open email</a>`:""}
+        <button class="btn done" type="button" data-done="${esc(ids)}">Done</button>
+      </div>
+    </article>`;
+  }
+
+  function render(){
+    const open=items.filter(i=>i.status!=="done");
+    const counts={all:0,sign:0,approve:0,review:0};
+    const byKind={sign:[],approve:[],review:[]};
+    for(const k of Object.keys(byKind)){
+      const g=groups(open.filter(i=>i.doc.kind===k)); byKind[k]=g; counts[k]=g.length; counts.all+=g.length;
+    }
+    document.querySelectorAll("[data-c]").forEach(el=>el.textContent=counts[el.dataset.c]);
+    $("#summary").textContent=counts.all===0?"Nothing waiting on you.":counts.all+" waiting on you";
+    for(const k of Object.keys(byKind)){
+      const sec=$("#s-"+k);
+      sec.hidden=!(filter==="all"||filter===k);
+      sec.querySelector(".list").innerHTML=byKind[k].length?byKind[k].map(card).join(""):`<div class="empty">Nothing here right now.</div>`;
+    }
+    // Done in the last 2 days, newest first, with Undo
+    const cutoff=Date.now()-2*864e5;
+    const done=items.filter(i=>i.status==="done"&&Date.parse(i.updated_at||0)>cutoff).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
+    $("#donecount").textContent=done.length;
+    $("#donelist").innerHTML=done.map(i=>`<div class="donerow"><span>${esc(i.doc.title)} · ${esc(i.doc.who)}</span><button class="btn ghost" type="button" data-undo="${esc(i.key)}">Put back</button></div>`).join("")||`<p class="meta">Nothing yet.</p>`;
+    // Scanner status per mailbox
+    const times=WATCH.map(([addr])=>meta[mbKey(addr)]).filter(Boolean).map(m=>Date.parse(m.updated_at||0));
+    const latest=times.length?Math.max(...times):0;
+    $("#checked").innerHTML=latest?`Last checked <b>${esc(clock(new Date(latest).toISOString()))}</b> · checks every 15 minutes`:`The mail bot hasn't checked yet. Items below were loaded by hand.`;
+    $("#watching").innerHTML="Watching: "+WATCH.map(([addr,short])=>{
+      const m=meta[mbKey(addr)]; const fresh=m&&Date.now()-Date.parse(m.updated_at||0)<60*60e3;
+      return `<span class="mb${fresh?"":" off"}">${esc(short)}${fresh?"":" (not connected)"}</span>`;
+    }).join("");
+  }
+
+  async function load(quiet){
+    try{
+      const j=await call({action:"list"});
+      items=[]; meta={};
+      for(const r of (j.items||[])){
+        if(!r||!r.key) continue;
+        if(r.key.charAt(0)==="_"){ meta[r.key]=r; continue; }
+        let doc=r.doc; if(typeof doc==="string"){ try{doc=JSON.parse(doc)}catch(_){doc={}} }
+        if(!doc||!doc.kind) continue;
+        items.push({key:r.key,status:r.status||"open",updated_at:r.updated_at,doc});
+      }
+      render(); return true;
+    }catch(err){
+      if(err.bad){ showGate("That code didn't work. Try again."); return false; }
+      if(!quiet) $("#summary").textContent="Couldn't load the list. Refresh the page to try again.";
+      return false;
+    }
+  }
+
+  async function setStatus(ids,status){
+    const list=ids.split(",");
+    items.forEach(i=>{ if(list.includes(i.key)){ i.status=status; i.updated_at=new Date().toISOString(); } });
+    render();
+    try{ await call({action:"set",ids,status}); }
+    catch(err){ if(err.bad){ showGate("That code didn't work. Try again."); return; } toast("Couldn't save that. Check your connection.",null); }
+  }
+
+  function toast(msg,undoIds){
+    $("#toastmsg").textContent=msg; $("#undo").hidden=!undoIds; lastUndo=undoIds; $("#toast").hidden=false;
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>{$("#toast").hidden=true;},6000);
+  }
+
+  document.addEventListener("click",e=>{
+    const d=e.target.closest("[data-done]");
+    if(d){ setStatus(d.dataset.done,"done"); toast("Marked done.",d.dataset.done); return; }
+    const u=e.target.closest("[data-undo]");
+    if(u){ setStatus(u.dataset.undo,"open"); return; }
+    const p=e.target.closest(".pill");
+    if(p){ filter=p.dataset.f; document.querySelectorAll(".pill").forEach(x=>x.setAttribute("aria-pressed",String(x===p))); try{localStorage.setItem("inkFilter",filter)}catch(_){} render(); }
+  });
+  $("#undo").addEventListener("click",()=>{ if(lastUndo) setStatus(lastUndo,"open"); $("#toast").hidden=true; });
+  $("#refresh").addEventListener("click",()=>load(false));
+
+  function showGate(msg){ $("#gate").hidden=false; $("#app").hidden=true; $("#gmsg").textContent=msg||""; $("#gcode").focus(); }
+  async function enter(){
+    $("#gate").hidden=true; $("#app").hidden=false;
+    const ok=await load(false);
+    if(ok){ try{ localStorage.setItem("cdaDeskCode",CODE); }catch(_){} }
+  }
+  $("#gform").addEventListener("submit",e=>{ e.preventDefault(); CODE=$("#gcode").value.trim(); if(!CODE){ showGate("Type the code to enter."); return; } enter(); });
+  $("#logout").addEventListener("click",()=>{ try{ localStorage.removeItem("cdaDeskCode"); }catch(_){} CODE=""; items=[]; showGate(""); });
+
+  try{ const f=localStorage.getItem("inkFilter"); if(f){ filter=f; document.querySelectorAll(".pill").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.f===f))); } }catch(_){}
+  if(CODE) enter(); else showGate("");
+  setInterval(()=>{ if(CODE&&!$("#app").hidden&&document.visibilityState==="visible") load(true); },60000);
+})();
+</script>
+</body>
+</html>
