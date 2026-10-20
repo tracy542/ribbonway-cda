@@ -12,7 +12,7 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5}
-  .wrap{max-width:900px;margin:0;padding:20px 16px 80px}
+  .wrap{max-width:1100px;margin:0;padding:20px 16px 80px}
   h1{color:var(--navy);font-size:30px;margin:0 0 4px}
   .sub{color:var(--muted);margin:0 0 18px}
   .pickers{display:flex;flex-wrap:wrap;gap:14px;background:var(--card);border:2px solid var(--navy);border-radius:8px;padding:14px 16px;margin-bottom:18px}
@@ -46,6 +46,21 @@
 .kq summary{cursor:pointer;font-weight:700;color:#1f3a6e;padding:6px 0}
 .kq ul{margin:4px 0 8px 20px;padding:0;list-style:disc}
 .kq li{margin:4px 0;border:0;padding:0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 190px 130px;gap:10px;align-items:start}
+.row > label{min-width:0}
+.cell{padding:10px 2px;font-size:16px}
+.cell a{color:var(--navy2);font-weight:700}
+.cell .soon{color:var(--muted)}
+.clab{display:none}
+.thead{display:grid;grid-template-columns:minmax(0,1fr) 190px 130px;gap:10px;color:var(--muted);font-size:14px;font-weight:700;padding:0 2px 4px;border-bottom:1px solid var(--line)}
+.thead span:first-child{padding-left:36px}
+@media (max-width:640px){
+  .row{grid-template-columns:1fr}
+  .cell{padding:0 2px 8px 36px}
+  .clab{display:inline;color:var(--muted);font-weight:700;margin-right:6px}
+  .thead{display:none}
+}
+@media print{.cell.vid,.thead span:last-child{display:none}.row,.thead{grid-template-columns:minmax(0,1fr) 190px}}
 </style>
 </head>
 <body>
@@ -212,15 +227,20 @@ function render(){
 
   let html = "";
   groups.forEach((g, gi) => {
-    html += `<section><h2>${esc(g.title)}</h2><ul>`;
+    html += `<section><h2>${esc(g.title)}</h2><div class="thead"><span>Document</span><span>Form</span><span>Training</span></div><ul>`;
     g.items.forEach((it, ii) => {
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
-      html += `<li class="${on ? "done" : ""}"><label>
+      const f = it[4] || null, vid = it[5] || "";
+      const formCell = f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "From zipForm – coming soon")}</span>`;
+      const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Watch</a>` : `<span class="soon">Coming soon</span>`;
+      html += `<li class="${on ? "done" : ""}"><div class="row"><label>
         <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
         <span><span class="name">${esc(it[0])}</span>
         ${it[1] ? `<span class="when">When: ${esc(it[1])}</span>` : ""}
-        <span class="src">${esc(it[2])}</span></span></label>${it[3] ? `<details class="kq"><summary>Key questions</summary><ul>${it[3].map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>` : ""}</li>`;
+        <span class="src">${esc(it[2])}</span></span></label>
+        <div class="cell form"><span class="clab">Form</span>${formCell}</div>
+        <div class="cell vid"><span class="clab">Training</span>${vidCell}</div></div>${it[3] ? `<details class="kq"><summary>Key questions</summary><ul>${it[3].map(q => `<li>${esc(q)}</li>`).join("")}</ul></details>` : ""}</li>`;
     });
     html += `</ul></section>`;
   });
