@@ -188,7 +188,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .sheet td{font-size:15px}
 .sheet thead tr:first-child th{white-space:normal}
 .sheet td.nw{white-space:normal}
-.sheet td.code,.sheet tr.main td:nth-child(3),.sheet td.num,.sheet td.stc{white-space:nowrap}
+.sheet td.code,.sheet tr.main td:nth-child(4),.sheet td.num,.sheet td.stc{white-space:nowrap}
 .sheet td.addrc{min-width:170px}
 .sheet td .btn{padding:6px 10px;font-size:14px;white-space:nowrap}
 .sheet td .mainnote{max-width:190px}
@@ -267,6 +267,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const WORK={open:"Not started",working:"Working",done:"Done"};
   const REVIEW={open:"To review",ready:"Ready to draft",drafted:"Email drafted",sent:"Findings sent",none:"No email needed"};
   const HISTORY_STATUSES=["closed","withdrawn","canceled","cancelled","expired"];
+  /* Agent paid: Tracy marks it after he pays the agent. A Closed deal can't be archived until it's Yes. */
+  const isPaid=r=>((r.paid||{}).status==="yes");
+  const needsPay=r=>/^(closed|sold|leased)$/i.test(String(r.mlsStatus||"").trim());
   let rows=[], filter="all", db=null, user=null, canWrite=true, names={}, openIds=new Set();
   const local={}; // unsaved review edits per CDA: {decisions:[], cc:{gavin,tracy}}
   try{ const f=localStorage.getItem("cdaDeskView"); if(f) filter=f; }catch(e){}
@@ -317,14 +320,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
   let sortKey="closing", sortDir=1, query="", officeF="", agentF="", colF={};
-  const COLDEFS=[["mlsStatus","MLS status"],["cda","CDA"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
+  const COLDEFS=[["mlsStatus","MLS status"],["paid","Agent paid"],["cda","CDA"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
   const TEXTF=new Set(["address","price","mls"]);
-  function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; default: return String(r[k]||""); } }
+  function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; case "paid": return isPaid(r)?"Yes":"No"; default: return String(r[k]||""); } }
   /* Text columns hold a string. Pick columns hold undefined (all, boxes checked) or an array of picked values; an empty array means "cleared" (boxes unchecked, nothing filtered). */
   const cfOn=k=>TEXTF.has(k)?!!colF[k]:(Array.isArray(colF[k])&&colF[k].length>0);
   const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip||!cfOn(k)) return true; const f=colF[k]; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):f.includes(t===""?"(blank)":t); });
   const slug=n=>String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  function sortVal(r){ switch(sortKey){ case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
+  function sortVal(r){ switch(sortKey){ case "paid": return isPaid(r)?"Yes":"No"; case "price": return Number(r.price)||0; case "cda": return codeOf(r)||""; case "comp": return compState(r).label; case "review": return (r.review||{}).status||""; case "work": return (r.work||{}).status||"open"; case "office": return OFFICES[r.office]||r.office||""; default: return r[sortKey]||""; } }
   const isRemoved=r=>!!(r.archived&&r.archived.at);
   function visible(){ return baseRows().filter(r=>cfMatch(r))
       .sort((a,b)=>{ const x=sortVal(a), y=sortVal(b); const ex=x===""||x==null, ey=y===""||y==null; if(ex!==ey) return ex?1:-1; return (typeof x==="number"&&typeof y==="number"?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}))*sortDir; }); }
@@ -482,6 +485,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main${showStart(r)?" hasstart":""}" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td class="stc">${esc(r.mlsStatus||"")}</td>
+        <td class="nw"><span class="pill ${isPaid(r)?"good":""}">${isPaid(r)?"Yes":"No"}</span>${isPaid(r)&&r.paid.at?`<span class="mainnote">${fmtDate(r.paid.at)}</span>`:""}${BY==="Tracy"&&!isRemoved(r)?`<div style="margin-top:6px"><button class="btn ghost" data-paid="${id}" data-v="${isPaid(r)?"no":"yes"}">${isPaid(r)?"Undo":"Mark paid"}</button></div>`:""}</td>
         <td class="nw cdac"><span class="code">${cdaLink(codeOf(r))}</span></td>
         <td class="nw">${esc(r.closing||"")}</td>
         <td class="addrc">${esc(r.address||"Address not set")}${r.brightChange&&r.brightChange.note?`<span class="bchg">Changed in Bright ${fmtDate(r.brightChange.seenAt||r.brightChange.at)}: ${esc(r.brightChange.note)}</span>`:""}</td>
@@ -492,10 +496,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
-        <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
+        <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:(needsPay(r)&&!isPaid(r)?`<button class="btn ghost" disabled title="Archive after the agent is paid">Archive</button><span class="mainnote">Archive after the agent is paid.</span>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`)}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
-      ${showStart(r)?`<tr class="startrow"><td colspan="6"></td><td colspan="6">${rowStartBtn(r)}</td></tr>`:""}
-      <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="12"><div class="body">
+      ${showStart(r)?`<tr class="startrow"><td colspan="7"></td><td colspan="6">${rowStartBtn(r)}</td></tr>`:""}
+      <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="13"><div class="body">
         <div class="workline" style="margin-top:12px">
           <label for="st-${id}"><b>Work</b></label>
           <select id="st-${id}" ${canWrite?"":"disabled"}>${Object.keys(WORK).map(k=>`<option value="${k}" ${k===(w.status||"open")?"selected":""}>${WORK[k]}</option>`).join("")}</select>
@@ -797,7 +801,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const anyCF=Object.keys(colF).some(cfOn); $("#clearCF").hidden=!anyCF;
     if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been archived.":"Nothing in this view."}</div>`; return; }
     const cols=COLDEFS;
-    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="12" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
+    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="13" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
     renderMf();
   }
   function rerenderRow(id){
@@ -881,6 +885,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
         confirmIds.delete(id); openIds.delete(id);
       }catch(err){ ry.disabled=false; if(msg){msg.className="err";msg.textContent="Couldn't remove it. You may only have view access.";} }
       return; }
+    const pd=e.target.closest("[data-paid]");
+    if(pd&&db){ pd.disabled=true; const v=pd.dataset.v; try{ await db.collection("cdas").doc(pd.dataset.paid).update({paid:{status:v,by:BY||"Office",at:v==="yes"?new Date().toISOString():""}}); }catch(_){ pd.disabled=false; } return; }
     const rs=e.target.closest("[data-restore]");
     if(rs&&db){ rs.disabled=true; try{ await db.collection("cdas").doc(rs.dataset.restore).update({archived:{at:"",by:"",reason:""}}); }catch(_){ rs.disabled=false; } return; }
     const rd=e.target.closest("[data-ready]");
@@ -903,7 +909,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-recheck],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.parentElement.querySelector("tr.det"); const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
