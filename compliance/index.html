@@ -228,6 +228,32 @@ textarea{width:100%;min-height:80px;resize:vertical}
 </div>
 
 <div class="wrap" id="app" hidden>
+  <!-- Ink Well: Tracy's signature folder (separate code-protected page) -->
+  <style>
+    .inkwell-btn{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;min-height:110px;margin:0 0 18px;padding:20px 28px;border-radius:14px;background:#1B2B4B;border:4px solid #B8892B;color:#fff;text-decoration:none}
+    .inkwell-btn:hover{background:#22355c;color:#fff}
+    .inkwell-btn .iw-name{display:block;font-family:"Source Serif 4",Georgia,serif;font-size:clamp(36px,7vw,52px);font-weight:700;line-height:1}
+    .inkwell-btn .iw-sub{display:block;font-size:18px;color:#E8E2D2;margin-top:6px}
+    .inkwell-btn .iw-open{font-size:20px;font-weight:700;white-space:nowrap}
+    .inkwell-btn .iw-open b{font-size:40px;color:#F2C877;margin-right:8px}
+  </style>
+  <a class="inkwell-btn" href="/inkwell/">
+    <span><span class="iw-name">Ink Well</span><span class="iw-sub">Everything waiting on Tracy or Compliance Approval</span></span>
+    <span class="iw-open"><b id="iwCount"></b><span id="iwTxt">open</span></span>
+  </a>
+  <script>
+  (function(){ /* Show the waiting count only for someone who already unlocked the Ink Well on this device */
+    var code=""; try{ code=localStorage.getItem("cdaDeskCode")||""; }catch(_){}
+    if(!code) return;
+    fetch("https://hook.us2.make.com/u6p66e6jboah7805h7x3bwxlq632q5qu",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:code,action:"list"})})
+      .then(function(r){ return r.ok?r.json():null; }).then(function(j){
+        if(!j||!j.items) return; var seen={}, n=0;
+        j.items.forEach(function(r){ if(!r||!r.key||r.key.charAt(0)==="_"||r.status==="done") return; var d=r.doc||{}; var g=d.kind==="approve"?(d.title+"|"+d.who):r.key; if(!seen[g]){ seen[g]=1; n++; } });
+        var el=document.getElementById("iwCount"), t=document.getElementById("iwTxt"); if(el&&t){ el.textContent=n; t.textContent="waiting · open"; }
+      }).catch(function(){});
+  })();
+  </script>
+
   <div id="agentView" hidden></div>
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
