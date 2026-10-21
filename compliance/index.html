@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Compliance Desk · Blue Ribbon</title>
+<title>CCDA Desk · Blue Ribbon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
 <style>
@@ -231,7 +231,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="agentView" hidden></div>
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
-    <div class="topbar"><h1>CDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
+    <div class="topbar"><h1>CCDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
     <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: KJ (Claude), Radar (ChatGPT) and Gemini findings side by side. When all three flag the same item, it's almost certainly real. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
   </header>
 
@@ -423,7 +423,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const first=String(r.agent||"").split(" ")[0]||"there";
     const yes=rv.decisions.filter(d=>d.include==="yes").map(d=>"- "+d.text).join("\n");
     const cc=["Gavin","Tracy"].filter(n=>rv.cc[n.toLowerCase()]);
-    const top=`To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CDA "+codeOf(r)+")":""}\n\n${first},`;
+    const top=`To: ${r.agent||"Agent"}${cc.length?"\nCc: "+cc.join(", "):""}\nSubject: Compliance items for ${r.address||"your file"}${codeOf(r)?" (CCDA "+codeOf(r)+")":""}\n\n${first},\n\nYour CCDA (Compliance and Commission Disbursement Authorization) is used for compliance on all listing and contract paperwork and for disbursement tracking. The items below need attention:`;
     const bottom=`${yes}\n\nPlease correct these in zipForm or dotloop within 48 hours of this email, then reply so we can re-check.\n\nTracy`;
     return {top,bottom};
   }
