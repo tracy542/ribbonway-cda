@@ -27,6 +27,11 @@
   .note[hidden]{display:none}
   section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px 6px;margin-bottom:16px}
   section h2{color:var(--navy);font-size:20px;margin:0 0 8px}
+  section h2.tog{cursor:pointer;user-select:none;display:flex;align-items:center;gap:8px}
+  section h2.tog::before{content:"\25BE";font-size:16px;transition:transform .15s}
+  section.collapsed h2.tog::before{transform:rotate(-90deg)}
+  section.collapsed .thead,section.collapsed > ul{display:none}
+  @media print{section.collapsed .thead{display:grid}section.collapsed > ul{display:block}section h2.tog::before{content:none}}
   ul{list-style:none;margin:0;padding:0}
   li{border-top:1px solid var(--line)}
   li:first-child{border-top:0}
@@ -209,6 +214,7 @@ const DATA = {
 
 const $ = id => document.getElementById(id);
 const checked = new Set();
+const collapsed = new Set();
 
 function params(){
   const p = new URLSearchParams(location.search);
@@ -231,7 +237,8 @@ function render(){
 
   let html = "";
   groups.forEach((g, gi) => {
-    html += `<section><h2>${esc(g.title)}</h2><div class="thead"><span>Document</span><span>Form</span><span>Training</span></div><ul>`;
+    const ck = `${st}|${side}|${cty}|${gi}`;
+    html += `<section class="${collapsed.has(ck) ? "collapsed" : ""}"><h2 class="tog" data-ck="${ck}" role="button" tabindex="0" aria-expanded="${!collapsed.has(ck)}">${esc(g.title)}</h2><div class="thead"><span>Document</span><span>Form</span><span>Training</span></div><ul>`;
     g.items.forEach((it, ii) => {
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
@@ -268,6 +275,14 @@ $("lists").addEventListener("change", e => {
   b.closest("li").classList.toggle("done", b.checked);
   updateProgress();
 });
+function toggleSec(h){
+  const sec = h.closest("section"), ck = h.dataset.ck;
+  const c = sec.classList.toggle("collapsed");
+  c ? collapsed.add(ck) : collapsed.delete(ck);
+  h.setAttribute("aria-expanded", String(!c));
+}
+$("lists").addEventListener("click", e => { const h = e.target.closest("h2.tog"); if (h) toggleSec(h); });
+$("lists").addEventListener("keydown", e => { const h = e.target.closest("h2.tog"); if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleSec(h); } });
 ["state","county","side"].forEach(id => $(id).addEventListener("change", render));
 $("clearBtn").addEventListener("click", () => { checked.clear(); render(); });
 
