@@ -286,7 +286,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
     return {cls:"warn",label:"Not checked yet"};
   }
-  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; return rc.status==="requested" ? `<span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}. Results will be in tomorrow.</span>` : `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. "}Checked tonight at 11:59 PM. Results will be in tomorrow.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; const last=(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. ";
+    if(rc.status==="running") return `<button class="btn" disabled>Checking now…</button><span class="mainnote">KJ started ${fmtDate(rc.startedAt||rc.requestedAt)}. Results show here when done.</span>`;
+    if(rc.status==="requested") return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}. KJ checks it within the hour.</span>`;
+    return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${last}KJ checks it within the hour of your click.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[],(r.compliance||{}).gt||[]);
   /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
      written by Radar (ChatGPT); src "gt" = compliance.gt, written by Gemini. Only the labels below say who checked. */
@@ -536,8 +539,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const cards=mine.map(r=>{
       const cs=compState(r), id=esc(r.id), rc=r.recheck||{}, items=released(r), c=r.compliance||{};
       const code=codeOf(r);
-      const btn= rc.status==="requested" ? `<button class="btn big" disabled>Requested — checking</button><span class="foot">Asked ${fmtDate(rc.requestedAt)}. Checked tonight at 11:59 PM. Results will be in tomorrow.</span>`
-        : `<button class="btn big" data-recheck="${id}">Check again</button><span class="foot">Checked tonight at 11:59 PM. Results will be in tomorrow.</span>${(rc.doneAt||c.checkedAt)?`<span class="foot">Checked ${fmtDate(rc.doneAt||c.checkedAt)}</span>`:""}`;
+      const btn= rc.status==="running" ? `<button class="btn big" disabled>Checking now…</button><span class="foot">Started ${fmtDate(rc.startedAt||rc.requestedAt)}. Results show here when done.</span>`
+        : rc.status==="requested" ? `<button class="btn big" data-recheck="${id}">Check again</button><span class="foot">Asked ${fmtDate(rc.requestedAt)}. Checked within the hour.</span>`
+        : `<button class="btn big" data-recheck="${id}">Check again</button><span class="foot">Checked within the hour of your click.</span>${(rc.doneAt||c.checkedAt)?`<span class="foot">Checked ${fmtDate(rc.doneAt||c.checkedAt)}</span>`:""}`;
       return `<article class="deal s-${cs.cls}">
         <h2>${esc(r.address||"Address not set")}</h2>
         <dl class="facts">
