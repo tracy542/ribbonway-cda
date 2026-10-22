@@ -178,13 +178,39 @@ details.donebox summary{cursor:pointer;font-weight:600;min-height:32px}
     }).sort((a,b)=>Date.parse(a[a.length-1].doc.received||0)-Date.parse(b[b.length-1].doc.received||0));
   }
 
+  // Where the main button goes: the house itself, never a bare home page.
+  const DESK="https://cda.ribbonway.com/compliance/";
+  const norm=t=>String(t||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const street=t=>String(t||"").split(",")[0].replace(/\s+-\s+.*$/,"").trim();
+  // Desk search key: house number + first word of the street ("621 Platt"), so "MTN lane" vs "Mountain Ln" still matches
+  const findKey=t=>{ const w=street(t).split(/\s+/); return /^\d/.test(w[0]||"")?w.slice(0,2).join(" "):street(t); };
+  function houseLink(rows){
+    const d=rows[0].doc;
+    if(d.kind==="review"){
+      const cda=(String(d.detail||"").match(/CDA (\d+)/)||[])[1];
+      return {url:cda?DESK+"#deal="+cda:DESK+"#find="+encodeURIComponent(findKey(d.title)),label:"Open this house"};
+    }
+    if(d.kind==="approve"){
+      // zipForm transaction link from this card, or from any other email about the same house
+      const has=x=>/transactionId=[0-9a-f-]{8,}/i.test(x||"");
+      let tx=(rows.find(r=>has(r.doc.link))||{}).doc;
+      if(!tx){ const key=norm(street(d.title)); tx=(items.find(i=>has(i.doc.link)&&key&&norm(street(i.doc.title))===key)||{}).doc; }
+      if(tx) return {url:tx.link,label:"Open house in zipForm"};
+      // zipForm's "Approval Requested" emails carry no transaction link: open the house on the desk
+      return {url:DESK+"#find="+encodeURIComponent(findKey(d.title)),label:"Find this house",alt:{url:"https://www.zipformplus.com/",label:"zipForm"}};
+    }
+    return {url:d.link,label:d.linkLabel||"Open"};
+  }
+
   function card(rows){
     const d=rows[0].doc, kind=d.kind;
     const oldest=rows[rows.length-1].doc.received;
     const a=age(oldest);
     const label={sign:"SIGN",approve:"APPROVE",review:"REVIEW"}[kind]||kind.toUpperCase();
     const docs=[...new Set(rows.map(r=>r.doc.detail).filter(Boolean))];
-    const link=safeUrl(rows.find(r=>/transactionId=/.test(r.doc.link||""))?.doc.link||d.link);
+    const go=houseLink(rows);
+    const link=safeUrl(go.url);
+    const alt=safeUrl(go.alt&&go.alt.url);
     const mail=safeUrl(d.mailLink);
     const ids=rows.map(r=>r.key).join(",");
     return `<article class="card" data-ids="${esc(ids)}">
@@ -193,7 +219,8 @@ details.donebox summary{cursor:pointer;font-weight:600;min-height:32px}
       <div class="who">${esc(d.who)}${kind!=="approve"&&d.detail?" · "+esc(d.detail):""}</div>
       ${kind==="approve"&&docs.length?`<ul class="docs">${docs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
       <div class="actions">
-        ${link?`<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener">${esc(d.linkLabel||"Open")}</a>`:""}
+        ${link?`<a class="btn primary" href="${esc(link)}" target="_blank" rel="noopener">${esc(go.label)}</a>`:""}
+        ${alt?`<a class="btn ghost" href="${esc(alt)}" target="_blank" rel="noopener">${esc(go.alt.label)}</a>`:""}
         ${mail&&mail!==link?`<a class="btn ghost" href="${esc(mail)}" target="_blank" rel="noopener">Open email</a>`:""}
         <button class="btn done" type="button" data-done="${esc(ids)}">Done</button>
       </div>

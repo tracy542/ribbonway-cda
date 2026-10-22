@@ -944,7 +944,33 @@ textarea{width:100%;min-height:80px;resize:vertical}
       if(txt){ const n=document.querySelector(`input[data-cf="${k}"]`); if(n){ n.focus(); try{n.setSelectionRange(pos,pos)}catch(_){} } } return; }
     if(e.target.id==="officeF"){ officeF=e.target.value; render(); return; } if(e.target.id==="agentF"){ agentF=e.target.value; render(); return; } if(e.target.id==="q"){ query=e.target.value.trim().toLowerCase(); render(); } });
 
-  window.addEventListener("hashchange",()=>{ render(); window.scrollTo(0,0); });
+  window.addEventListener("hashchange",()=>{ if(deepLink()) return; render(); window.scrollTo(0,0); });
+  // Links from the Ink Well: #deal=<CDA number> opens that house's row; #find=<street> searches for it.
+  function deepLink(){
+    const h=decodeURIComponent((location.hash||"").slice(1));
+    const m=h.match(/^(deal|find)=(.+)$/); if(!m||!rows.length) return false;
+    const val=m[2].trim();
+    filter="all"; officeF=""; agentF=""; colF={};
+    let target=null;
+    if(m[1]==="deal"){
+      target=rows.find(r=>String(r.id)===val||String(r.cdaCode||"")===val);
+      query="";
+      if(target&&isRemoved(target)) filter="removed";
+    }else{
+      query=val.toLowerCase();
+    }
+    const q=document.getElementById("q"); if(q) q.value=m[1]==="find"?val:"";
+    const of=document.getElementById("officeF"); if(of) of.value="";
+    history.replaceState(null,"",location.pathname+location.search);
+    render();
+    if(!target&&m[1]==="find"){ const v=visible(); if(v.length===1) target=v[0]; }
+    if(target){
+      openIds.add(String(target.id)); render();
+      const el=document.querySelector(`tbody.row[data-id="${CSS.escape(String(target.id))}"]`);
+      if(el){ el.scrollIntoView({block:"start"}); el.style.outline="3px solid #E2B84A"; setTimeout(()=>{el.style.outline="";},4000); }
+    }
+    return true;
+  }
   render();
 
   /* ---- Code-protected data link (Make). The code is checked in Make, not here. ---- */
@@ -986,6 +1012,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   async function enter(){
     document.getElementById("gate").hidden=true; document.getElementById("app").hidden=false;
     const ok=await load(false); if(!ok) return;
+    deepLink();
     loadAgents();
     try{ localStorage.setItem("cdaDeskCode",CODE); localStorage.setItem("cdaDeskName",BY); }catch(_){}
   }
