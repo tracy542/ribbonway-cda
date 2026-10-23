@@ -8,96 +8,98 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
 <style>
-/* Agent Roster: one left-aligned list of every agent in Make data store 154925 (ACB · Agent Master Data).
-   Same sign-in, code and look as the CCDA Desk at /compliance. Click a row to edit; "Add agent" makes a new 7-digit ID. */
+/* Layout: one left-aligned working column — sign-in gate, BrokerSumo box, needs attention, search, then the roster sheet (scrolls sideways inside its frame on phones). Navy/gold, large type. */
 :root{
-  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a;
-  --accent:#1f4fa3; --accent-ink:#ffffff;
-  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8; --good:#1e6b3a; --good-bg:#e3f3e8; --idle-bg:#eceff4;
-  --f-display:"Source Serif 4", Georgia, serif;
-  --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a; --quiet:#eceff4;
+  --navy:#0B1F3A; --navy-ink:#ffffff; --gold:#C9A227; --link:#1f4fa3;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8; --good:#1e6b3a; --good-bg:#e3f3e8;
+  --f-display:"Source Serif 4", Georgia, serif; --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2;
-  --accent:#7fa6ee; --accent-ink:#0d1422;
-  --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; --idle-bg:#242d3e; color-scheme:dark}}
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2;
-  --accent:#7fa6ee; --accent-ink:#0d1422;
-  --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; --idle-bg:#242d3e; color-scheme:dark}
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45;margin:0;padding-inline:16px;padding-block:20px 48px}
-.wrap{max-width:1500px;display:flex;flex-direction:column;gap:18px}
-h1{font-family:var(--f-display);font-weight:600;font-size:2rem;margin:0}
-h1 .today{font-family:var(--f-body);font-weight:600;font-size:1.1rem;color:var(--muted);margin-left:10px;white-space:nowrap}
-h2{font-family:var(--f-display);font-weight:600;font-size:1.4rem;margin:0}
-.sub{color:var(--muted);margin:4px 0 0;max-width:80ch}
-.foot{color:var(--muted);font-size:.95rem;max-width:80ch;margin:0}
+html,body{max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.45;margin:0;padding:20px 16px 48px}
+h1,h2{font-family:var(--f-display);margin:0}
+h1{font-size:1.9rem} h2{font-size:1.25rem}
 [hidden]{display:none!important}
+a{color:var(--link)}
+.wrap{max-width:1880px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.sub{color:var(--muted);margin:4px 0 0}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.topbar .right{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+#logout{background:#C9A227;color:#0B1F3A;font:inherit;font-size:18px;font-weight:600;padding:6px 16px;border-radius:6px;border:0;cursor:pointer}
+#logout:hover{filter:brightness(1.08)}
 #gate{min-height:80vh;display:flex;align-items:center;justify-content:center}
 .gate-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px;width:min(420px,100%);display:flex;flex-direction:column;gap:14px;box-shadow:0 6px 24px rgba(0,0,0,.06)}
 .gate-card h1{font-size:1.7rem}
 .gate-card label{font-weight:600;font-size:.95rem}
-.gate-card input,.gate-card select{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-.gate-card .btn{width:100%;font-size:1.1rem;padding:12px}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.topright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.whoami{color:var(--muted);font-weight:600}
-#logout{background:#C9A227;color:#0B1F3A;font:inherit;font-size:18px;font-weight:600;padding:6px 16px;border-radius:6px;border:0;cursor:pointer}
-#logout:hover{filter:brightness(1.08)}
-#logout:focus-visible{outline:2px solid #0B1F3A;outline-offset:2px}
-.counts{display:flex;flex-wrap:wrap;gap:10px}
-.count{display:flex;align-items:baseline;gap:8px;padding:8px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
-.count b{font-size:1.5rem;font-variant-numeric:tabular-nums}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.toolbar input,.toolbar select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:100%}
-.toolbar input{min-width:260px;flex:0 1 360px}
-.btn{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer}
-.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{font:inherit;font-weight:600;border-radius:8px;padding:10px 18px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:var(--navy-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:5px 12px;font-size:16px}
 .btn:disabled{opacity:.5;cursor:default}
-button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,tr:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.list{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table.sheet{border-collapse:collapse;width:100%;min-width:1080px;font-size:16px;font-variant-numeric:tabular-nums}
-.sheet th{position:sticky;top:0;background:var(--idle-bg);text-align:left;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
-.sheet th[aria-sort="ascending"]::after{content:" ▲"} .sheet th[aria-sort="descending"]::after{content:" ▼"}
-.sheet td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-.sheet tr.main{cursor:pointer} .sheet tr.main:hover td{background:var(--bg)}
-.sheet tr.main td:first-child{border-left:5px solid var(--good)}
-.sheet tr.main.off td:first-child{border-left-color:var(--line)}
-.sheet tr.main.off td{color:var(--muted)}
-.sheet tr.main.open td{background:var(--bg)}
-.sheet td.nm{font-weight:700;min-width:190px}
-.sheet td.id{font-family:var(--f-mono);white-space:nowrap}
-.sheet td.num{text-align:right;white-space:nowrap}
-.sheet td.em{overflow-wrap:anywhere;max-width:280px}
-.sheet td.nw{white-space:nowrap}
-.sheet tr.det td{background:var(--bg);border-left:5px solid var(--accent);padding:0}
-.pill{display:inline-block;font-size:.85rem;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--idle-bg);color:var(--ink);white-space:nowrap}
-.pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)}
-/* Edit / add form */
-.edit{padding:16px;display:flex;flex-direction:column;gap:14px;width:min(1100px,calc(100vw - 60px));position:sticky;left:0}
-.card .edit{width:auto;max-width:1100px}
-.card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
-@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.grid{grid-template-columns:1fr}}
-.f{display:flex;flex-direction:column;gap:4px;min-width:0}
-.f.wide{grid-column:span 2} @media (max-width:560px){.f.wide{grid-column:auto}}
-.f label{font-weight:600;font-size:.95rem}
-.f small{color:var(--muted);font-size:.85rem}
-.f input,.f select{font:inherit;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
-.f input[readonly]{background:var(--idle-bg);color:var(--muted)}
-.f.changed input,.f.changed select{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.f.bad input,.f.bad select{border-color:var(--bad)}
-.chk{display:flex;align-items:center;gap:10px;font-weight:600}
-.chk input{width:22px;height:22px}
-.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.msg{font-weight:600} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
-.lock{display:flex;gap:8px;align-items:center;background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:.9rem;padding:6px 10px;border-radius:6px}
-.meta{color:var(--muted);font-size:.9rem}
-.empty{background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:20px;color:var(--muted);max-width:65ch}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.err{color:var(--bad)}
+.counts{display:flex;flex-wrap:wrap;gap:6px 20px;color:var(--muted)}
+.counts b{color:var(--ink)}
+.box{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.box.bs{border-left-color:var(--navy)}
+.box ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.box .nm{font:inherit;color:var(--link);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.bsrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.note{font-size:15px;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.tools .search{flex:1 1 280px;min-width:0}
+.sheetwrap{overflow:auto;max-height:calc(100vh - 180px);min-height:320px;background:var(--surface);border:1px solid var(--line);border-radius:8px;max-width:100%}
+table{border-collapse:separate;border-spacing:0;font-size:17px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+thead th{position:sticky;background:var(--quiet);z-index:2;font-size:15px;font-weight:700}
+#grpRow th{top:0;height:34px;border-bottom:1px solid var(--line)}
+#headRow th{top:34px;cursor:pointer;user-select:none;vertical-align:top}
+#headRow th[aria-sort="ascending"] .lbl::after{content:" ▲";font-size:11px}
+#headRow th[aria-sort="descending"] .lbl::after{content:" ▼";font-size:11px}
+th.grp{cursor:default}
+th.grp button{font:inherit;font-weight:700;width:28px;height:26px;line-height:22px;padding:0;margin-right:8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);cursor:pointer}
+th .hdsel{display:block;margin-top:4px;width:auto;min-width:110px;font-size:14px;font-weight:400;padding:3px 6px;border-radius:5px}
+th.gs,td.gs{border-left:3px solid var(--line)}
+th.stub,td.stub{min-width:16px;width:16px;padding:0;background:var(--quiet)}
+tbody tr{cursor:pointer;background:var(--surface)}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--quiet) 50%,var(--surface))}
+tbody tr:hover td{background:color-mix(in srgb,var(--gold) 14%,var(--surface))}
+tbody tr.gone td{color:var(--muted)}
+td.rn{color:var(--muted);text-align:right;font-size:14px}
+td.num{text-align:right}
+.mono{font-family:var(--f-mono);font-size:16px;letter-spacing:.03em}
+.last{font-weight:700}
+.pill{display:inline-block;font-size:14px;font-weight:600;border-radius:4px;padding:1px 8px}
+.p-active{background:var(--good-bg);color:var(--good)} .p-referral{background:var(--quiet);color:var(--link)} .p-inactive{background:var(--quiet);color:var(--muted)}
+td.exp-bad{background:var(--bad-bg)!important;color:var(--bad);font-weight:700}
+td.exp-warn{background:var(--warn-bg)!important;color:var(--warn);font-weight:700}
+.flag{display:inline-block;font-size:13px;font-weight:600;border-radius:4px;padding:1px 6px;margin-right:4px}
+.f-bad{background:var(--bad-bg);color:var(--bad)} .f-warn{background:var(--warn-bg);color:var(--warn)} .f-quiet{background:var(--quiet);color:var(--muted)}
+.empty{padding:28px 18px;color:var(--muted)}
+dialog{border:0;border-radius:12px;padding:0;width:min(720px,calc(100vw - 16px));max-height:calc(100vh - 24px);background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,16,30,.55)}
+.dlg{display:flex;flex-direction:column;gap:16px;padding:22px 20px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.lic{display:grid;grid-template-columns:52px 1fr 180px;gap:10px;align-items:center}
+@media (max-width:600px){.grid2{grid-template-columns:1fr}.lic{grid-template-columns:44px 1fr}.lic input[type=date]{grid-column:2}}
+label{display:flex;flex-direction:column;gap:4px;font-size:15px;color:var(--muted);font-weight:600}
+.full{grid-column:1/-1}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+legend{font-weight:700;color:var(--muted);padding:0 6px}
+.lic b{font-family:var(--f-mono)}
+.inact{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--quiet);display:flex;flex-direction:column;gap:4px}
+.inact label{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:18px}
+.inact input,.chk input{width:22px;height:22px}
+.chk{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-size:17px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.wnote{font-size:18px;font-weight:600;margin:0}
 </style>
 </head>
 <body>
@@ -109,244 +111,311 @@ table.sheet{border-collapse:collapse;width:100%;min-width:1080px;font-size:16px;
     <div><label for="gcode">Code</label><input id="gcode" type="password" autocomplete="off" spellcheck="false"></div>
     <div><label for="gname">Who's working?</label><select id="gname"><option>Gavin</option><option>Tracy</option><option>Office</option></select></div>
     <button class="btn" type="submit">Enter</button>
-    <p id="gmsg" class="msg err" role="status" style="margin:0"></p>
+    <p id="gmsg" class="err" role="status" style="margin:0"></p>
   </form>
 </div>
 
 <div class="wrap" id="app" hidden>
   <header>
-    <div class="topbar">
-      <h1>Agent Roster <span class="today" id="today"></span></h1>
-      <div class="topright"><span class="whoami" id="whoami"></span><button id="logout" type="button">Logout</button></div>
-    </div>
-    <p class="sub">Every Blue Ribbon agent, in one list. This is the list the CCDA form's agent dropdown and the payout math read. Click an agent to change anything. Use Add agent for someone new — they get their own 7-digit agent ID.</p>
+    <div class="topbar"><h1>Agent Roster</h1><div class="right"><a href="/compliance/">CCDA Desk</a><button id="logout" type="button">Logout</button></div></div>
+    <p class="sub">Every agent, one 7-digit ID. This list feeds the CDA form's agent pick list. Signed in as <b id="who"></b>.</p>
   </header>
 
-  <div class="counts" id="counts" aria-live="polite"></div>
+  <section class="box bs" id="bsBox" hidden></section>
+  <div class="counts" id="counts" aria-live="polite">Loading roster…</div>
+  <section class="box" id="attn" hidden><h2>Needs attention</h2><ul id="attnList"></ul></section>
 
-  <div class="toolbar">
-    <input id="q" type="search" placeholder="Search name, email, phone, ID" aria-label="Search">
-    <select id="officeF" aria-label="Office"><option value="">All offices</option><option value="MBG">Martinsburg</option><option value="FR">Front Royal</option><option value="Bow">Bowie</option><option value="REF">Referral</option></select>
-    <select id="activeF" aria-label="Active or inactive"><option value="true">Active agents</option><option value="false">Inactive agents</option><option value="">Active and inactive</option></select>
-    <button class="btn" id="addBtn" type="button">+ Add agent</button>
+  <div class="tools">
+    <div class="search"><input id="q" type="search" placeholder="Search name, ID, email or license number" aria-label="Search agents"></div>
+    <button class="btn" id="addBtn" type="button">Add agent</button>
   </div>
-
-  <section class="card" id="addCard" hidden aria-labelledby="addTitle"></section>
-
-  <div class="list" id="list"><div class="empty">Loading agents…</div></div>
-
-  <p class="foot">Saves go straight to Make (ACB · Agent Master Data). Name, email and office are required. Split % and ARF % are numbers from 0 to 100. A blank ARF % means the standard 6%. An ARF % of 0 means the agent pays no ARF and no admin fee — that is locked here so it can't be changed by accident. Unchecking Active takes an agent out of the CCDA dropdown but keeps their history.</p>
+  <p class="wnote">For every agent: we pay 6% to Weichert on your behalf.</p>
+  <div class="sheetwrap">
+    <table><thead><tr id="grpRow"></tr><tr id="headRow"></tr></thead><tbody id="rows"></tbody></table>
+    <div class="empty" id="empty">Loading agents…</div>
+  </div>
+  <p class="note">Click a column title to sort. Click a row to open the agent. Agents are never deleted — check "Inactive — left the company" instead. BrokerSumo is the source of truth for agents; Donna's list is the source for referral agents. Red expiration = expired, amber = expires within 90 days.</p>
 </div>
+
+<dialog id="dlg">
+  <form class="dlg" id="form" novalidate>
+    <h2 id="dlgTitle">Add agent</h2>
+    <div class="note" id="dlgId"></div>
+    <div class="grid2">
+      <label>First name<input id="f_first" autocomplete="off"></label>
+      <label>Last name<input id="f_last" autocomplete="off"></label>
+      <label>Email<input id="f_email" type="email" autocomplete="off"></label>
+      <label>Phone<input id="f_cell_phone" type="tel" autocomplete="off"></label>
+      <label>Office<select id="f_office"><option value="MBG">MBG — Martinsburg, WV</option><option value="FR">FR — Front Royal, VA</option><option value="Bow">Bow — Bowie, MD</option><option value="REF">REF — Referral</option></select></label>
+      <label>Status<select id="f_status"><option value="active">Active agent</option><option value="referral">Referral agent</option></select></label>
+      <label>Commission Split % (to agent)<input id="f_commission_split_pct" inputmode="decimal" autocomplete="off" placeholder="e.g. 80"></label>
+      <label>Standard split % (CDA form uses this)<input id="f_standard_split_pct" inputmode="decimal" autocomplete="off"></label>
+      <label>Plan<input id="f_plan_name" autocomplete="off"></label>
+      <label>Monthly fee<select id="f_monthly_fee_status"><option value="">Not set</option><option value="setup">Set up</option><option value="annual">Paid for the year</option><option value="exempt">No fee (exempt)</option><option value="none">Not set up</option><option value="failed">Payment failed</option><option value="canceled">Canceled</option></select></label>
+      <label>Pays ARF?<select id="f_pays_arf"><option value="">Not set</option><option value="yes">Yes</option><option value="no">No</option></select></label>
+      <label>ARF % <span id="arfLock" class="note"></span><input id="f_arf_pct" inputmode="decimal" autocomplete="off" placeholder="blank = standard 6%"></label>
+      <label>Bright ID<input id="f_mls_agent_id" autocomplete="off"></label>
+      <label>Forms platform<select id="f_platform"><option value="">Not set</option><option>zipForm</option><option>dotloop</option><option>Both</option></select></label>
+      <label class="chk full"><input type="checkbox" id="f_split_verified"> <span>Split verified <span id="svMeta" class="note"></span></span></label>
+    </div>
+    <fieldset><legend>Licensing</legend><div id="licRows" style="display:flex;flex-direction:column;gap:10px"></div></fieldset>
+    <fieldset><legend>More</legend>
+      <div class="grid2">
+        <label class="full">Mailing address<input id="f_mailing_address" autocomplete="off"></label>
+        <label>Team name<input id="f_team_name" autocomplete="off"></label>
+        <label>Team role<select id="f_team_leader_or_agent"><option value="">None</option><option>Leader</option><option>Agent</option></select></label>
+        <label>BrokerSumo ID<input id="f_brokersumo_id" autocomplete="off"></label>
+        <label>Hire date<input id="f_hire_date" type="date"></label>
+        <label class="full">Notes<textarea id="f_notes" rows="2"></textarea></label>
+      </div>
+    </fieldset>
+    <div class="inact" id="inactBox" hidden>
+      <label><input type="checkbox" id="f_inactive"> Inactive — left the company</label>
+      <div class="note" id="inactMeta">Drops the agent from the CDA pick list. Their ID and deal history stay. Uncheck to bring them back with the same ID.</div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="submit" id="saveBtn">Save</button>
+      <button class="btn ghost" type="button" id="cancelBtn">Cancel</button>
+      <span class="err" id="formMsg" role="alert"></span>
+    </div>
+  </form>
+</dialog>
 
 <script>
 (function(){
-  "use strict";
+  const $=id=>document.getElementById(id);
   /* ---- Code-protected data link (Make ROSTER-001). The code is checked in Make, not here. ---- */
   const API="https://hook.us2.make.com/t099w2axev59nnnx2kptyzebs8gv9osb";
-  const OFFICES={MBG:"Martinsburg",FR:"Front Royal",Bow:"Bowie",REF:"Referral"};
-  /* Every roster field the page can edit, in form order. agent_id, created_at and updated_at are set by Make. */
-  const FIELDS=[
-    {k:"name",label:"Name",req:true,wide:true},
-    {k:"email",label:"Email",req:true,type:"email",wide:true},
-    {k:"office",label:"Office",req:true,opts:[["","Pick office…"],["MBG","Martinsburg (MBG)"],["FR","Front Royal (FR)"],["Bow","Bowie (Bow)"],["REF","Referral (REF)"]]},
-    {k:"cell_phone",label:"Cell phone",type:"tel",hint:"10 digits"},
-    {k:"mls_agent_id",label:"MLS agent ID"},
-    {k:"platform",label:"Forms platform",opts:[["","—"],["zipForm","zipForm"],["dotloop","dotloop"],["Both","Both"]]},
-    {k:"license_numbers",label:"License #(s)"},
-    {k:"license_state",label:"License state(s)",hint:"Like WV or WV, VA"},
-    {k:"standard_split_pct",label:"Standard split %",num:true,hint:"Agent's share, 0–100"},
-    {k:"arf_pct",label:"ARF %",num:true,hint:"Blank = standard 6%. 0 = no ARF and no admin fee"},
-    {k:"team_name",label:"Team name"},
-    {k:"team_leader_or_agent",label:"Team role",opts:[["","—"],["Leader","Team leader"],["Agent","Team agent"]]},
-    {k:"mailing_address",label:"Mailing address",wide:true}
-  ];
-  let CODE="", BY="", agents=[], openId=null, sortKey="name", sortDir=1;
-  const $=s=>document.querySelector(s);
-  const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const str=v=>v==null?"":String(v);
-  const isActive=a=>str(a.active)!=="false";
-  const arfText=a=>str(a.arf_pct)==="0"?"None":(str(a.arf_pct)===""?"6 (std)":str(a.arf_pct));
-
+  let CODE="", BY="";
+  try{ CODE=localStorage.getItem("cdaDeskCode")||""; BY=localStorage.getItem("cdaDeskName")||""; }catch(_){}
   async function call(body){
     const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({code:CODE,by:BY},body))});
     if(r.status===401){ const e=new Error("bad_code"); e.bad=true; throw e; }
     if(!r.ok) throw new Error("http_"+r.status);
-    const t=await r.text(); try{ return JSON.parse(t); }catch(_){ throw new Error("not_json"); }
+    return r.json();
   }
 
-  /* ---- List ---- */
-  function counts(){
-    const act=agents.filter(isActive);
-    const by=o=>act.filter(a=>a.office===o).length;
-    $("#counts").innerHTML=`<div class="count"><b>${act.length}</b> active</div>`+Object.keys(OFFICES).map(o=>`<div class="count"><b>${by(o)}</b> ${OFFICES[o]}</div>`).join("")+`<div class="count"><b>${agents.length-act.length}</b> inactive</div>`;
-  }
-  function visible(){
-    const q=$("#q").value.trim().toLowerCase(), off=$("#officeF").value, act=$("#activeF").value;
-    const qd=q.replace(/\D/g,"");
-    return agents.filter(a=>{
-      if(off&&a.office!==off) return false;
-      if(act==="true"&&!isActive(a)) return false;
-      if(act==="false"&&isActive(a)) return false;
-      if(!q) return true;
-      const hay=[a.name,a.email,a.agent_id,a.license_numbers,a.mls_agent_id,a.team_name].map(str).join(" ").toLowerCase();
-      return hay.includes(q)||(qd.length>=3&&str(a.cell_phone).replace(/\D/g,"").includes(qd));
-    }).sort((x,y)=>{
-      const a=x[sortKey], b=y[sortKey];
-      const na=parseFloat(a), nb=parseFloat(b);
-      if((sortKey==="standard_split_pct"||sortKey==="arf_pct")&&!isNaN(na)&&!isNaN(nb)) return (na-nb)*sortDir;
-      return str(a).localeCompare(str(b))*sortDir||str(x.name).localeCompare(str(y.name));
-    });
-  }
-  const COLS=[["name","Name"],["agent_id","Agent ID"],["office","Office"],["email","Email"],["cell_phone","Cell"],["standard_split_pct","Split %"],["arf_pct","ARF %"],["platform","Forms"],["license_state","State"],["active","Status"]];
-  function render(){
-    counts();
-    const v=visible();
-    if(!v.length){ $("#list").innerHTML=`<div class="empty">No agents match. Clear the search or change the filters.</div>`; return; }
-    const head="<tr>"+COLS.map(([k,l])=>`<th scope="col" data-sort="${k}" ${k===sortKey?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")+"</tr>";
-    const rows=v.map(a=>{
-      const id=esc(a.agent_id), open=openId===str(a.agent_id);
-      const main=`<tr class="main${isActive(a)?"":" off"}${open?" open":""}" data-id="${id}" tabindex="0" aria-expanded="${open}">
-        <td class="nm">${esc(a.name)}</td><td class="id">${id}</td><td class="nw">${esc(OFFICES[a.office]||a.office||"—")}</td>
-        <td class="em">${esc(a.email)}</td><td class="nw">${esc(a.cell_phone)}</td>
-        <td class="num">${esc(str(a.standard_split_pct))}</td>
-        <td class="num">${str(a.arf_pct)==="0"?'<span class="pill warn">None</span>':esc(arfText(a))}</td>
-        <td class="nw">${esc(a.platform)}</td><td class="nw">${esc(a.license_state)}</td>
-        <td class="nw">${isActive(a)?'<span class="pill good">Active</span>':'<span class="pill">Inactive</span>'}</td></tr>`;
-      return main+(open?`<tr class="det"><td colspan="${COLS.length}">${form(a,false)}</td></tr>`:"");
-    }).join("");
-    $("#list").innerHTML=`<table class="sheet"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
-    if(openId) wire($(`#list form[data-id="${CSS.escape(openId)}"]`));
-  }
+  const STATES=["WV","VA","MD","PA","DC"];
+  const OFFICES=[["all","All offices"],["MBG","Martinsburg"],["FR","Front Royal"],["Bow","Bowie"],["REF","Referral"]];
+  const STATUSES=[["current","Active + referral"],["active","Active"],["referral","Referral"],["inactive","Inactive"],["all","Everyone"]];
+  const FEE_TEXT={setup:"Set up",annual:"Paid for year",exempt:"No fee",none:"Not set up",failed:"Payment failed",canceled:"Canceled"};
+  const st={agents:[],office:"all",status:"current",comm:"all",q:"",sortKey:"last",sortDir:1,editing:null,bs:null};
 
-  /* ---- Edit / add form ---- */
-  function field(f,a,isNew){
-    const val=str(a[f.k]), id=`f_${isNew?"new":esc(a.agent_id)}_${f.k}`;
-    const locked=!isNew&&f.k==="arf_pct"&&val==="0";
-    let input;
-    if(f.opts){
-      const known=f.opts.some(o=>o[0]===val);
-      input=`<select id="${id}" name="${f.k}">${f.opts.map(([v,l])=>`<option value="${esc(v)}" ${v===val?"selected":""}>${esc(l)}</option>`).join("")}${known?"":`<option value="${esc(val)}" selected>${esc(val)}</option>`}</select>`;
-    } else {
-      input=`<input id="${id}" name="${f.k}" type="${f.type||"text"}" ${f.num?'inputmode="decimal"':""} value="${esc(val)}" ${locked?"readonly":""} autocomplete="off">`;
+  const s=v=>v==null?"":String(v).trim();
+  const esc=v=>s(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const today=new Date(); today.setHours(0,0,0,0);
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const daysTo=v=>{ if(!v) return null; const t=Date.parse(v+"T00:00:00"); return isNaN(t)?null:Math.round((t-today)/864e5); };
+  const fmt=v=>{ if(!v) return ""; const [y,m,d]=v.split("-"); return `${+m}/${+d}/${y}`; };
+
+  /* Normalize a store record for the page (older records may lack first/last/status). */
+  function norm(a){
+    const r=Object.assign({},a); for(const k in r) if(r[k]==null) r[k]="";
+    if(!r.first&&!r.last&&r.name){ const p=r.name.split(" "); r.last=p.length>1?p.pop():""; r.first=p.join(" "); if(!r.last){r.last=r.first;r.first="";} }
+    if(!r.status) r.status=r.active==="false"?"inactive":(r.office==="REF"?"referral":"active");
+    return r;
+  }
+  const fullName=a=>`${a.first} ${a.last}`.trim()||a.name;
+  const comm=a=>s(a.commission_split_pct);
+
+  /* ---- BrokerSumo comparison (read-only; staff click Add / Mark inactive) ---- */
+  const plain=e=>s(e).toLowerCase().replace(/\+[^@]*@/,"@");
+  const nkey=n=>s(n).toLowerCase().replace(/\(.*?\)/g," ").replace(/\b(jr|sr|ii|iii)\b\.?/g," ").replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean);
+  function sameName(a,b){ const x=nkey(a),y=nkey(b); return x.length&&y.length&&x[0]===y[0]&&x[x.length-1]===y[y.length-1]; }
+  function bsMatch(a,list){ return list.find(b=>(b.brokersumo_id&&a.brokersumo_id&&b.brokersumo_id===a.brokersumo_id)||(b.email&&a.email&&plain(b.email)===plain(a.email))||sameName(b.name,fullName(a))); }
+  function bsDiff(){
+    const c=st.bs; if(!c||!Array.isArray(c.list)) return null;
+    const bsActive=c.list.filter(b=>b.status!=="inactive");
+    const missing=bsActive.filter(b=>!st.agents.some(a=>(a.brokersumo_id&&a.brokersumo_id===b.brokersumo_id)||(a.email&&b.email&&plain(a.email)===plain(b.email))||sameName(b.name,fullName(a))));
+    const rosterInactive=bsActive.map(b=>({b,a:st.agents.find(a=>a.status==="inactive"&&bsMatch(a,[b]))})).filter(x=>x.a);
+    const notInBs=st.agents.filter(a=>a.status==="active"&&!bsMatch(a,bsActive));
+    return {missing,rosterInactive,notInBs};
+  }
+  const notInBS=a=>{ if(a.status!=="active") return false; const d=bsDiff(); return d?d.notInBs.includes(a):a.not_in_brokersumo==="true"; };
+
+  function flags(a){
+    const f=[]; if(a.status==="inactive") return [["quiet","Inactive"+(a.inactive_date?" "+fmt(a.inactive_date):"")]];
+    if(notInBS(a)) f.push(["bad","Not in BrokerSumo"]);
+    if(!a.cell_phone) f.push(["warn","No phone"]); if(!a.email) f.push(["warn","No email"]);
+    for(const x of STATES){ const n=daysTo(a["lic_"+x.toLowerCase()+"_exp"]); if(n!==null&&n<0) f.push(["bad",x+" license expired"]); else if(n!==null&&n<=90) f.push(["warn",x+" expires "+fmt(a["lic_"+x.toLowerCase()+"_exp"])]); }
+    return f;
+  }
+  const expiring=a=>STATES.some(x=>{ const n=daysTo(a["lic_"+x.toLowerCase()+"_exp"]); return n!==null&&n<=90; });
+
+  /* ---- Columns + groups (Contact and Licensing collapse) ---- */
+  const COLS={rn:["#"],office:["Office",a=>a.office],status:["Status",a=>a.status],last:["Last name",a=>a.last],first:["First name",a=>a.first],email:["Email",a=>a.email],cell_phone:["Phone",a=>a.cell_phone],agent_id:["Agent ID",a=>a.agent_id],comm:["Commission Split %",a=>Number(comm(a))||0],sv:["Split verified",a=>a.split_verified||""],plan:["Plan",a=>a.plan_name],fee:["Monthly fee",a=>a.monthly_fee_status],mls:["Bright ID",a=>a.mls_agent_id],flags:["Flags",a=>flags(a).length]};
+  const LICCOLS=[]; STATES.forEach(x=>{ const k="lic_"+x.toLowerCase(); COLS[k]=[x+" #",a=>a[k]]; COLS[k+"_exp"]=[x+" exp",a=>a[k+"_exp"]||"9999"]; LICCOLS.push(k,k+"_exp"); });
+  const GROUPS=[["agent","Agent",["rn","office","status","last","first"],false],["contact","Contact",["email","cell_phone"],true],["deal","Agent ID · Split · Plan · Fee",["agent_id","comm","sv","plan","fee"],false],["lic","Licensing",LICCOLS,true],["other","",["mls","flags"],false]];
+  let collapsed=new Set();
+  const colKey=()=>"rosterCollapsed:"+(BY||"Office");
+  function loadCollapsed(){ try{ collapsed=new Set(JSON.parse(localStorage.getItem(colKey())||"[]")); }catch(_){ collapsed=new Set(); } }
+  function saveCollapsed(){ try{ localStorage.setItem(colKey(),JSON.stringify([...collapsed])); }catch(_){} }
+  function visible(){ const out=[]; for(const [g,,cols,c] of GROUPS){ if(c&&collapsed.has(g)){ out.push({k:"_"+g,gs:true}); continue; } cols.forEach((k,i)=>out.push({k,gs:i===0&&g!=="agent"})); } return out; }
+
+  function hdrFilter(k){
+    const sel=document.createElement("select"); sel.className="hdsel";
+    let opts; const key=k==="comm"?"comm":k;
+    if(k==="office") opts=OFFICES; else if(k==="status") opts=STATUSES;
+    else { const vals=[...new Set(st.agents.map(comm).filter(Boolean))].sort((x,y)=>x-y); opts=[["all","All splits"],...vals.map(v=>[v,v+"%"])]; }
+    sel.setAttribute("aria-label","Filter by "+COLS[k][0]);
+    for(const [v,t] of opts){ const o=document.createElement("option"); o.value=v; o.textContent=t; sel.appendChild(o); }
+    sel.value=st[key]; sel.onclick=e=>e.stopPropagation(); sel.onchange=()=>{ st[key]=sel.value; render(); };
+    return sel;
+  }
+  function renderHead(){
+    const gr=$("grpRow"); gr.innerHTML="";
+    for(const [g,label,cols,c] of GROUPS){
+      const th=document.createElement("th"); th.className="grp"+(g!=="agent"?" gs":""); th.colSpan=c&&collapsed.has(g)?1:cols.length;
+      if(c){ const b=document.createElement("button"); b.type="button"; b.textContent=collapsed.has(g)?"+":"−"; b.title=(collapsed.has(g)?"Show ":"Hide ")+label; b.setAttribute("aria-label",b.title); b.onclick=()=>{ collapsed.has(g)?collapsed.delete(g):collapsed.add(g); saveCollapsed(); render(); }; th.appendChild(b); }
+      th.append(c&&collapsed.has(g)?"":label); gr.appendChild(th);
     }
-    const hint=locked?`<span class="lock">Locked: pays no ARF and no admin fee</span>`:(f.hint?`<small>${esc(f.hint)}</small>`:"");
-    return `<div class="f${f.wide?" wide":""}" data-k="${f.k}"><label for="${id}">${esc(f.label)}${f.req?" *":""}</label>${input}${hint}</div>`;
+    const h=$("headRow"); h.innerHTML="";
+    for(const {k,gs} of visible()){
+      const th=document.createElement("th");
+      if(k[0]==="_"){ th.className="stub gs"; th.title="Hidden — click + above to show"; h.appendChild(th); continue; }
+      if(gs) th.className="gs";
+      const l=document.createElement("span"); l.className="lbl"; l.textContent=COLS[k][0]; th.appendChild(l);
+      if(k==="office"||k==="status"||k==="comm") th.appendChild(hdrFilter(k));
+      if(k!=="rn"){ if(k===st.sortKey) th.setAttribute("aria-sort",st.sortDir>0?"ascending":"descending"); th.onclick=()=>{ if(st.sortKey===k) st.sortDir=-st.sortDir; else { st.sortKey=k; st.sortDir=1; } render(); }; }
+      h.appendChild(th);
+    }
   }
-  function form(a,isNew){
-    const meta=isNew?"":`<p class="meta" style="margin:0">Agent ID <b>${esc(a.agent_id)}</b> · added ${esc(str(a.created_at).slice(0,10))} · last changed ${esc(fmtWhen(a.updated_at))}</p>`;
-    return `<form class="edit" data-id="${isNew?"":esc(a.agent_id)}" data-new="${isNew?1:""}" novalidate>
-      ${isNew?`<h2 id="addTitle">Add an agent</h2><p class="meta" style="margin:0">Make gives them a new 7-digit agent ID when you click Add.</p>`:meta}
-      <div class="grid">${FIELDS.map(f=>field(f,a,isNew)).join("")}</div>
-      ${isNew?"":`<label class="chk"><input type="checkbox" name="active" ${isActive(a)?"checked":""}> Active (uncheck when the agent leaves)</label>`}
-      <div class="actions"><button class="btn" type="submit">${isNew?"Add agent":"Save changes"}</button><button class="btn ghost" type="button" data-cancel>${isNew?"Cancel":"Close"}</button><span class="msg" role="status" aria-live="polite"></span></div>
-    </form>`;
+  function matches(a){
+    if(st.office!=="all"&&a.office!==st.office) return false;
+    if(st.status==="current"&&a.status==="inactive") return false;
+    if(!["current","all"].includes(st.status)&&a.status!==st.status) return false;
+    if(st.comm!=="all"&&comm(a)!==st.comm) return false;
+    if(!st.q) return true;
+    const hay=[a.agent_id,fullName(a),a.name,a.email,...STATES.map(x=>a["lic_"+x.toLowerCase()]),a.license_numbers].join(" ").toLowerCase();
+    return hay.includes(st.q);
   }
-  function fmtWhen(t){ const d=new Date(t); return isNaN(d)?"—":d.toLocaleString("en-US",{month:"numeric",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}); }
-  /* What the user changed, compared with the saved record (only changed fields are sent, so nothing else can be overwritten). */
-  function diff(fm,a){
-    const patch={};
-    fm.querySelectorAll("[name]").forEach(el=>{
-      const k=el.name; const v=el.type==="checkbox"?(el.checked?"true":"false"):el.value.trim();
-      const was=k==="active"?(isActive(a)?"true":"false"):str(a[k]);
-      if(v!==was&&!(k==="standard_split_pct"&&v!==""&&Number(v)===Number(was))) patch[k]=v;
-      el.closest(".f")?.classList.toggle("changed",k in patch);
-    });
-    return patch;
+  function cell(a,k){
+    const td=document.createElement("td");
+    if(k==="rn") return td;
+    if(k==="status"){ td.innerHTML=`<span class="pill p-${esc(a.status)}">${esc({active:"Active",referral:"Referral",inactive:"Inactive"}[a.status]||a.status)}</span>`; return td; }
+    if(k==="last"){ td.className="last"; td.textContent=a.last; return td; }
+    if(k==="agent_id"||k==="mls"){ td.className="mono"; td.textContent=k==="mls"?a.mls_agent_id:a.agent_id; return td; }
+    if(k==="comm"){ td.className="num"; td.textContent=comm(a)?comm(a)+"%":"—"; return td; }
+    if(k==="sv"){ td.textContent=a.split_verified?"✓ "+fmt(a.split_verified):""; return td; }
+    if(k==="plan"){ td.textContent=a.plan_name; return td; }
+    if(k==="fee"){ td.textContent=FEE_TEXT[a.monthly_fee_status]||a.monthly_fee_status; return td; }
+    if(k==="flags"){ td.innerHTML=flags(a).map(([c,t])=>`<span class="flag f-${c}">${esc(t)}</span>`).join(""); return td; }
+    if(/_exp$/.test(k)){ const v=a[k]; td.textContent=fmt(v); const n=daysTo(v); if(n!==null&&a.status!=="inactive") td.className=n<0?"exp-bad":n<=90?"exp-warn":""; return td; }
+    if(/^lic_/.test(k)){ td.className="mono"; td.textContent=a[k]; return td; }
+    td.textContent=a[k]||""; return td;
   }
-  /* Quick checks before sending. Make checks everything again and has the final say. */
-  function check(fm,isNew){
-    const errs=[]; fm.querySelectorAll(".f").forEach(x=>x.classList.remove("bad"));
-    const val=k=>{ const el=fm.querySelector(`[name="${k}"]`); return el?el.value.trim():""; };
-    const bad=(k,m)=>{ errs.push(m); fm.querySelector(`.f[data-k="${k}"]`)?.classList.add("bad"); };
-    if(!val("name")) bad("name","Name is required");
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))) bad("email","Email must be a real email address");
-    if(!val("office")) bad("office","Pick an office");
-    const ph=val("cell_phone").replace(/\D/g,""); if(ph&&!(ph.length===10||(ph.length===11&&ph[0]==="1"))) bad("cell_phone","Cell phone must be 10 digits");
-    ["standard_split_pct","arf_pct"].forEach(k=>{ const t=val(k).replace("%",""); if(t!==""&&!(isFinite(Number(t))&&Number(t)>=0&&Number(t)<=100)) bad(k,(k==="arf_pct"?"ARF %":"Split %")+" must be a number from 0 to 100"); });
-    const st=val("license_state"); if(st&&!st.toUpperCase().split(/[\s,\/]+/).filter(Boolean).every(x=>/^[A-Z]{2}$/.test(x))) bad("license_state","License state must be 2-letter states, like WV or WV, VA");
-    if(!isNew){ const id=fm.dataset.id, a=agents.find(x=>str(x.agent_id)===id); if(a&&str(a.arf_pct)==="0"&&val("arf_pct")!=="0") bad("arf_pct","ARF % of 0 is locked"); }
-    return errs;
-  }
-  function wire(fm){
-    if(!fm) return;
-    const isNew=!!fm.dataset.new;
-    const a=isNew?{}:agents.find(x=>str(x.agent_id)===fm.dataset.id);
-    const msg=fm.querySelector(".msg");
-    if(!isNew) fm.addEventListener("input",()=>diff(fm,a));
-    fm.querySelector("[data-cancel]").addEventListener("click",()=>{ if(isNew){ closeAdd(); } else { openId=null; render(); } });
-    fm.addEventListener("submit",async e=>{
-      e.preventDefault();
-      const errs=check(fm,isNew);
-      if(errs.length){ msg.className="msg err"; msg.textContent=errs.join(". ")+"."; return; }
-      let patch;
-      if(isNew){ patch={}; fm.querySelectorAll("[name]").forEach(el=>{ if(el.value.trim()!=="") patch[el.name]=el.value.trim(); }); }
-      else { patch=diff(fm,a); if(!Object.keys(patch).length){ msg.className="msg"; msg.textContent="Nothing changed."; return; } }
-      const btn=fm.querySelector("button[type=submit]"); btn.disabled=true; msg.className="msg"; msg.textContent=isNew?"Adding…":"Saving…";
-      try{
-        const j=await call(isNew?{action:"add",patch:JSON.stringify(patch)}:{action:"save",key:fm.dataset.id,patch:JSON.stringify(patch)});
-        if(!j||j.ok!==true){ msg.className="msg err"; msg.textContent=(j&&j.error?j.error:"Didn't save. Try again.")+(j&&j.error&&!/\.$/.test(j.error)?".":""); btn.disabled=false; return; }
-        const rec=j.agent||{};
-        const i=agents.findIndex(x=>str(x.agent_id)===str(rec.agent_id));
-        if(i>=0) agents[i]=rec; else agents.push(rec);
-        if(isNew){ closeAdd(); openId=str(rec.agent_id); $("#q").value=""; $("#activeF").value="true"; render(); flash(`Added ${rec.name} — agent ID ${rec.agent_id}.`); }
-        else { render(); flash(`Saved ${rec.name}.`); }
-      }catch(err){
-        if(err.bad){ showGate("That code didn't work. Try again."); return; }
-        msg.className="msg err"; msg.textContent="Didn't save — couldn't reach Make. Check your connection and try again."; btn.disabled=false;
-      }
+  function render(){
+    renderHead(); renderCounts(); renderAttn(); renderBS();
+    const get=(COLS[st.sortKey]||COLS.last)[1]||(a=>a.last);
+    const list=st.agents.filter(matches).sort((a,b)=>{ const x=get(a),y=get(b); const r=(typeof x==="number"&&typeof y==="number")?x-y:String(x).localeCompare(String(y),undefined,{numeric:true}); return (r||a.last.localeCompare(b.last))*st.sortDir; });
+    const tb=$("rows"); tb.innerHTML="";
+    $("empty").hidden=!!list.length; if(!list.length) $("empty").textContent=st.agents.length?"No agents match these filters.":"No agents yet.";
+    list.forEach((a,i)=>{
+      const tr=document.createElement("tr"); if(a.status==="inactive") tr.className="gone";
+      for(const {k,gs} of visible()){ let td; if(k[0]==="_"){ td=document.createElement("td"); td.className="stub gs"; } else { td=cell(a,k); if(k==="rn"){ td.className="rn"; td.textContent=i+1; } if(gs) td.classList.add("gs"); } tr.appendChild(td); }
+      tr.onclick=()=>openEditor(a); tb.appendChild(tr);
     });
   }
-  function flash(t){ const m=$(`#list form .msg`); if(m){ m.className="msg ok"; m.textContent=t; } }
-  function openAdd(){ const c=$("#addCard"); c.innerHTML=form({office:$("#officeF").value||""},true); c.hidden=false; wire(c.querySelector("form")); c.querySelector("input").focus(); }
-  function closeAdd(){ const c=$("#addCard"); c.hidden=true; c.innerHTML=""; }
-
-  /* ---- Events ---- */
-  $("#list").addEventListener("click",e=>{
-    const th=e.target.closest("th[data-sort]");
-    if(th){ const k=th.dataset.sort; if(k===sortKey) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    const tr=e.target.closest("tr.main"); if(!tr) return;
-    openId=openId===tr.dataset.id?null:tr.dataset.id; render();
-    if(openId){ const f=$(`#list form[data-id="${CSS.escape(openId)}"] input`); if(f) f.focus({preventScroll:true}); }
+  function renderCounts(){
+    const n=k=>st.agents.filter(a=>a.status===k).length;
+    $("counts").innerHTML=`<span><b>${n("active")}</b> active</span><span><b>${n("referral")}</b> referral</span><span><b>${n("inactive")}</b> inactive</span>`;
+  }
+  function nameBtns(list){ return list.map(a=>`<button type="button" class="nm" data-id="${esc(a.agent_id)}">${esc(fullName(a))}</button>`).join(", "); }
+  function renderAttn(){
+    const live=st.agents.filter(a=>a.status!=="inactive"), items=[];
+    const exp=live.filter(expiring), np=live.filter(a=>!a.cell_phone), ne=live.filter(a=>!a.email), nb=live.filter(notInBS);
+    if(exp.length) items.push(`License expired or expiring within 90 days (${exp.length}): ${nameBtns(exp)}`);
+    if(nb.length) items.push(`Not in BrokerSumo (${nb.length}): ${nameBtns(nb)}`);
+    if(np.length) items.push(`No phone (${np.length}): ${nameBtns(np)}`);
+    if(ne.length) items.push(`No email (${ne.length}): ${nameBtns(ne)}`);
+    $("attnList").innerHTML=items.map(t=>`<li>${t}</li>`).join(""); $("attn").hidden=!items.length;
+  }
+  function renderBS(){
+    const box=$("bsBox"), d=bsDiff();
+    if(!d){ box.hidden=true; return; }
+    const c=st.bs, rows=[];
+    for(const b of d.missing) rows.push(`<li class="bsrow"><span>${esc(b.name)}${b.email?" · "+esc(b.email):""} is active in BrokerSumo but not on this roster.</span><button class="btn small" type="button" data-bsadd="${esc(JSON.stringify(b))}">Add</button></li>`);
+    for(const a of d.notInBs) rows.push(`<li class="bsrow"><span>${esc(fullName(a))} (${esc(a.agent_id)}) is active here but not in BrokerSumo.</span><button class="btn small" type="button" data-bsoff="${esc(a.agent_id)}">Mark inactive</button></li>`);
+    for(const {a} of d.rosterInactive) rows.push(`<li class="bsrow"><span>${esc(fullName(a))} is inactive here but BrokerSumo still shows active. BrokerSumo has done this before for departed agents — check my.weichert.com before changing anything.</span></li>`);
+    box.innerHTML=`<h2>BrokerSumo says…</h2><p class="note" style="margin:0">Weekly check ran ${esc(c.ran_at?new Date(c.ran_at).toLocaleString():"")} (${c.list.length} agents). Nothing here changes the roster until someone clicks a button. Referral agents come from Donna's list and are not compared.</p>${rows.length?`<ul>${rows.join("")}</ul>`:`<p style="margin:0">BrokerSumo and the roster match.</p>`}`;
+    box.hidden=false;
+  }
+  document.addEventListener("click",async e=>{
+    const n=e.target.closest(".nm"); if(n){ const a=st.agents.find(x=>x.agent_id===n.dataset.id); if(a) openEditor(a); return; }
+    const ad=e.target.closest("[data-bsadd]"); if(ad){ const b=JSON.parse(ad.dataset.bsadd); const p=s(b.name).split(" "); const last=p.length>1?p.pop():""; openEditor(null,{first:p.join(" "),last,email:b.email,brokersumo_id:b.brokersumo_id}); return; }
+    const off=e.target.closest("[data-bsoff]"); if(off){ const a=st.agents.find(x=>x.agent_id===off.dataset.bsoff); if(!a) return;
+      if(!confirm(`Mark ${fullName(a)} inactive (left the company)? They come off the CDA pick list. You can undo this from their record.`)) return;
+      off.disabled=true; try{ const j=await call({action:"save",key:a.agent_id,patch:JSON.stringify({status:"inactive"})}); if(!j.ok) throw new Error(j.error); upsert(j.agent); render(); }catch(err){ off.disabled=false; alert("Not saved: "+(err.message||"try again")); } }
   });
-  $("#list").addEventListener("keydown",e=>{ const tr=e.target.closest("tr.main"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
-  ["#q","#officeF","#activeF"].forEach(s=>$(s).addEventListener("input",()=>{ try{ localStorage.setItem("rosterFilters",JSON.stringify({o:$("#officeF").value,a:$("#activeF").value})); }catch(_){} render(); }));
-  $("#addBtn").addEventListener("click",openAdd);
-  try{ const f=JSON.parse(localStorage.getItem("rosterFilters")||"null"); if(f){ $("#officeF").value=f.o||""; $("#activeF").value=f.a==null?"true":f.a; } }catch(_){}
-  $("#today").textContent=new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
 
-  /* ---- Sign-in: same code, names and storage as the CCDA Desk ---- */
-  try{ CODE=localStorage.getItem("cdaDeskCode")||""; BY=localStorage.getItem("cdaDeskName")||""; }catch(_){}
-  async function load(quiet){
+  /* ---- Edit dialog ---- */
+  const FIELDS=["first","last","email","cell_phone","office","status","commission_split_pct","standard_split_pct","plan_name","monthly_fee_status","pays_arf","arf_pct","mls_agent_id","platform","mailing_address","team_name","team_leader_or_agent","brokersumo_id","hire_date","notes"];
+  function licRows(v){
+    $("licRows").innerHTML=STATES.map(x=>{ const k="lic_"+x.toLowerCase(); return `<div class="lic"><b>${x}</b><input id="f_${k}" placeholder="${x} license number" aria-label="${x} license number" autocomplete="off" value="${esc(v[k])}"><input id="f_${k}_exp" type="date" aria-label="${x} expiration date" value="${esc(v[k+"_exp"])}"></div>`; }).join("");
+  }
+  function openEditor(a,prefill){
+    st.editing=a; const v=a||Object.assign({office:"MBG",status:"active"},prefill||{});
+    $("formMsg").textContent="";
+    $("dlgTitle").textContent=a?fullName(a):"Add agent";
+    $("dlgId").textContent=a?`Agent ID ${a.agent_id}`:"A new 7-digit agent ID is assigned when you save.";
+    for(const k of FIELDS){ const el=$("f_"+k); if(el) el.value=s(v[k]); }
+    if(v.status==="inactive") $("f_status").value=v.office==="REF"?"referral":"active";
+    const locked=a&&s(a.arf_pct)==="0"; $("f_arf_pct").disabled=locked; $("arfLock").textContent=locked?"— 0 = no ARF and no admin fee (locked)":"";
+    $("f_split_verified").checked=!!v.split_verified; $("svMeta").textContent=v.split_verified?`(${fmt(v.split_verified)}${v.split_verified_by?" by "+v.split_verified_by:""})`:"";
+    licRows(v);
+    $("inactBox").hidden=!a; $("f_inactive").checked=!!(a&&a.status==="inactive");
+    $("inactMeta").textContent=a&&a.status==="inactive"?`Marked inactive ${fmt(a.inactive_date)}${a.inactive_by?" by "+a.inactive_by:""}. Uncheck to bring them back with the same ID.`:"Drops the agent from the CDA pick list. Their ID and deal history stay. Uncheck to bring them back with the same ID.";
+    $("dlg").showModal();
+  }
+  $("cancelBtn").onclick=()=>$("dlg").close();
+  $("addBtn").onclick=()=>openEditor(null);
+  function upsert(rec){ const r=norm(rec); const i=st.agents.findIndex(x=>x.agent_id===r.agent_id); if(i>=0) st.agents[i]=r; else st.agents.push(r); }
+  $("form").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const a=st.editing, now={};
+    for(const k of FIELDS){ const el=$("f_"+k); if(el&&!el.disabled) now[k]=el.value.trim(); }
+    STATES.forEach(x=>{ const k="lic_"+x.toLowerCase(); now[k]=$("f_"+k).value.trim(); now[k+"_exp"]=$("f_"+k+"_exp").value; });
+    if(a&&$("f_inactive").checked) now.status="inactive";
+    const sv=$("f_split_verified").checked;
+    if(!now.first&&!now.last){ $("formMsg").textContent="Enter a first and last name."; return; }
+    now.name=`${now.first} ${now.last}`.trim();
+    let patch={};
+    if(a){ for(const k in now) if(s(a[k])!==now[k]) patch[k]=now[k]; if(sv&&!a.split_verified){ patch.split_verified=iso(new Date()); patch.split_verified_by=BY; } if(!sv&&a.split_verified){ patch.split_verified=""; patch.split_verified_by=""; } }
+    else { for(const k in now) if(now[k]!=="") patch[k]=now[k]; if(sv){ patch.split_verified=iso(new Date()); patch.split_verified_by=BY; } }
+    if(a&&!Object.keys(patch).length){ $("dlg").close(); return; }
+    $("saveBtn").disabled=true; $("formMsg").textContent="Saving…";
     try{
-      const j=await call({action:"list"});
-      if(!j||j.ok!==true||!Array.isArray(j.agents)) throw new Error("bad_list");
-      agents=j.agents.filter(a=>a&&a.agent_id);
-      const a=document.activeElement; if(quiet&&(openId||!$("#addCard").hidden||(a&&a.closest&&a.closest("form")))) { counts(); return true; }
+      const j=await call(a?{action:"save",key:a.agent_id,patch:JSON.stringify(patch)}:{action:"add",patch:JSON.stringify(patch)});
+      if(!j||!j.ok){ $("formMsg").textContent="Not saved: "+((j&&j.error)||"try again")+"."; return; }
+      upsert(j.agent); $("dlg").close(); render();
+      if(!a) alert(`${fullName(norm(j.agent))} added with agent ID ${j.key}.`);
+    }catch(err){ $("formMsg").textContent=err.bad?"Your code no longer works. Log out and back in.":"Couldn't reach the roster. Check your connection and try again."; }
+    finally{ $("saveBtn").disabled=false; }
+  });
+  $("q").addEventListener("input",e=>{ st.q=e.target.value.trim().toLowerCase(); render(); });
+
+  /* ---- Load + sign-in (same pattern and code as the CCDA Desk) ---- */
+  async function load(){
+    try{
+      const j=await call({action:"list"}); st.agents=((j&&j.agents)||[]).map(norm);
+      try{ const b=await call({action:"bs_get"}); const c=b&&b.check; if(c&&typeof c==="object"&&c.report){ st.bs={ran_at:c.ran_at,ran_by:c.ran_by,list:JSON.parse(c.report)}; } }catch(_){}
       render(); return true;
     }catch(err){
       if(err.bad){ showGate("That code didn't work. Try again."); return false; }
-      if(!quiet) $("#list").innerHTML=`<div class="empty">Couldn't load the roster. Refresh the page to try again.</div>`;
-      return false;
+      $("empty").textContent="Couldn't load the roster. Refresh the page to try again."; return false;
     }
   }
-  function showGate(msg){ $("#gate").hidden=false; $("#app").hidden=true; $("#gmsg").textContent=msg||""; $("#gcode").focus(); }
+  function showGate(msg){ $("gate").hidden=false; $("app").hidden=true; $("gmsg").textContent=msg||""; $("gcode").focus(); }
   async function enter(){
-    $("#gate").hidden=true; $("#app").hidden=false; $("#whoami").textContent=BY?("Working: "+BY):"";
-    const ok=await load(false); if(!ok) return;
+    $("gate").hidden=true; $("app").hidden=false; $("who").textContent=BY||"Office"; loadCollapsed(); renderHead();
+    const ok=await load(); if(!ok) return;
     try{ localStorage.setItem("cdaDeskCode",CODE); localStorage.setItem("cdaDeskName",BY); }catch(_){}
   }
-  $("#gform").addEventListener("submit",e=>{
-    e.preventDefault();
-    CODE=$("#gcode").value.trim(); BY=$("#gname").value;
-    if(!CODE){ showGate("Type the code to enter."); return; }
-    enter();
-  });
-  $("#logout").addEventListener("click",()=>{ try{ localStorage.removeItem("cdaDeskCode"); }catch(_){} CODE=""; agents=[]; openId=null; closeAdd(); showGate(""); });
-  if(BY){ const s=$("#gname"); if([...s.options].some(o=>o.value===BY)) s.value=BY; }
+  $("gform").addEventListener("submit",e=>{ e.preventDefault(); CODE=$("gcode").value.trim(); BY=$("gname").value; if(!CODE){ showGate("Type the code to enter."); return; } enter(); });
+  $("logout").addEventListener("click",()=>{ try{ localStorage.removeItem("cdaDeskCode"); }catch(_){} CODE=""; st.agents=[]; showGate(""); });
+  if(BY){ const g=$("gname"); if([...g.options].some(o=>o.value===BY)) g.value=BY; }
   if(CODE) enter(); else showGate("");
-  setInterval(()=>{ if(CODE&&!$("#app").hidden&&document.visibilityState==="visible") load(true); },120000);
 })();
 </script>
-
 </body>
 </html>
