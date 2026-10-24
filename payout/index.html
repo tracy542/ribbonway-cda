@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CDA Payout · Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: one left-aligned column — sign-in gate, the deal, agents by Agent ID, then the payout breakdown with Print and Email at the bottom. Navy/gold, large type, same look as the Roster and CCDA Desk. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a; --quiet:#eceff4;
+  --navy:#0B1F3A; --gold:#C9A227; --gold-bg:#fff4d6; --link:#1f4fa3;
+  --bad:#b3261e; --good:#1e6b3a;
+  --f-display:"Source Serif 4", Georgia, serif; --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --gold-bg:#3a3112; --link:#9dbcf3; --bad:#ff8a80; --good:#7fd69b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --gold-bg:#3a3112; --link:#9dbcf3; --bad:#ff8a80; --good:#7fd69b; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:19px;line-height:1.45;margin:0;padding:20px 16px 48px}
+h1,h2,h3{font-family:var(--f-display);margin:0}
+h1{font-size:2rem} h2{font-size:1.35rem} h3{font-size:1.2rem}
+[hidden]{display:none!important}
+.wrap{max-width:780px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.sub{color:var(--muted);margin:4px 0 0}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{background:var(--navy);color:#fff;font:inherit;font-weight:600;padding:10px 18px;border-radius:6px;border:0;cursor:pointer}
+.btn.gold{background:var(--gold);color:#0B1F3A}
+.btn.ghost{background:transparent;color:var(--link);border:1px solid var(--line)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#gate{min-height:80vh;display:flex;align-items:center}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.gate-card{width:min(420px,100%)}
+label{display:block;font-weight:600;font-size:.95rem;margin-bottom:4px}
+input,select{font:inherit;font-size:19px;padding:8px 10px;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.full{grid-column:1/-1}
+.agent{border-left:4px solid var(--gold)}
+.who{font-weight:700;font-size:1.1rem}
+.who .meta{font-weight:400;color:var(--muted);font-size:.95rem}
+.err{color:var(--bad)}
+.note{color:var(--muted);font-size:.9rem;display:block}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+td{padding:8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.amt{text-align:right;white-space:nowrap;padding-left:16px}
+tr.total td{font-weight:700;font-size:1.15rem;border-bottom:2px solid var(--ink)}
+tr.total.agent td.amt{color:var(--good)}
+.neg{color:var(--bad)}
+.stomp{border:3px solid var(--gold);background:var(--gold-bg);border-radius:8px;padding:14px 18px}
+.stomp-name{font-size:1.15rem;font-weight:700}
+.stomp-num{font-size:2.1rem;font-weight:700;line-height:1.15;font-family:var(--f-display)}
+.stomp-amt{font-size:1.1rem;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:6px 12px;background:var(--gold-bg);border:2px solid var(--gold);border-radius:6px;font-weight:700}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.check{color:var(--muted);font-size:.95rem}
+.mono{font-family:var(--f-mono)}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  #gate,.no-print,.topbar .btn{display:none!important}
+  .card{border:0;padding:0}
+  .stomp{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <form class="card gate-card" id="gform">
+    <h1>CDA Payout</h1>
+    <p class="sub" style="margin:0">Weichert, Realtors – Blue Ribbon. Enter the code to come in.</p>
+    <div><label for="gcode">Code</label><input id="gcode" type="password" autocomplete="off" spellcheck="false"></div>
+    <div><label for="gname">Who's working?</label><select id="gname"><option>Gavin</option><option>Tracy</option><option>Office</option></select></div>
+    <button class="btn" type="submit">Enter</button>
+    <p id="gmsg" class="err" role="status" style="margin:0"></p>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="topbar">
+    <div>
+      <h1>CDA Payout</h1>
+      <p class="sub">Type each agent's Agent ID. Their name, split and 6% setting fill in from the roster.</p>
+    </div>
+    <button class="btn ghost" id="logout" type="button">Log out</button>
+  </div>
+  <p id="loadMsg" class="note" role="status"></p>
+
+  <section class="card no-print">
+    <h2>The deal</h2>
+    <div class="grid">
+      <div class="full"><label for="prop">Property</label><input id="prop" type="text" autocomplete="off"></div>
+      <div><label for="gross">Commission ($)</label><input id="gross" type="number" step="0.01" inputmode="decimal"></div>
+      <div><label for="clientfees">Fees paid by client at closing ($)</label><input id="clientfees" type="number" step="0.01" inputmode="decimal"></div>
+    </div>
+  </section>
+
+  <section class="no-print" style="display:flex;flex-direction:column;gap:12px">
+    <h2>Agents on the deal</h2>
+    <div id="agents" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div><button class="btn ghost" id="add" type="button">+ Add an agent</button></div>
+  </section>
+
+  <section class="card" id="out"></section>
+
+  <div class="actions no-print">
+    <button class="btn" id="print" type="button">Print</button>
+    <span id="emailBtns" class="actions"></span>
+  </div>
+  <p class="note no-print">Email opens a message in your mail program with that agent's part only. Each agent sees their own numbers, never anyone else's dollars.</p>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  /* Same code-protected roster link as the CCDA Desk and Roster (Make ROSTER-001). The code is checked in Make. */
+  const API="https://hook.us2.make.com/t099w2axev59nnnx2kptyzebs8gv9osb";
+  let CODE="", BY="", ROSTER=[];
+  try{ CODE=localStorage.getItem("cdaDeskCode")||""; BY=localStorage.getItem("cdaDeskName")||""; }catch(_){}
+
+  async function call(body){
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({code:CODE,by:BY},body))});
+    if(r.status===401){ const e=new Error("bad_code"); e.bad=true; throw e; }
+    if(!r.ok) throw new Error("http_"+r.status);
+    return r.json();
+  }
+
+  const money=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
+  const num=el=>parseFloat(el.value)||0;
+  const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const nameOf=a=>(a.name||((a.first||"")+" "+(a.last||"")).trim());
+  const OFFICE={MBG:"Martinsburg",MRB:"Martinsburg",FR:"Front Royal",Bow:"Bowie",BOW:"Bowie",REF:"Referral"};
+  const byId=id=>ROSTER.find(a=>String(a.agent_id)===String(id).trim());
+
+  let nextId=1;
+  function addAgent(pre){
+    const id=nextId++;
+    const box=document.createElement("div");
+    box.className="card agent"; box.dataset.id=id;
+    box.innerHTML=`
+      <div class="grid">
+        <div><label for="i${id}">Agent ID</label><input id="i${id}" class="mono" inputmode="numeric" autocomplete="off" placeholder="7 digits"></div>
+        <div class="full who" id="w${id}"><span class="meta">Type the Agent ID to pull the agent from the roster.</span></div>
+        <div><label for="s${id}">Share of commission (%)</label><input id="s${id}" type="number" step="0.01" inputmode="decimal"></div>
+        <div><label for="p${id}">Agent split (%)</label><input id="p${id}" type="number" step="0.001" inputmode="decimal"></div>
+        <div><label for="f${id}">E&amp;O / other fees ($)</label><input id="f${id}" type="number" step="0.01" inputmode="decimal" value="0"></div>
+        <div class="full"><label for="a${id}">6% Weichert fee</label><select id="a${id}">
+          <option value="own">Pays 6% of own share</option>
+          <option value="none">Exempt (no 6%)</option>
+          <option value="deal">Pays 6% of the whole commission for the team</option>
+        </select></div>
+      </div>
+      <div><button class="btn ghost" type="button" data-remove>Remove agent</button></div>`;
+    box.querySelector("[data-remove]").addEventListener("click",()=>{ box.remove(); calc(); });
+    box.querySelector("#i"+id).addEventListener("input",()=>pull(id));
+    $("agents").appendChild(box);
+    if(pre){ for(const k in pre){ const el=$(k+id); if(el) el.value=pre[k]; } pull(id,true); }
+  }
+
+  /* Agent ID -> name, email, split and 6% setting from the roster. */
+  function pull(id,keepValues){
+    const a=byId($("i"+id).value);
+    const w=$("w"+id);
+    if(!a){
+      w.innerHTML=$("i"+id).value.trim()?'<span class="err">No agent with that ID on the roster.</span>':'<span class="meta">Type the Agent ID to pull the agent from the roster.</span>';
+      w.dataset.name=""; w.dataset.email=""; calc(); return;
+    }
+    w.innerHTML=esc(nameOf(a))+' <span class="meta">· '+esc(OFFICE[a.office]||a.office||"")+(a.email?' · '+esc(a.email):"")+'</span>';
+    w.dataset.name=nameOf(a); w.dataset.email=a.email||"";
+    if(!keepValues || !$("p"+id).value){ const sp=a.standard_split_pct!==""&&a.standard_split_pct!=null?a.standard_split_pct:(a.commission_split_pct||""); $("p"+id).value=sp; }
+    if(!keepValues){ $("a"+id).value=String(a.arf_pct)==="0"?"none":"own"; }
+    calc();
+  }
+
+  function calc(){
+    const gross=num($("gross")), clientFees=num($("clientfees"));
+    const prop=$("prop").value.trim();
+    const rows=[...$("agents").querySelectorAll(".agent")].map(box=>{
+      const id=box.dataset.id, w=$("w"+id);
+      return {name:w.dataset.name||"Agent", email:w.dataset.email||"", share:num($("s"+id)), split:num($("p"+id)), fees:num($("f"+id)), mode:$("a"+id).value};
+    });
+    const payer=(rows.find(r=>r.mode==="deal")||{}).name||"";
+    let totalAgents=0, brokerKeeps=0, arfTotal=0, shareTotal=0;
+    const parts=rows.map(r=>{
+      shareTotal+=r.share;
+      // 1. agent's share of the commission
+      const share=r2(gross*r.share/100);
+      // 2. 6% Weichert fee — own share, whole commission for the team, or covered/exempt
+      let arf=0, arfLabel="6% Weichert fee", arfNote="";
+      if(r.mode==="deal"){ arf=r2(gross*0.06); arfLabel="6% of the whole commission"; arfNote="Paid for the team on the whole "+money(gross); }
+      else if(r.mode==="own" && payer){ arfNote="Paid by "+payer; }
+      else if(r.mode==="own"){ arf=r2(share*0.06); }
+      const afterArf=r2(share-arf);
+      // 3. agent's split; the rest stays with the brokerage
+      const earned=r2(afterArf*r.split/100);
+      const broker=r2(afterArf-earned);
+      // 4. E&O / other fees
+      const net=r2(earned-r.fees);
+      totalAgents+=net; brokerKeeps+=broker+r.fees; arfTotal+=arf;
+      return Object.assign({}, r, {shareAmt:share, arf, arfLabel, arfNote, afterArf, earned, broker, net, pct:gross?earned/gross*100:0});
+    });
+    const office=r2(brokerKeeps+arfTotal+clientFees);
+
+    let h='<h2>Payout breakdown</h2>'+(prop?'<p style="margin:0"><span class="tag">'+esc(prop)+'</span></p>':'');
+    parts.forEach(p=>{
+      h+='<div class="stomp"><div class="stomp-name">'+esc(p.name)+' gets</div><div class="stomp-num">'+(Math.round(p.pct*100)/100)+'% of the commission</div><div class="stomp-amt">'+money(p.earned)+' of '+money(gross)+(p.fees?'<br>Less E&amp;O / other fees '+money(p.fees)+' = <strong>'+money(p.net)+' net</strong>':'')+'</div></div>';
+    });
+    parts.forEach(p=>{ h+='<h3 style="margin-top:8px">'+esc(p.name)+'</h3>'+agentTable(p,gross); });
+    h+='<h3 style="margin-top:8px">Office</h3><table>'+
+      '<tr><td>Brokerage split from agents (includes E&amp;O)</td><td class="amt">'+money(r2(brokerKeeps))+'</td></tr>'+
+      (arfTotal?'<tr><td>6% Weichert fees</td><td class="amt">'+money(r2(arfTotal))+'</td></tr>':'')+
+      '<tr><td>Fees paid by client at closing<span class="note">Paid by the client, so they don\'t come out of any agent\'s check.</span></td><td class="amt">'+money(clientFees)+'</td></tr>'+
+      '<tr class="total"><td>Total to office</td><td class="amt">'+money(office)+'</td></tr></table>';
+    const warn=parts.length&&Math.abs(shareTotal-100)>0.001?' <strong class="err">Agent shares add up to '+shareTotal+'%, not 100%.</strong>':'';
+    h+='<p class="check">Check: agents '+money(r2(totalAgents))+' + office '+money(office)+' = '+money(r2(totalAgents+office))+', which equals the commission plus client fees ('+money(r2(gross+clientFees))+').'+warn+'</p>';
+    $("out").innerHTML=h;
+
+    $("emailBtns").innerHTML=parts.filter(p=>p.email).map((p,i)=>'<button class="btn gold" type="button" data-mail="'+i+'">Email '+esc(p.name.split(" ")[0])+'</button>').join("");
+    $("emailBtns").querySelectorAll("[data-mail]").forEach(b=>{
+      const p=parts.filter(x=>x.email)[+b.dataset.mail];
+      b.addEventListener("click",()=>{ location.href="mailto:"+encodeURIComponent(p.email)+"?subject="+encodeURIComponent((prop||"Your deal")+" – payout breakdown")+"&body="+encodeURIComponent(mailText(p,gross,prop)); });
+    });
+  }
+
+  function agentTable(p,gross){
+    return '<table>'+
+      '<tr><td>Share of the commission ('+p.share+'% of '+money(gross)+')</td><td class="amt">'+money(p.shareAmt)+'</td></tr>'+
+      ((p.arf||p.arfNote)?'<tr><td>'+p.arfLabel+(p.arf&&p.arfNote?'<span class="note">'+esc(p.arfNote)+'</span>':'')+'</td><td class="amt'+(p.arf?' neg':'')+'">'+(p.arf?'-'+money(p.arf):'<strong>'+esc(p.arfNote)+'</strong>')+'</td></tr>':'')+
+      '<tr><td>Agent split ('+p.split+'% of '+money(p.afterArf)+')</td><td class="amt">'+money(p.earned)+'</td></tr>'+
+      (p.fees?'<tr><td>E&amp;O / other fees</td><td class="amt neg">-'+money(p.fees)+'</td></tr>':'')+
+      '<tr class="total agent"><td>Net to '+esc(p.name)+'</td><td class="amt">'+money(p.net)+'</td></tr></table>';
+  }
+
+  function mailText(p,gross,prop){
+    const L=[];
+    L.push((p.name.split(" ")[0]||"")+",","");
+    L.push("Here is your payout for "+(prop||"this deal")+". You get "+(Math.round(p.pct*100)/100)+"% of the commission.","");
+    L.push("- "+p.share+"% share of the "+money(gross)+" commission: "+money(p.shareAmt));
+    if(p.arf) L.push("- Less "+p.arfLabel+": -"+money(p.arf));
+    else if(p.arfNote) L.push("- 6% Weichert fee: "+p.arfNote);
+    L.push("- "+p.split+"% split: "+money(p.earned));
+    if(p.fees) L.push("- Less E&O / other fees: -"+money(p.fees));
+    L.push("- Net to you: "+money(p.net),"");
+    L.push("Email me if you have questions.","",BY==="Gavin"?"Gavin":"Tracy");
+    return L.join("\n");
+  }
+
+  ["prop","gross","clientfees"].forEach(id=>$(id).addEventListener("input",calc));
+  $("agents").addEventListener("input",e=>{ if(!/^i\d+$/.test(e.target.id)) calc(); });
+  $("agents").addEventListener("change",calc);
+  $("add").addEventListener("click",()=>{ addAgent(); calc(); });
+  $("print").addEventListener("click",()=>window.print());
+
+  /* Sign-in (same code as the CCDA Desk) */
+  function showGate(msg){ $("gate").hidden=false; $("app").hidden=true; $("gmsg").textContent=msg||""; $("gcode").focus(); }
+  async function enter(){
+    $("gate").hidden=true; $("app").hidden=false; $("loadMsg").textContent="Loading the roster…";
+    try{
+      const j=await call({action:"list"});
+      ROSTER=((j&&j.agents)||[]).filter(a=>String(a.active)!=="false");
+      $("loadMsg").textContent="";
+      try{ localStorage.setItem("cdaDeskCode",CODE); localStorage.setItem("cdaDeskName",BY); }catch(_){}
+      if(!$("agents").children.length){ addAgent(); addAgent(); }
+      calc();
+    }catch(err){
+      if(err.bad){ showGate("That code didn't work. Try again."); return; }
+      $("loadMsg").textContent="Couldn't load the roster. Refresh the page to try again.";
+    }
+  }
+  $("gform").addEventListener("submit",e=>{ e.preventDefault(); CODE=$("gcode").value.trim(); BY=$("gname").value; if(!CODE){ showGate("Type the code to enter."); return; } enter(); });
+  $("logout").addEventListener("click",()=>{ try{ localStorage.removeItem("cdaDeskCode"); }catch(_){} CODE=""; ROSTER=[]; showGate(""); });
+  if(BY){ const g=$("gname"); if([...g.options].some(o=>o.value===BY)) g.value=BY; }
+  if(CODE) enter(); else showGate("");
+})();
+</script>
+</body>
+</html>
