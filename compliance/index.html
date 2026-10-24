@@ -511,7 +511,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return `<tbody class="row ${stripe(r)}" data-id="${id}">
       <tr class="main${showStart(r)?" hasstart":""}" data-toggle="${id}" tabindex="0" aria-expanded="${openIds.has(r.id)}">
         <td class="stc">${esc(r.mlsStatus||"")}</td>
-        <td class="nw"><span class="pill ${isPaid(r)?"good":""}">${isPaid(r)?"Yes":"No"}</span>${isPaid(r)&&r.paid.at?`<span class="mainnote">${fmtDate(r.paid.at)}</span>`:""}${BY==="Tracy"&&!isRemoved(r)?`<div style="margin-top:6px"><button class="btn ghost" data-paid="${id}" data-v="${isPaid(r)?"no":"yes"}">${isPaid(r)?"Undo":"Mark paid"}</button></div>`:""}</td>
+        <td class="nw"><span class="pill ${isPaid(r)?"good":""}">${isPaid(r)?"Yes":"No"}</span>${isPaid(r)&&r.paid.at?`<span class="mainnote">${fmtDate(r.paid.at)}</span>`:""}${BY==="Tracy"&&!isRemoved(r)?`<div style="margin-top:6px"><button class="btn ghost" data-paid="${id}" data-v="${isPaid(r)?"no":"yes"}">${isPaid(r)?"Undo":"Mark paid"}</button>${isPaid(r)&&r.disbursement&&r.disbursement.url?` <a class="btn" href="${esc(r.disbursement.url)}" target="_blank" rel="noopener">See disbursement</a>`:""}</div>`:""}</td>
         <td class="nw cdac"><span class="code">${cdaLink(codeOf(r))}</span></td>
         <td class="nw">${esc(r.closing||"")}</td>
         <td class="addrc">${esc(r.address||"Address not set")}${r.brightChange&&r.brightChange.note?`<span class="bchg">Changed in Bright ${fmtDate(r.brightChange.seenAt||r.brightChange.at)}: ${esc(r.brightChange.note)}</span>`:""}</td>
