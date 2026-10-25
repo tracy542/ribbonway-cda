@@ -223,7 +223,7 @@ function findForms(name, side){
 }
 
 /* Training guides: [match text, page] — used when an item has no training link of its own. */
-const TRAINING_LINKS = [["residential sales contract","/cklist/training/wv/rsc.html"]];
+const TRAINING_LINKS = [["notice of agency relationship", "/cklist/training/wv/noa.html"], ["buyer agent's noa", "/cklist/training/wv/noa.html"], ["guide to agency relationships", "/cklist/training/wv/noa.html"], ["disclosure of dual agency", "/cklist/training/wv/noa.html"], ["buyer agency agreement", "/cklist/training/wv/buyer-agency.html"], ["seller's property disclosure", "/cklist/training/wv/spd.html"], ["lead-based paint", "/cklist/training/wv/lead-paint.html"], ["residential sales contract", "/cklist/training/wv/rsc.html"], ["items to convey", "/cklist/training/wv/itc.html"], ["pre-settlement walk-through", "/cklist/training/wv/itc.html"], ["financing addendum", "/cklist/training/wv/financing.html"], ["inspection / contingency, escalation", "/cklist/training/wv/addenda.html"], ["exclusive right to sell listing agreement", "/cklist/training/wv/listing-agreement.html"]];
 function findTraining(name){
   const n = name.toLowerCase().replace(/^\d+\.\s*/,"");
   const hit = TRAINING_LINKS.find(e => n.includes(e[0]));
