@@ -163,6 +163,14 @@ const DATA = {
   }
 };
 
+/* Form links from Google Drive (sheet: "Checklist Form Links — map for live cklist pages"). Used when an item has no link of its own. */
+const FORM_LINKS = [["standard agreement for the sale", [["ASR", "1ppCrv4N_IaG_3OCGsvNjYoDf150GCWp6"]]], ["par buyer agency contract", [["BAC", "12oOiVv4b5sbvDsaD_E5G6GVPGlFRUMYZ"]]], ["consumer notice", [["CN-B1", "18fmEqcDxgttUR9ppqRwYlnrBw2iX3Z-j"]], "buyer"], ["consumer notice", [["CN-S1", "1hNAs17e5WYCEq9UBCK-8xgjd8eOf0XrK"]], "listing"], ["seller's property disclosure statement", [["SPD", "1wyE30dInkFELQ_zdBZh-ssrsI4wKO1fT"]]], ["buyer's estimated closing costs", [["BEC", "1u40VS7VFUO7ZqkCy0Oa1B9hkkC9ieO1z"]]], ["seller's estimated proceeds", [["SEC", "1cZpMcYQT_OQ3_poHr2q5vtqDgTt63Vcv"]]], ["lead-based paint disclosure + epa", [["LPD", "1cqHU4yEvFjKZyGlS6krdMZg3-J6Lcl7R"], ["LPB", "1mocBQkngSPP6j7M0E0OjOhAtNve0SWPt"]]], ["lead-based paint disclosure", [["LPD", "1cqHU4yEvFjKZyGlS6krdMZg3-J6Lcl7R"]]], ["financing addendum / mortgage contingency", [["BFI Buyer's Financial Information", "1HK_WFSag6aYUgJigeMtdnWKSr1VmYmXn"]]], ["escalation addendum", [["PEA", "1StyImZPmZxTUwONWTU7X-ef56D0swWMX"]]], ["exclusive right to sell listing contract", [["XLS", "1l38QCKTYno6pI8Iv_OiYL-de87KkqfiX"]]], ["affiliated business arrangement", [["Affiliated Business Arrangement (RESPA) disclosure", "1pptUTS0_EA4U7W9ey1L7BE-aw2xll-yC"]]], ["equal housing opportunity", [["Equal Housing Opportunity form", "18W8-t_XC2CVwebMs8sKeI3DJ8m-WxPVI"]]], ["get a home inspection", [["HUD Get a Home Inspection", "1nSvkdWo7jk49euC2rn2QyDipRoZIsAM0"]]], ["pa disclosure of financial interest", [["PA Disclosure of Financial Interest", "1g-dpvcA5pX-AInpmd7NPwA8F1IhwpVCe"]]], ["bright mls disclosures and seller options", [["Bright MLS disclosures and seller options", "1a8Nf2u_mPsQZccfXp53kzgEmQgkENvT9"]]]];
+function findForms(name, side){
+  const n = name.toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/^\d+\.\s*/,"");
+  const hit = FORM_LINKS.find(e => n.includes(e[0]) && (!e[2] || e[2] === side));
+  return hit ? hit[1].map(([label,id]) => ({label, url:"https://drive.google.com/file/d/"+id+"/view"})) : null;
+}
+
 const $ = id => document.getElementById(id);
 const checked = new Set();
 
@@ -192,7 +200,8 @@ function render(){
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
       const f = it[4] || null, vid = it[5] || "";
-      const formCell = f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "From zipForm – coming soon")}</span>`;
+      const fl = (f && f.url) ? null : findForms(it[0], side);
+      const formCell = fl ? fl.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("<br>") : f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "Form – link coming")}</span>`;
       const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Watch</a>` : `<span class="soon">Coming soon</span>`;
       html += `<li class="${on ? "done" : ""}"><div class="row"><label>
         <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
