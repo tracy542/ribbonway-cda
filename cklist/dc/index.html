@@ -190,6 +190,14 @@ const DATA = {
   }
 };
 
+/* Form links from Google Drive (sheet: "Checklist Form Links — map for live cklist pages"). Used when an item has no link of its own. */
+const FORM_LINKS = [["gcaar sales contract (1301)", [["1301", "1yumkzTsErzPt3frFZwPsTAFYTGeOUXvV"]]], ["gcaar 1313", [["1313", "1bVXK9XWpOlJHyyM_p5rUQf1Zr-gw9ty7"]]], ["buyer agency agreement", [["1341 Buyer Broker Agreement", "1QkW-Rc9ZHR0i5_PYTlAAQjr9HF13ASiL"]]], ["dc seller's disclosure", [["919", "131bu7SbWMEhj7AUWt4k6vtoovQ6sZmuE"]]], ["dc lead disclosure", [["LEAD-DC", "10EwWn314H3yPYPToE1YFd_9NNnlTNvfK"], ["907A", "1kTtJI5LZRClidqVMvPI6aGhY26BGE5Dm"]]], ["financing addendum", [["Conventional (1352)", "1FwTwDIvUPLWE0VtKDfDkseB_POSd75Ns"], ["FHA (1330)", "1iQMc1P_s_i2WdlSkOm5eFdQHVcw4_OCw"], ["VA (1338)", "1q8fU0E0-cKO37JfkDUnTof8N7-HtqAga"]]], ["consent for dual agency", [["1001", "18GcDWOlMgCInvWSUldmIVzVcXhGZSSwo"]]], ["condo / co-op resale", [["921 (condo)", "1TiD2rL-j1S7C7qcK0Pz5NC4SL2cJj9co"], ["924 (co-op)", "10wd-_mE4-jZ9zIb6C1mcmwK96BRu4-HO"]]], ["gcaar listing agreement", [["910", "19MYZ2KznAN4hqPC9SEQtKc0WPHl294aq"]]], ["seller estimated cost worksheet", [["914", "1SZX800gqE2GhD0HO2C7EgBR45LE9nab_"]]], ["referral form", [["Referral Agreement (WRBRN office form)", "1iQ7pnLKUSSIAOkM_8qn3RtonXM9cAQsi"]]], ["affiliated business arrangement", [["Affiliated Business Arrangement (RESPA) disclosure", "1pptUTS0_EA4U7W9ey1L7BE-aw2xll-yC"]]], ["equal housing opportunity", [["Equal Housing Opportunity form", "18W8-t_XC2CVwebMs8sKeI3DJ8m-WxPVI"]]], ["get a home inspection", [["HUD Get a Home Inspection", "1nSvkdWo7jk49euC2rn2QyDipRoZIsAM0"]]], ["pa disclosure of financial interest", [["PA Disclosure of Financial Interest", "1g-dpvcA5pX-AInpmd7NPwA8F1IhwpVCe"]]], ["bright mls disclosures and seller options", [["Bright MLS disclosures and seller options", "1a8Nf2u_mPsQZccfXp53kzgEmQgkENvT9"]]]];
+function findForms(name, side){
+  const n = name.toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/^\d+\.\s*/,"");
+  const hit = FORM_LINKS.find(e => n.includes(e[0]) && (!e[2] || e[2] === side));
+  return hit ? hit[1].map(([label,id]) => ({label, url:"https://drive.google.com/file/d/"+id+"/view"})) : null;
+}
+
 const $ = id => document.getElementById(id);
 const checked = new Set();
 
@@ -219,7 +227,8 @@ function render(){
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
       const f = it[4] || null, vid = it[5] || "";
-      const formCell = f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "From zipForm – coming soon")}</span>`;
+      const fl = (f && f.url) ? null : findForms(it[0], side);
+      const formCell = fl ? fl.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("<br>") : f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "Form – link coming")}</span>`;
       const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Watch</a>` : `<span class="soon">Coming soon</span>`;
       html += `<li class="${on ? "done" : ""}"><div class="row"><label>
         <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
