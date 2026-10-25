@@ -222,6 +222,14 @@ function findForms(name, side){
   return hit ? hit[1].map(([label,id]) => ({label, url:"https://drive.google.com/file/d/"+id+"/view"})) : null;
 }
 
+/* Training guides: [match text, page] — used when an item has no training link of its own. */
+const TRAINING_LINKS = [["residential sales contract","/cklist/training/wv/rsc.html"]];
+function findTraining(name){
+  const n = name.toLowerCase().replace(/^\d+\.\s*/,"");
+  const hit = TRAINING_LINKS.find(e => n.includes(e[0]));
+  return hit ? hit[1] : "";
+}
+
 const $ = id => document.getElementById(id);
 const checked = new Set();
 const collapsed = new Set();
@@ -252,10 +260,10 @@ function render(){
     g.items.forEach((it, ii) => {
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
-      const f = it[4] || null, vid = it[5] || "";
+      const f = it[4] || null, vid = it[5] || findTraining(it[0]);
       const fl = (f && f.url) ? null : findForms(it[0], side);
       const formCell = fl ? fl.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("<br>") : f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "Form – link coming")}</span>`;
-      const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Watch</a>` : `<span class="soon">Coming soon</span>`;
+      const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Open guide</a>` : `<span class="soon">Coming soon</span>`;
       html += `<li class="${on ? "done" : ""}"><div class="row"><label>
         <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
         <span><span class="name">${esc(it[0])}</span>
