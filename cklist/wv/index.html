@@ -214,6 +214,14 @@ const DATA = {
   }
 };
 
+/* Form links from Google Drive (sheet: "Checklist Form Links — map for live cklist pages"). Used when an item has no link of its own. */
+const FORM_LINKS = [["notice of agency relationship", [["Notice of Agency Relationships (NOAR)", "1jkAv8wYbpW_qzbIwtbNE3iM2H0kYto5T"]]], ["disclosure of dual agency", [["Notice of Agency Relationships (NOAR)", "1jkAv8wYbpW_qzbIwtbNE3iM2H0kYto5T"]]], ["buyer agency agreement", [["Exclusive Right to Represent Buyer Agreement", "1aVMwdRZ50e6uA05E4GPsbxV-Z0JwLi1n"]]], ["seller's property disclosure", [["Voluntary Residential Property Disclosure", "1JB9Of-jsHETZqYnx7koCak8eFZlFQUwQ"]]], ["lead-based paint disclosure + epa", [["Lead-Based Paint Disclosure", "1WTHZUhbfmGdJvvILImOS7sl5wlCBb0co"], ["EPA pamphlet", "1KY2oi6Xx3SgKNenNRuUEPxRKN6_g90p-"]]], ["lead-based paint disclosure", [["Lead-Based Paint Disclosure", "1WTHZUhbfmGdJvvILImOS7sl5wlCBb0co"]]], ["residential sales contract", [["Residential Sales Contract", "1Clhx-eiVerKNbsg-H0_F-6uNFXDgVjhy"]]], ["items to convey", [["Items to Convey", "1Ehhty-w9sO7rmVeRwgopcTXX5pGW3Gn8"]]], ["pre-settlement walk-through", [["Items to Convey", "1Ehhty-w9sO7rmVeRwgopcTXX5pGW3Gn8"]]], ["financing addendum", [["Conventional", "1RU9FCREG5tPITno_wIGoYc42bQPIYjzX"], ["FHA", "10-4XiTlDfAEqmJ8BxkpRCJf7C_NMXAIC"], ["VA", "1W-XZ7RfR7cow8JM_-SBnftlVBZgSteZH"], ["USDA", "1qv3GgkR5r4PgAsjtVfWjY0hA2NzT1EnR"]]], ["inspection / contingency, escalation, well-septic", [["Home-Property Inspection and Radon Testing Contingency", "1rQB0CIbaY4GifGmn-GLrNGx-PkgBSo-P"], ["Escalation Addendum", "1PyNS-d7Nm3bpVsVjfOdNM_pYyETR4oow"], ["Septic Information (well-septic)", "1wcySYUxJMkHB0lUaj504GLXWVIVlADCM"]]], ["exclusive right to sell listing agreement", [["Exclusive Right To Sell Listing Agreement", "1WS2pudN_gBZ4JIUU84CPx35g6uDzVWqt"]]], ["affiliated business arrangement", [["Affiliated Business Arrangement (RESPA) disclosure", "1pptUTS0_EA4U7W9ey1L7BE-aw2xll-yC"]]], ["equal housing opportunity", [["Equal Housing Opportunity form", "18W8-t_XC2CVwebMs8sKeI3DJ8m-WxPVI"]]], ["get a home inspection", [["HUD Get a Home Inspection", "1nSvkdWo7jk49euC2rn2QyDipRoZIsAM0"]]], ["pa disclosure of financial interest", [["PA Disclosure of Financial Interest", "1g-dpvcA5pX-AInpmd7NPwA8F1IhwpVCe"]]], ["bright mls disclosures and seller options", [["Bright MLS disclosures and seller options", "1a8Nf2u_mPsQZccfXp53kzgEmQgkENvT9"]]]];
+function findForms(name, side){
+  const n = name.toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/^\d+\.\s*/,"");
+  const hit = FORM_LINKS.find(e => n.includes(e[0]) && (!e[2] || e[2] === side));
+  return hit ? hit[1].map(([label,id]) => ({label, url:"https://drive.google.com/file/d/"+id+"/view"})) : null;
+}
+
 const $ = id => document.getElementById(id);
 const checked = new Set();
 const collapsed = new Set();
@@ -245,7 +253,8 @@ function render(){
       const key = `${st}|${side}|${cty}|${gi}|${ii}`;
       const on = checked.has(key);
       const f = it[4] || null, vid = it[5] || "";
-      const formCell = f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "From zipForm – coming soon")}</span>`;
+      const fl = (f && f.url) ? null : findForms(it[0], side);
+      const formCell = fl ? fl.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("<br>") : f && f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.label || "Open form")}</a>` : `<span class="soon">${esc((f && f.label) || "Form – link coming")}</span>`;
       const vidCell = vid ? `<a href="${esc(vid)}" target="_blank" rel="noopener">Watch</a>` : `<span class="soon">Coming soon</span>`;
       html += `<li class="${on ? "done" : ""}"><div class="row"><label>
         <input type="checkbox" data-key="${key}" ${on ? "checked" : ""}>
