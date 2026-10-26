@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>My Desk · Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: one left-aligned column — agent code gate, then a greeting and the notes Tracy tagged for this agent's offices, newest first. Navy/gold, large type, phone first. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a; --quiet:#eceff4;
+  --navy:#0B1F3A; --navy-ink:#ffffff; --gold:#C9A227; --link:#1f4fa3;
+  --bad:#b3261e; --new:#1e6b3a; --new-bg:#e3f3e8;
+  --f-display:"Source Serif 4", Georgia, serif; --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --new:#7fd69b; --new-bg:#16301f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --new:#7fd69b; --new-bg:#16301f; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:19px;line-height:1.5;margin:0;padding:20px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:1.9rem} h2{font-size:1.35rem} h3{font-size:1.2rem}
+[hidden]{display:none!important}
+a{color:var(--link)}
+.wrap{max-width:760px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.eyebrow{font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.sub{color:var(--muted);margin:4px 0 0}
+#gate{min-height:70vh;display:flex;align-items:center}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px}
+.gate-card label{font-weight:600}
+input{font:inherit;font-size:24px;letter-spacing:.08em;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;width:100%}
+input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{font:inherit;font-weight:600;border-radius:8px;padding:12px 20px;min-height:52px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:var(--navy-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:6px 14px;min-height:40px;font-size:16px}
+.err{color:var(--bad);font-weight:600}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px 20px;flex-wrap:wrap;border-bottom:3px solid var(--navy);padding-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.note{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.note:first-of-type{border-top:0;padding-top:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:14px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--quiet);color:var(--muted)}
+.tag.new{background:var(--new-bg);color:var(--new)}
+.date{font-size:15px;color:var(--muted)}
+.note p{margin:0;white-space:pre-wrap;max-width:65ch}
+.empty{color:var(--muted)}
+.foot{font-size:16px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="gate" hidden>
+  <form class="gate-card" id="gform" autocomplete="off">
+    <div class="eyebrow">Blue Ribbon</div>
+    <h1>My Desk</h1>
+    <p class="sub" style="margin:0">Enter your 7-digit agent ID. It's the same number you use on the CCDA.</p>
+    <div><label for="gcode">Agent ID</label><input id="gcode" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="1234567"></div>
+    <button class="btn" type="submit">Open My Desk</button>
+    <p class="err" id="gmsg" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <div class="topbar">
+    <div>
+      <div class="eyebrow">My Desk</div>
+      <h1 id="hello">Hi</h1>
+      <p class="sub" id="offices"></p>
+    </div>
+    <button class="btn ghost small" id="logout" type="button">Not you? Switch</button>
+  </div>
+
+  <section class="card" aria-labelledby="h-notes">
+    <div class="eyebrow">From Tracy</div>
+    <h2 id="h-notes">Notes for you</h2>
+    <div id="notes"><p class="empty">Loading…</p></div>
+  </section>
+
+  <p class="foot">Questions? Email Tracy at tracy@blueribbonrealty.com.</p>
+</div>
+
+</div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const API = "https://hook.us2.make.com/vjs4mvomf757tf4iq8rg8jow85sc28tx"; // Make DESK-001; the agent ID is checked in Make, not here
+  const OFF = { ALL: "Everyone", MBG: "Martinsburg", FR: "Front Royal", Bow: "Bowie", REF: "Referral" };
+  let CODE = ""; try { CODE = localStorage.getItem("deskAgentCode") || ""; } catch (_) {}
+  const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); };
+
+  function showGate(m) { $("gate").hidden = false; $("app").hidden = true; $("gmsg").textContent = m || ""; $("gcode").focus(); }
+
+  async function open() {
+    $("gate").hidden = true; $("app").hidden = false; $("notes").innerHTML = '<p class="empty">Loading…</p>';
+    try {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: CODE, action: "desk" }) });
+      if (!r.ok) throw new Error("http");
+      const j = await r.json();
+      if (!j.ok) { try { localStorage.removeItem("deskAgentCode"); } catch (_) {} showGate("That agent ID didn't match. Check it and try again."); return; }
+      try { localStorage.setItem("deskAgentCode", CODE); } catch (_) {}
+      $("hello").textContent = "Hi, " + (j.first || "there");
+      $("offices").textContent = [OFF[j.office] || j.office, j.office2 ? (OFF[j.office2] || j.office2) + " (second office)" : ""].filter(Boolean).join(" · ");
+      const since = j.lastVisit ? new Date(j.lastVisit) : null;
+      const notes = j.notes || [];
+      $("notes").innerHTML = notes.length ? notes.map(n => {
+        const isNew = !since || new Date(n.posted_at) > since;
+        return `<article class="note"><div class="tags">${isNew ? '<span class="tag new">New</span>' : ""}<span class="date">${esc(fmtDate(n.posted_at))}</span></div>
+          <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p></article>`;
+      }).join("") : '<p class="empty">No notes yet. When Tracy posts something for your office, it shows up here.</p>';
+    } catch (e) {
+      $("notes").innerHTML = '<p class="err">Couldn\'t load your notes. Check your connection and reload the page.</p>';
+    }
+  }
+
+  $("gform").addEventListener("submit", e => { e.preventDefault(); CODE = $("gcode").value.replace(/\D/g, ""); if (CODE.length < 7) { showGate("Enter all 7 digits of your agent ID."); return; } open(); });
+  $("logout").addEventListener("click", () => { try { localStorage.removeItem("deskAgentCode"); } catch (_) {} CODE = ""; $("gcode").value = ""; showGate(""); });
+  if (CODE) open(); else showGate("");
+})();
+</script>
+</body>
+</html>

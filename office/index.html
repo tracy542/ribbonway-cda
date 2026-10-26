@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Corporate Notes · Blue Ribbon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: one left-aligned column — sign-in gate, who has been on My Desk this week, every note (source of record), then the post box at the bottom. Navy/gold, large type, same look as the roster and compliance desk. */
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --line:#d9dde5; --ink:#18223a; --muted:#56607a; --quiet:#eceff4;
+  --navy:#0B1F3A; --navy-ink:#ffffff; --gold:#C9A227; --gold-ink:#0B1F3A; --link:#1f4fa3;
+  --bad:#b3261e; --bad-bg:#fbe9e7; --warn:#8a5a00; --warn-bg:#fdf1d8; --good:#1e6b3a; --good-bg:#e3f3e8;
+  --f-display:"Source Serif 4", Georgia, serif; --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#1a2130; --line:#2d374a; --ink:#e7ebf3; --muted:#a3adc2; --quiet:#242d3e;
+  --navy:#3a5cb0; --link:#9dbcf3; --bad:#ff8a80; --bad-bg:#3a1d1c; --warn:#f2c46b; --warn-bg:#3a2e14; --good:#7fd69b; --good-bg:#16301f; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:19px;line-height:1.45;margin:0;padding:20px max(16px,env(safe-area-inset-right,0px)) 56px max(16px,env(safe-area-inset-left,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:1.9rem} h2{font-size:1.35rem} h3{font-size:1.15rem}
+[hidden]{display:none!important}
+a{color:var(--link)}
+.wrap{max-width:860px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.sub{color:var(--muted);margin:4px 0 0}
+.eyebrow{font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:10px 20px;flex-wrap:wrap;border-bottom:3px solid var(--navy);padding-bottom:14px}
+.topbar .right{display:flex;gap:14px;align-items:center;flex-wrap:wrap;color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:17px}
+#gate{min-height:70vh;display:flex;align-items:center}
+.gate-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 26px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px}
+.gate-card label{font-weight:600;font-size:.95rem}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;width:100%}
+textarea{min-height:130px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{font:inherit;font-weight:600;border-radius:8px;padding:12px 20px;min-height:52px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:var(--navy-ink)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:6px 14px;min-height:40px;font-size:16px}
+.btn:disabled{opacity:.5;cursor:default}
+.err{color:var(--bad);font-weight:600}
+.ok{color:var(--good);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.stats{display:flex;flex-wrap:wrap;gap:10px}
+.stat{flex:1 1 180px;background:var(--quiet);border-radius:10px;padding:12px 16px}
+.stat b{display:block;font-family:var(--f-display);font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:16px}
+.stat.warn{background:var(--warn-bg)} .stat.warn b{color:var(--warn)}
+details summary{cursor:pointer;font-weight:700}
+.rows{display:flex;flex-direction:column;margin-top:8px}
+.row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 14px;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .when{color:var(--muted);font-variant-numeric:tabular-nums}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.note{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.note:first-child{border-top:0;padding-top:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:14px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--quiet);color:var(--muted)}
+.tag.all{background:var(--navy);color:var(--navy-ink)}
+.date{font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.note p{margin:0;white-space:pre-wrap;max-width:68ch}
+.note .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+label.chip{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 16px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
+label.chip:has(input:checked){border-color:var(--navy)}
+label.chip input{width:22px;height:22px;margin:0;accent-color:var(--navy)}
+.post{border:2px solid var(--gold)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.empty{color:var(--muted)}
+.foot{font-size:15px;color:var(--muted);max-width:70ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="gate" hidden>
+  <form class="gate-card" id="gform" autocomplete="off">
+    <div class="eyebrow">Blue Ribbon · Corporate</div>
+    <h1>Notes to agents</h1>
+    <p class="sub" style="margin:0">Enter the office code to come in.</p>
+    <div><label for="gcode">Code</label><input id="gcode" type="password" autocomplete="off" spellcheck="false"></div>
+    <button class="btn" type="submit">Come in</button>
+    <p class="err" id="gmsg" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <div class="topbar">
+    <div>
+      <div class="eyebrow">Blue Ribbon · Corporate</div>
+      <h1>Notes to agents</h1>
+      <p class="sub">This page is the source of record. Every note you post lands on the My Desk of each agent it's tagged for.</p>
+    </div>
+    <div class="right">
+      <div class="links"><a href="/desk/" target="_blank" rel="noopener">Agent My Desk</a><a href="/compliance/">Compliance Desk</a><a href="/roster/">Roster</a><a href="/inkwell/">Ink Well</a></div>
+      <button class="btn ghost small" id="logout" type="button">Lock</button>
+    </div>
+  </div>
+
+  <p class="err" id="loadmsg" role="alert"></p>
+
+  <section class="card" aria-labelledby="h-week">
+    <div class="eyebrow" id="weeklabel">This week</div>
+    <h2 id="h-week">Who's been on My Desk</h2>
+    <div class="stats">
+      <div class="stat"><b id="s-in">–</b><span>opened My Desk since Monday</span></div>
+      <div class="stat"><b id="s-out">–</b><span>haven't opened it this week</span></div>
+      <div class="stat warn"><b id="s-gone">–</b><span>not in for 2+ weeks, or never</span></div>
+    </div>
+    <details id="d-out"><summary>Haven't opened it this week (<span id="c-out">0</span>)</summary><div class="rows" id="list-out"></div></details>
+    <details id="d-in"><summary>Opened it this week (<span id="c-in">0</span>)</summary><div class="rows" id="list-in"></div></details>
+  </section>
+
+  <section class="card" aria-labelledby="h-notes">
+    <div class="eyebrow">Source of record</div>
+    <h2 id="h-notes">Every note, newest first</h2>
+    <div class="filters" role="group" aria-label="Show notes for">
+      <button class="btn small" type="button" data-f="">All</button>
+      <button class="btn ghost small" type="button" data-f="ALL">Everyone</button>
+      <button class="btn ghost small" type="button" data-f="MBG">Martinsburg</button>
+      <button class="btn ghost small" type="button" data-f="FR">Front Royal</button>
+      <button class="btn ghost small" type="button" data-f="Bow">Bowie</button>
+      <button class="btn ghost small" type="button" data-f="REF">Referral</button>
+    </div>
+    <div id="notes"><p class="empty">Loading notes…</p></div>
+  </section>
+
+  <section class="card post" aria-labelledby="h-post">
+    <h2 id="h-post">Post to agents</h2>
+    <p class="sub" style="margin-top:-6px">It shows on My Desk right away for every agent you tag. Aim for one post a week, on Monday.</p>
+    <div class="field">
+      <span style="font-weight:700">Who sees it</span>
+      <div class="chips" role="group" aria-label="Who sees it">
+        <label class="chip"><input type="checkbox" id="a-ALL" value="ALL" checked>Everyone</label>
+        <label class="chip"><input type="checkbox" id="a-MBG" value="MBG">Martinsburg</label>
+        <label class="chip"><input type="checkbox" id="a-FR" value="FR">Front Royal</label>
+        <label class="chip"><input type="checkbox" id="a-Bow" value="Bow">Bowie</label>
+        <label class="chip"><input type="checkbox" id="a-REF" value="REF">Referral</label>
+      </div>
+    </div>
+    <div class="field"><label for="headline">Headline</label><input id="headline" maxlength="120" placeholder="e.g. Offices closed Thursday"></div>
+    <div class="field"><label for="text">Your note</label><textarea id="text" placeholder="e.g. All three offices are closed Thursday for Thanksgiving. Compliance picks back up Friday."></textarea></div>
+    <div class="btns">
+      <button class="btn gold" type="button" id="postbtn">Post to My Desk</button>
+      <span id="postmsg" role="status"></span>
+    </div>
+  </section>
+
+  <p class="foot">Agents sign in to My Desk with their 7-digit agent ID. Each agent sees Everyone notes plus notes for their own office. Agents are counted as "in" when they open My Desk.</p>
+</div>
+
+</div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const API = "https://hook.us2.make.com/vjs4mvomf757tf4iq8rg8jow85sc28tx"; // Make DESK-001; the code is checked in Make, not here
+  const OFF = { ALL: "Everyone", MBG: "Martinsburg", FR: "Front Royal", Bow: "Bowie", REF: "Referral" };
+  let CODE = "", BY = "", st = { notes: [], agents: [], f: "" };
+  try { CODE = localStorage.getItem("cdaDeskCode") || ""; BY = localStorage.getItem("cdaDeskName") || ""; } catch (_) {}
+
+  const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }); };
+  const ago = iso => { if (!iso) return "Never"; const d = new Date(iso); return isNaN(d) ? "Never" : "Last in " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
+  function mondayStart() { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; } // this week's Monday, local time
+
+  async function call(body) {
+    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ code: CODE, by: BY || "Tracy Adams" }, body)) });
+    if (r.status === 401) { const e = new Error("bad_code"); e.bad = true; throw e; }
+    if (!r.ok) throw new Error("http_" + r.status);
+    return r.json();
+  }
+
+  function renderWeek() {
+    const mon = mondayStart(), twoWk = new Date(mon.getTime() - 7 * 864e5);
+    $("weeklabel").textContent = "Week of " + mon.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+    const ins = [], outs = []; let gone = 0;
+    st.agents.forEach(a => { const t = a.last ? new Date(a.last) : null; if (t && t >= mon) ins.push(a); else { outs.push(a); if (!t || t < twoWk) gone++; } });
+    const byLast = (x, y) => (y.last || "").localeCompare(x.last || "") || x.name.localeCompare(y.name);
+    ins.sort(byLast); outs.sort((x, y) => (x.last || "").localeCompare(y.last || "") || x.name.localeCompare(y.name));
+    $("s-in").textContent = ins.length; $("s-out").textContent = outs.length; $("s-gone").textContent = gone;
+    $("c-in").textContent = ins.length; $("c-out").textContent = outs.length;
+    const row = a => `<div class="row"><span>${esc(a.name)} · ${esc(OFF[a.office] || a.office)}</span><span class="when">${esc(ago(a.last))}</span></div>`;
+    $("list-in").innerHTML = ins.map(row).join("") || '<p class="empty">Nobody yet this week.</p>';
+    $("list-out").innerHTML = outs.map(row).join("") || '<p class="empty">Everyone has been in this week.</p>';
+  }
+
+  function renderNotes() {
+    document.querySelectorAll(".filters button").forEach(b => b.className = "btn small" + (b.dataset.f === st.f ? "" : " ghost"));
+    const list = st.notes.filter(n => !st.f || (n.audience || []).includes(st.f));
+    if (!list.length) { $("notes").innerHTML = `<p class="empty">${st.notes.length ? "No notes for this group yet." : "No notes yet. Post your first one below."}</p>`; return; }
+    $("notes").innerHTML = list.map(n => `<article class="note">
+      <div class="tags">${(n.audience || []).map(a => `<span class="tag${a === "ALL" ? " all" : ""}">${esc(OFF[a] || a)}</span>`).join("")}<span class="date">${esc(fmtDate(n.posted_at))}</span></div>
+      <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p>
+      <div class="acts"><button class="btn ghost small" type="button" data-del="${esc(n.id)}">Delete</button></div></article>`).join("");
+  }
+
+  async function load() {
+    $("loadmsg").textContent = "";
+    try {
+      const j = await call({ action: "admin" });
+      if (!j.ok) throw new Error(j.error || "load");
+      st.notes = j.notes || []; st.agents = j.agents || [];
+      renderWeek(); renderNotes();
+    } catch (e) {
+      if (e.bad) { showGate("That code didn't work."); return; }
+      $("loadmsg").textContent = "Couldn't load the notes. Check your connection and reload the page.";
+    }
+  }
+
+  // Delete: first click asks, second click deletes. No browser pop-ups.
+  $("notes").addEventListener("click", async e => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Click again to delete"; b.className = "btn small"; setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "Delete"; b.className = "btn ghost small"; } }, 5000); return; }
+    b.disabled = true; b.textContent = "Deleting…";
+    try { const j = await call({ action: "delete", id: b.dataset.del }); if (!j.ok) throw new Error(j.error); st.notes = j.notes || []; renderNotes(); }
+    catch (err) { b.disabled = false; b.textContent = "Didn't delete. Try again"; }
+  });
+
+  document.querySelectorAll(".filters button").forEach(b => b.addEventListener("click", () => { st.f = b.dataset.f; renderNotes(); }));
+
+  // "Everyone" and specific offices don't mix: picking one clears the other.
+  document.querySelectorAll(".chips input").forEach(i => i.addEventListener("change", () => {
+    if (!i.checked) return;
+    if (i.value === "ALL") document.querySelectorAll(".chips input").forEach(x => { if (x !== i) x.checked = false; });
+    else $("a-ALL").checked = false;
+  }));
+
+  $("postbtn").addEventListener("click", async () => {
+    const msg = $("postmsg"), btn = $("postbtn");
+    const headline = $("headline").value.trim(), text = $("text").value.trim();
+    const aud = [...document.querySelectorAll(".chips input:checked")].map(i => i.value);
+    msg.className = "err";
+    if (!headline || !text) { msg.textContent = "Add a headline and a note."; return; }
+    if (!aud.length) { msg.textContent = "Pick who sees it."; return; }
+    btn.disabled = true; btn.textContent = "Posting…"; msg.textContent = "";
+    try {
+      const j = await call({ action: "post", headline: headline, text: text, audience: aud.join(",") });
+      if (!j.ok) throw new Error(j.error || "Didn't post. Try again.");
+      st.notes = j.notes || []; renderNotes();
+      $("headline").value = ""; $("text").value = "";
+      msg.className = "ok"; msg.textContent = "Posted. It's on My Desk for " + aud.map(a => OFF[a]).join(", ") + ".";
+    } catch (e) {
+      msg.className = "err"; msg.textContent = e.bad ? "Your code stopped working. Reload and sign in again." : (e.message && !/^http_|Failed to fetch/.test(e.message) ? e.message : "Didn't post. Check your connection and try again.");
+    } finally { btn.disabled = false; btn.textContent = "Post to My Desk"; }
+  });
+
+  function showGate(m) { $("gate").hidden = false; $("app").hidden = true; $("gmsg").textContent = m || ""; $("gcode").focus(); }
+  function enter() { $("gate").hidden = true; $("app").hidden = false; try { localStorage.setItem("cdaDeskCode", CODE); } catch (_) {} load(); }
+  $("gform").addEventListener("submit", e => { e.preventDefault(); CODE = $("gcode").value.trim(); if (!CODE) { showGate("Type the code to come in."); return; } enter(); });
+  $("logout").addEventListener("click", () => { try { localStorage.removeItem("cdaDeskCode"); } catch (_) {} CODE = ""; showGate(""); });
+
+  if (CODE) enter(); else showGate("");
+})();
+</script>
+</body>
+</html>
