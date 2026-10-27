@@ -132,6 +132,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .deal h2{font-size:1.35rem;margin:0;overflow-wrap:anywhere}
 .deal .facts{font-size:1.05rem}
 .deal ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.wcount{display:inline-block;min-width:1.5em;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--accent-ink);color:var(--accent);font-size:.85rem}
 .btn.big{font-size:1.15rem;padding:14px 24px}
 .back{font-size:1rem}
 .hist h2{font-family:var(--f-display);font-weight:600;font-size:1.5rem;margin:12px 0 4px}
@@ -319,6 +320,22 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(rc.status==="running") return `<button class="btn" disabled>Checking now…</button><span class="mainnote">KJ started ${fmtDate(rc.startedAt||rc.requestedAt)}. Results show here when done.</span>`;
     if(rc.status==="requested") return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}. KJ checks it within the hour.</span>`;
     return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${last}KJ checks it within the hour of your click.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
+  /* WAFFL button: runs the WAFFL-001 bot in Make. It finds the deal in zipForm, copies fully signed files into WAFFL
+     (copies only, originals stay put), counts what is in WAFFL, and writes the result on this row as r.waffl. */
+  const WAFFL_HOOK="https://hook.us2.make.com/ybdvemuborzugewmykjvzteo1ow8xel9";
+  const wafflRunning=new Set(); // rows clicked this session, still waiting on the bot
+  function wafflLabel(r){ const w=r.waffl||{}; if(w.status==="running"||wafflRunning.has(String(r.id))) return "Copying"; if(w.status==="done") return (w.count||0)+" in WAFFL"; if(w.status) return "See note"; return "Not run"; }
+  function wafflCell(r){
+    if(isRemoved(r)) return "";
+    const w=r.waffl||{}, id=esc(r.id), running=w.status==="running"||wafflRunning.has(String(r.id));
+    if(running) return `<button class="btn" disabled>WAFFL…</button><span class="mainnote">Copying signed files now. This row updates by itself.</span>`;
+    let note="Copies fully signed files into WAFFL. Originals stay put.";
+    if(w.status==="done"){ const bits=[]; if(w.copied) bits.push(w.copied+" copied"); if(w.notFinal) bits.push(w.notFinal+" not fully signed"); if(w.tooBig) bits.push(w.tooBig+" too big to read"); if(w.failed) bits.push(w.failed+" failed"); if(w.noFolder) bits.push(w.noFolder+" waiting on a WAFFL folder");
+      note=`Ran ${fmtDate(w.at)}${bits.length?": "+bits.join(", "):": nothing new to copy"}.${w.msg?" "+esc(w.msg):""}`; }
+    else if(w.status){ note=`${esc(w.msg||w.reason||w.status)}${w.at?" ("+fmtDate(w.at)+")":""}`; }
+    const n=w.status==="done"?` <span class="wcount">${w.count||0}</span>`:"";
+    return `<button class="btn" data-waffl="${id}">WAFFL${n}</button><span class="mainnote" id="wfmsg-${id}">${note}</span>`;
+  }
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[],(r.compliance||{}).gt||[]);
   /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
      written by Radar (ChatGPT); src "gt" = compliance.gt, written by Gemini. Only the labels below say who checked. */
@@ -346,9 +363,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function stripe(r){ const w=(r.work||{}).status; if(w==="done") return "s-good"; return "s-"+compState(r).cls; }
 
   let sortKey="closing", sortDir=1, query="", officeF="", agentF="", colF={};
-  const COLDEFS=[["mlsStatus","MLS status"],["paid","Agent paid"],["cda","CDA"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
+  const COLDEFS=[["mlsStatus","MLS status"],["paid","Agent paid"],["cda","CDA"],["closing","Closing"],["address","Address"],["price","Price"],["mls","MLS#"],["side","Side"],["agent","Agent"],["office","Office"],["waffl","WAFFL"],["comp","Compliance"],["review","Compliance review"],["work","Work"]];
   const TEXTF=new Set(["address","price","mls"]);
-  function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; case "paid": return isPaid(r)?"Yes":"No"; default: return String(r[k]||""); } }
+  function colText(r,k){ switch(k){ case "address": return r.address||"Address not set"; case "price": return money(r.price); case "mls": return r.mls||"Not in MLS"; case "office": return OFFICES[r.office]||r.office||""; case "cda": return codeOf(r)||""; case "comp": return compState(r).label.replace(/ \(\d+\)$/,""); case "review": { const rs=hasReviewItems(r)?(r.review||{}).status||"open":""; return rs?REVIEW[rs]:""; } case "work": return WORK[(r.work||{}).status||"open"]; case "paid": return isPaid(r)?"Yes":"No"; case "waffl": return wafflLabel(r); default: return String(r[k]||""); } }
   /* Text columns hold a string. Pick columns hold undefined (all, boxes checked) or an array of picked values; an empty array means "cleared" (boxes unchecked, nothing filtered). */
   const cfOn=k=>TEXTF.has(k)?!!colF[k]:(Array.isArray(colF[k])&&colF[k].length>0);
   const cfMatch=(r,skip)=>Object.keys(colF).every(k=>{ if(k===skip||!cfOn(k)) return true; const f=colF[k]; const t=colText(r,k); return TEXTF.has(k)?t.toLowerCase().includes(f.toLowerCase()):f.includes(t===""?"(blank)":t); });
@@ -520,12 +537,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${esc(r.side||"")}</td>
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
+        <td class="nw">${wafflCell(r)}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:(needsPay(r)&&!isPaid(r)?`<button class="btn ghost" disabled title="Archive after the agent is paid">Archive</button><span class="mainnote">Archive after the agent is paid.</span>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`)}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
       </tr>
-      ${showStart(r)?`<tr class="startrow"><td colspan="7"></td><td colspan="6">${rowStartBtn(r)}</td></tr>`:""}
-      <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="13"><div class="body">
+      ${showStart(r)?`<tr class="startrow"><td colspan="7"></td><td colspan="7">${rowStartBtn(r)}</td></tr>`:""}
+      <tr class="det" ${openIds.has(r.id)?"":"hidden"}><td colspan="14"><div class="body">
         <div class="workline" style="margin-top:12px">
           <label for="st-${id}"><b>Work</b></label>
           <select id="st-${id}" ${canWrite?"":"disabled"}>${Object.keys(WORK).map(k=>`<option value="${k}" ${k===(w.status||"open")?"selected":""}>${WORK[k]}</option>`).join("")}</select>
@@ -827,9 +845,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const anyCF=Object.keys(colF).some(cfOn); $("#clearCF").hidden=!anyCF;
     if(!v.length&&!anyCF){ $("#list").innerHTML=`<div class="empty">${filter==="attn"?"Nothing needs attention right now.":filter==="review"?"No findings waiting for a Yes or No.":filter==="clean"?"No clean files waiting on agents.":filter==="removed"?"Nothing has been archived.":"Nothing in this view."}</div>`; return; }
     const cols=COLDEFS;
-    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="13" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
+    $("#list").innerHTML=`<table class="sheet"><thead><tr>${cols.map(([k,l])=>`<th data-sort="${k}" ${sortKey===k?`aria-sort="${sortDir>0?"ascending":"descending"}"`:""}>${l}</th>`).join("")}</tr>${filterRow()}</thead>${v.length?v.map(rowHtml).join(""):`<tbody><tr><td colspan="14" class="foot" style="max-width:none;padding:14px">No deals match these column filters.</td></tr></tbody>`}</table>`;
     renderMf();
   }
+  async function wafflPoll(id,n){ // check back every 20 seconds, up to 6 minutes
+    await new Promise(res=>setTimeout(res,20000)); await load(true);
+    const r=rows.find(x=>String(x.id)===String(id)); const w=(r&&r.waffl)||{};
+    if((w.status&&w.status!=="running")||n>=17){ wafflRunning.delete(String(id)); rerenderRow(id); return; }
+    wafflPoll(id,n+1); }
   function rerenderRow(id){
     const r=rows.find(x=>String(x.id)===String(id)); if(!r) return render();
     const el=document.querySelector(`tbody.row[data-id="${CSS.escape(String(id))}"]`);
@@ -890,6 +913,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
   document.addEventListener("click",async e=>{
     const t=e.target.closest(".tab,button.count[data-f]");
     if(t){ filter=t.dataset.f; try{localStorage.setItem("cdaDeskView",filter)}catch(_){} render(); return; }
+    const wb=e.target.closest("[data-waffl]");
+    if(wb){ const id=wb.dataset.waffl; wb.disabled=true; wafflRunning.add(id);
+      try{ const r=await fetch(WAFFL_HOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"waffl",id:id,by:BY||"Office"})});
+        const j=await r.json().catch(()=>({})); if(!r.ok||!j.ok) throw new Error(j.error||("HTTP "+r.status));
+        rerenderRow(id); wafflPoll(id,0); }
+      catch(err){ wafflRunning.delete(id); wb.disabled=false; const m=document.getElementById("wfmsg-"+id); if(m){ m.className="mainnote err"; m.textContent="Couldn't start the WAFFL bot. Try again in a minute, or email Tracy."; } }
+      return; }
     const rcb=e.target.closest("[data-recheck]");
     if(rcb&&db){ const id=rcb.dataset.recheck, msg=document.getElementById("rcmsg-"+id); rcb.disabled=true;
       try{ const by=user?await user.id():""; await db.collection("cdas").doc(id).update({recheck:{status:"requested",requestedAt:new Date().toISOString(),by:by||"",doneAt:""}}); }
@@ -935,7 +965,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,[data-waffl],[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.parentElement.querySelector("tr.det"); const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
