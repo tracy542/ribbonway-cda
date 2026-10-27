@@ -68,7 +68,7 @@
       if (/resale certificate|order for poa/.test(n)) return 2;
       return 0;
     }
-    if (/brokerage agreement|buyer agency|right to represent|consumer notice|understanding whom|affiliated business|equal housing|office fee disclosure/.test(n)) return 0;
+    if (/brokerage agreement|buyer agency|right to represent|consumer notice|understanding whom|affiliated business|equal housing|office fee disclosure|transaction fee disclosure/.test(n)) return 0;
     if (/water quality|utility cost|loan financing information|earnest money|home warranty|resale documents|disclosure packet acknowledgment/.test(n)) return 2;
     return 1;
   }
