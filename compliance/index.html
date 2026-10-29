@@ -151,7 +151,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
 #logout:focus-visible{outline:2px solid #0B1F3A;outline-offset:2px}
 .linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 0}
 [hidden]{display:none!important}
-.fcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:6px}
+.fcols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;margin-top:6px}
+.kjq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.kjq li{border-left:3px solid var(--line);padding:4px 0 4px 10px}
+.kjq .q{margin:0;font-weight:700}
+.kjq .a{margin:4px 0 0;white-space:pre-wrap}
+.kjq .when{display:block;color:var(--muted);font-size:.85rem;margin-top:2px}
+.kjask textarea{width:100%;min-height:70px;font:inherit;font-size:1rem;padding:8px;border:1px solid var(--line);border-radius:8px;box-sizing:border-box}
+.kjask .row2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.cklink{font-weight:700}
 @media (max-width:900px){.fcols{grid-template-columns:1fr}}
 .fcol{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .fcol h4{margin:0;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
@@ -259,7 +267,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div id="masterView" style="display:flex;flex-direction:column;gap:20px">
   <header>
     <div class="topbar"><h1>CCDA Desk <span class="today" id="today"></span></h1><button class="linkbtn" id="logout" type="button">Logout</button></div>
-    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see the compliance check: KJ (Claude), Radar (ChatGPT) and Gemini findings side by side. When all three flag the same item, it's almost certainly real. Verify what should go to the agent, archive the rest, or type in your own. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
+    <p class="sub">Every Blue Ribbon deal in Bright MLS, plus any non-MLS deal an agent enters at cda.ribbonway.com, with its CDA and compliance check. Open a row to see KJ's compliance findings. Verify what should go to the agent, archive the rest, or type in your own. Have a question about a deal? Type it in Talk to KJ — KJ goes and looks (zipForm, dotloop, Bright, the CCDA) and answers right on the row. Send compliance findings emails Tracy and Gavin the verified items to review and forward.</p>
   </header>
 
   <section class="tray" id="tray" aria-labelledby="trayTitle" hidden>
@@ -359,10 +367,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
     try{ await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"sync",rows:JSON.stringify([r])})}); }catch(e){} // keep the result on the row
     cwBusy.delete(String(id)); rerenderRow(id);
   }
-  const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[],(r.compliance||{}).gt||[]);
+  const findings=r=>((r.compliance||{}).items||[]); // 10/29: KJ only — Radar/Gemini panels removed
   /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
      written by Radar (ChatGPT); src "gt" = compliance.gt, written by Gemini. Only the labels below say who checked. */
-  const COLS=[["radar","KJ Findings"],["kj","Radar Findings"],["gt","Gemini Findings"]];
+  const COLS=[["radar","KJ Findings"]]; // 10/29: Radar + Gemini boxes removed; "Talk to KJ" sits beside this
   const dkey=(src,text)=>src+"|"+text;
   const defaultNote=r=>`Your file for ${r.address||"this deal"} needs the items below before it can close out.`;
   function reviewOf(r){
@@ -371,9 +379,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const sd={}; (saved.decisions||[]).forEach(d=>{ if(!d||d.text==null) return; sd[dkey(d.src||"radar",d.text)]=d; if(!d.src) sd["*|"+d.text]=d; });
     const list=[];
     (c.items||[]).forEach(t=>list.push({src:"radar",text:String(t)}));
-    (c.kj||[]).forEach(t=>list.push({src:"kj",text:String(t)}));
-    (c.gt||[]).forEach(t=>list.push({src:"gt",text:String(t)}));
-    added.forEach((a,ai)=>{ if(a&&a.text) list.push({src:a.src==="kj"?"kj":a.src==="gt"?"gt":"radar",text:String(a.text),mine:true,ai,by:a.by||""}); });
+    added.forEach((a,ai)=>{ if(a&&a.text) list.push({src:"radar",text:String(a.text),mine:true,ai,by:a.by||""}); });
     const decisions=list.map(x=>{ const k=dkey(x.src,x.text), s=sd[k]||sd["*|"+x.text]||{};
       return Object.assign({},x,{key:k,include:(l.dec&&l.dec[k]!==undefined)?l.dec[k]:(s.include||""),direction:(l.dir&&l.dir[k]!==undefined)?l.dir[k]:(s.direction||"")}); });
     const cc={gavin:true,tracy:false,...(saved.cc||{}),...(l.cc||{})};
@@ -500,6 +506,19 @@ textarea{width:100%;min-height:80px;resize:vertical}
     return {top,bottom};
   }
 
+  /* 10/29: Talk to KJ — type a question; KJ goes and looks and writes the answer back on the row (row.ask). */
+  const stateOf=r=>{ const m=String(r.address||"").match(/,\s*(WV|VA|MD|PA|DC)\b/i); return m?m[1].toLowerCase():""; };
+  function askHtml(r){
+    const id=esc(r.id), a=r.ask||{}, th=(a.thread||[]).slice(-6), busy=a.status==="requested"||a.status==="running";
+    const st=stateOf(r), ck=`https://cda.ribbonway.com/cklist/${st?st+"/":""}`;
+    const li=th.map(t=>`<li><p class="q">${esc(t.by||"You")}: ${esc(t.q)}</p>${t.a?`<p class="a">KJ: ${esc(t.a)}</p><span class="when">Answered ${fmtDate(t.aat)}</span>`:`<span class="when">${a.status==="running"?"KJ is looking now…":"Sent to KJ "+fmtDate(t.at)+". KJ is on it — the answer shows here."}</span>`}</li>`).join("");
+    return `<div class="fcol kjask"><h4>Talk to KJ <small><a class="cklink" href="${ck}" target="_blank" rel="noopener">Checklists${st?" ("+st.toUpperCase()+")":""} →</a></small></h4>
+      ${li?`<ul class="kjq">${li}</ul>`:`<p class="fempty">Ask KJ anything about this deal — "Is the signed lease in WAFFL?", "What's the EMD amount?", "Does Bright match the contract?" KJ goes and looks, then answers here.</p>`}
+      ${canWrite?`<textarea id="askin-${id}" data-askin="${id}" placeholder="Type your question for KJ…" aria-label="Question for KJ" ${busy?"disabled":""}></textarea>
+      <div class="row2"><button type="button" class="btn" data-ask="${id}" ${busy?"disabled":""}>${busy?"KJ is working…":"Ask KJ"}</button><span id="askmsg-${id}" role="status"></span></div>`:""}
+    </div>`;
+  }
+
   function reviewHtml(r){
     const id=esc(r.id), c=r.compliance||{};
     const rv=reviewOf(r), locked=rv.status==="drafted";
@@ -536,7 +555,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     else if(rv.decisions.length){ action=`<button class="btn" disabled>Send compliance findings</button>`; note="Click Verify on each item that should go to the agent, then Send compliance findings. Archive the rest."; }
     const ep=anyYes?emailParts(r,rv):null;
     const preview=anyYes?`<h3>Email preview</h3><div class="preview"><pre>${esc(ep.top)}</pre><pre> </pre><label class="notebox"><b>NOTE:</b><textarea data-note="${id}" aria-label="Note at the top of the email" placeholder="Type a note for the agent (goes at the top of the email)" ${dis}>${esc(rv.note)}</textarea></label><pre>${esc(ep.bottom)}</pre></div>`:"";
-    return `<div><h3>Compliance check</h3><div class="fcols">${COLS.map(([s,l])=>col(s,l)).join("")}</div></div>
+    return `<div><h3>Compliance check</h3><div class="fcols">${COLS.map(([s,l])=>col(s,l)).join("")}${askHtml(r)}</div></div>
       ${anyYes?`<div class="workline"><b>Email goes to:</b>${who}</div>`:""}
       ${preview}
       <div class="actions">${action}<span id="rmsg-${id}" role="status"></span></div>
@@ -945,6 +964,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
         rerenderRow(id); wafflPoll(id,0); }
       catch(err){ wafflRunning.delete(id); wb.disabled=false; const m=document.getElementById("wfmsg-"+id); if(m){ m.className="mainnote err"; m.textContent="Couldn't start the WAFFL bot. Try again in a minute, or email Tracy."; } }
       return; }
+    const ab=e.target.closest("[data-ask]");
+    if(ab&&db){ const id=ab.dataset.ask, box=document.getElementById("askin-"+id), msg=document.getElementById("askmsg-"+id), q=(box&&box.value||"").trim();
+      if(!q){ if(msg){msg.className="err";msg.textContent="Type a question first.";} return; }
+      const r=rows.find(x=>String(x.id)===String(id))||{}, by=user?await user.id():"Office", now=new Date().toISOString();
+      const thread=((r.ask||{}).thread||[]).concat([{q:q,by:by,at:now,a:"",aat:""}]).slice(-20);
+      ab.disabled=true;
+      try{ await db.collection("cdas").doc(id).update({ask:{status:"requested",q:q,by:by,requestedAt:now,thread:thread}}); }
+      catch(err){ ab.disabled=false; if(msg){msg.className="err";msg.textContent="Couldn't send it to KJ. Try again in a minute.";} }
+      return; }
     const rcb=e.target.closest("[data-recheck]");
     if(rcb&&db){ const id=rcb.dataset.recheck, msg=document.getElementById("rcmsg-"+id); rcb.disabled=true;
       try{ const by=user?await user.id():""; await db.collection("cdas").doc(id).update({recheck:{status:"requested",requestedAt:new Date().toISOString(),by:by||"",doneAt:""}}); }
@@ -990,7 +1018,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-cwaffl],[data-waffl],[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,a.cklink,[data-ask],[data-askin],[data-cwaffl],[data-waffl],[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.parentElement.querySelector("tr.det"); const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
