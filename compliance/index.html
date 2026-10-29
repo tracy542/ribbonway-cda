@@ -316,7 +316,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(c.status==="not_found") return {cls:"warn",label:"Docs not found"};
     return {cls:"warn",label:"Not checked yet"};
   }
-  const runBtn=r=>{ if(isRemoved(r)) return ""; const rc=r.recheck||{}; const last=(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. ";
+  const runBtn=r=>{ if(isRemoved(r)) return ""; if(!codeOf(r)) return `<button class="btn" disabled>Check paperwork</button><span class="mainnote">Start the CDA first.</span>`; const rc=r.recheck||{}; const last=(rc.doneAt||(r.compliance||{}).checkedAt)?"Last checked "+fmtDate(rc.doneAt||(r.compliance||{}).checkedAt)+". ":"Not checked yet. ";
     if(rc.status==="running") return `<button class="btn" disabled>Checking now…</button><span class="mainnote">KJ started ${fmtDate(rc.startedAt||rc.requestedAt)}. Results show here when done.</span>`;
     if(rc.status==="requested") return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">Queued${rc.by?" by "+esc(rc.by):""}${rc.requestedAt?" "+fmtDate(rc.requestedAt):""}. KJ checks it within the hour.</span>`;
     return `<button class="btn" data-recheck="${esc(r.id)}">Check paperwork</button><span class="mainnote">${last}KJ checks it within the hour of your click.</span>`; }; const cdaLink=c=>c?`<a class="agentlink cdalink" href="https://cda.ribbonway.com/?code=${encodeURIComponent(c)}" target="_blank" rel="noopener">${esc(c)}</a>`:""; const codeOf=r=>r.cdaCode||(r.source==="mls"?"":r.id);
@@ -335,6 +335,29 @@ textarea{width:100%;min-height:80px;resize:vertical}
     else if(w.status){ note=`${esc(w.msg||w.reason||w.status)}${w.at?" ("+fmtDate(w.at)+")":""}`; }
     const n=w.status==="done"?` <span class="wcount">${w.count||0}</span>`:"";
     return `<button class="btn" data-waffl="${id}">WAFFL${n}</button><span class="mainnote" id="wfmsg-${id}">${note}</span>`;
+  }
+  /* Create WAFFL button (10/29): runs the separate WAFFL-002 bot in Make. It finds the deal in zipForm and makes sure
+     the copy bot knows the deal's WAFFL folder. One click per row; the result is saved on the row as r.wafflSetup. */
+  const CWAFFL_HOOK="https://hook.us2.make.com/acxzjl3uvu65gb8ods6yci7l8x2pmnw2";
+  const CW_TEXT={exists:"WAFFL set up",found:"WAFFL set up",recorded:"WAFFL set up",needs_folder:"WAFFL queued for KJ",not_found:"Deal not found in zipForm",failed:"Create WAFFL failed"};
+  const cwBusy=new Set();
+  function createWafflBtn(r){
+    if(isRemoved(r)) return "";
+    const s=r.wafflSetup||{}, id=esc(r.id);
+    if(cwBusy.has(String(r.id))) return `<div class="rbtns"><button class="btn" disabled>Creating WAFFL…</button></div>`;
+    if(s.status&&s.status!=="failed") return `<span class="mainnote" id="cwmsg-${id}">${esc(CW_TEXT[s.status]||s.status)}${s.at?" ("+fmtDate(s.at)+")":""}. ${esc(s.msg||"")}</span>`; // pressed once already
+    return `<div class="rbtns"><button class="btn" data-cwaffl="${id}">Create WAFFL</button></div><span class="mainnote" id="cwmsg-${id}">${s.status==="failed"?esc(s.msg||"Last try failed. Click again."):"Sets up this deal's WAFFL folder for the copy bot. Click once."}</span>`;
+  }
+  async function createWaffl(id){
+    const r=rows.find(x=>String(x.id)===String(id)); if(!r||cwBusy.has(String(id))) return;
+    cwBusy.add(String(id)); rerenderRow(id);
+    let s;
+    try{ const res=await fetch(CWAFFL_HOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"check",by:BY||"Office",agent:r.agent||"",address:r.address||"",tid:(r.waffl||{}).tid||""})});
+      const j=await res.json(); s={status:j.status||"failed",msg:j.msg||"",tid:j.tid||"",at:new Date().toISOString(),by:BY||"Office"}; }
+    catch(e){ s={status:"failed",msg:"Couldn't reach the Create WAFFL bot. Click again in a minute.",at:new Date().toISOString()}; }
+    r.wafflSetup=s;
+    try{ await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"sync",rows:JSON.stringify([r])})}); }catch(e){} // keep the result on the row
+    cwBusy.delete(String(id)); rerenderRow(id);
   }
   const findings=r=>((r.compliance||{}).items||[]).concat((r.compliance||{}).kj||[],(r.compliance||{}).gt||[]);
   /* Internal names are historical: src "radar" = compliance.items, which Claude (KJ) writes; src "kj" = compliance.kj,
@@ -537,7 +560,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <td class="nw">${esc(r.side||"")}</td>
         <td class="nw">${r.agent?`<a class="agentlink" href="#a-${slug(r.agent)}">${esc(r.agent)}</a>`:""}</td>
         <td class="nw">${esc(OFFICES[r.office]||r.office||"")}</td>
-        <td class="nw">${wafflCell(r)}</td>
+        <td class="nw">${createWafflBtn(r)}${wafflCell(r)}</td>
         <td class="nw"><span class="pill ${cs.cls}">${cs.label}</span> ${runBtn(r)}</td>
         <td class="nw">${rs?`<span class="pill ${rs==="open"?"warn":rs==="drafted"||rs==="none"||rs==="sent"?"good":""}">${REVIEW[rs]}</span>`:""}</td>
         <td class="nw"><span class="pill ${w.status==="done"?"good":w.status==="working"?"warn":""}">${WORK[w.status||"open"]}${who?" · "+esc(who):""}</span>${w.note?`<span class="mainnote">${esc(w.note.length>90?w.note.slice(0,90)+"…":w.note)}</span>`:""}<div style="margin-top:6px">${isRemoved(r)?`<button class="btn ghost" data-restore="${id}">Put back</button>`:(needsPay(r)&&!isPaid(r)?`<button class="btn ghost" disabled title="Archive after the agent is paid">Archive</button><span class="mainnote">Archive after the agent is paid.</span>`:`<button class="btn ghost" data-arch="${id}">Archive</button>`)}<span id="armsg-${id}" class="mainnote" role="status"></span></div></td>
@@ -913,6 +936,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   document.addEventListener("click",async e=>{
     const t=e.target.closest(".tab,button.count[data-f]");
     if(t){ filter=t.dataset.f; try{localStorage.setItem("cdaDeskView",filter)}catch(_){} render(); return; }
+    const cw=e.target.closest("[data-cwaffl]");
+    if(cw){ cw.disabled=true; createWaffl(cw.dataset.cwaffl); return; }
     const wb=e.target.closest("[data-waffl]");
     if(wb){ const id=wb.dataset.waffl; wb.disabled=true; wafflRunning.add(id);
       try{ const r=await fetch(WAFFL_HOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:CODE,action:"waffl",id:id,by:BY||"Office"})});
@@ -965,7 +990,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="clearCF"){ colF={}; mfOpen=""; render(); return; }
     const th=e.target.closest("th[data-sort]");
     if(th){ const k=th.dataset.sort; if(sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); return; }
-    if(e.target.closest("a.cdalink,[data-waffl],[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
+    if(e.target.closest("a.cdalink,[data-cwaffl],[data-waffl],[data-recheck],[data-paid],[data-arch],[data-restore],[data-rstart],[data-rno],[data-rpick]")) return; const tr=e.target.closest("tr.main[data-toggle]");
     if(tr){ const id=tr.dataset.toggle, det=tr.parentElement.querySelector("tr.det"); const open=det.hidden; det.hidden=!open; tr.setAttribute("aria-expanded",String(open)); open?openIds.add(id):openIds.delete(id); }
   });
   document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr.main[data-toggle]"); if(tr&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); tr.click(); } });
