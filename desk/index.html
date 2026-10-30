@@ -51,6 +51,9 @@ input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-o
 .note p{margin:0;white-space:pre-wrap;max-width:65ch}
 .empty{color:var(--muted)}
 .foot{font-size:16px;color:var(--muted)}
+.gotit{align-self:flex-start;margin-top:8px;font:inherit;font-size:19px;font-weight:700;padding:12px 26px;border-radius:8px;border:0;background:var(--navy);color:var(--navy-ink);cursor:pointer}
+.gotit:disabled{opacity:.6;cursor:default}
+.acked{color:var(--new);font-weight:700;margin-top:6px !important}
 </style>
 </head>
 <body>
@@ -96,6 +99,19 @@ input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-o
   const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtDate = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }); };
 
+  // "Got it" button: one click tells Tracy this agent read the note. Once clicked it shows a green check with the date.
+  const ackHtml = n => n.acked ? `<p class="acked">✓ Got it · ${esc(fmtDate(n.acked))}</p>` : `<button type="button" class="gotit" data-id="${esc(n.id)}">Got it</button>`;
+  document.addEventListener("click", async ev => {
+    const b = ev.target.closest ? ev.target.closest("button.gotit") : null; if (!b) return;   // only the Got it buttons
+    b.disabled = true; b.textContent = "Saving…";
+    try {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: CODE, action: "ack", id: b.dataset.id }) });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "not_saved");
+      const p = document.createElement("p"); p.className = "acked"; p.textContent = "✓ Got it · " + fmtDate(j.at); b.replaceWith(p);   // swap button for the check
+    } catch (e) { b.disabled = false; b.textContent = "Didn't save. Click to try again"; }
+  });
+
   function showGate(m) { $("gate").hidden = false; $("app").hidden = true; $("gmsg").textContent = m || ""; $("gcode").focus(); }
 
   async function open() {
@@ -109,11 +125,11 @@ input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-o
       $("hello").textContent = "Hi, " + (j.first || "there");
       $("offices").textContent = [OFF[j.office] || j.office, j.office2 ? (OFF[j.office2] || j.office2) + " (second office)" : ""].filter(Boolean).join(" · ");
       const since = j.lastVisit ? new Date(j.lastVisit) : null;
-      const notes = j.notes || [];
+      const notes = (j.notes || []).slice().sort((a, b) => (a.acked ? 1 : 0) - (b.acked ? 1 : 0)); // notes not yet acknowledged stay on top
       $("notes").innerHTML = notes.length ? notes.map(n => {
         const isNew = !since || new Date(n.posted_at) > since;
         return `<article class="note"><div class="tags">${isNew ? '<span class="tag new">New</span>' : ""}<span class="date">${esc(fmtDate(n.posted_at))}</span></div>
-          <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p></article>`;
+          <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p>${ackHtml(n)}</article>`;
       }).join("") : '<p class="empty">No notes yet. When Tracy posts something for your office, it shows up here.</p>';
     } catch (e) {
       $("notes").innerHTML = '<p class="err">Couldn\'t load your notes. Check your connection and reload the page.</p>';
