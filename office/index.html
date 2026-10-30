@@ -77,6 +77,9 @@ label.chip input{width:22px;height:22px;margin:0;accent-color:var(--navy)}
 .btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .empty{color:var(--muted)}
 .foot{font-size:15px;color:var(--muted);max-width:70ch}
+.ackbox{margin-top:8px;font-size:17px}
+.ackbox summary{cursor:pointer;color:var(--link)}
+.ackline{margin:6px 0 0 !important}
 </style>
 </head>
 <body>
@@ -179,6 +182,16 @@ label.chip input{width:22px;height:22px;margin:0;accent-color:var(--navy)}
     return r.json();
   }
 
+  // Who clicked "Got it" on a note: everyone the note was tagged for, split into Got it / Not yet.
+  const ackSummary = n => {
+    const acks = n.acks || {}, aud = n.audience || [];
+    const who = st.agents.filter(a => aud.includes("ALL") || aud.includes(a.office) || (a.office2 && aud.includes(a.office2))); // agents who can see this note
+    const yes = who.filter(a => acks[a.id]), no = who.filter(a => !acks[a.id]);
+    return `<details class="ackbox"><summary><strong>${yes.length} of ${who.length}</strong> clicked Got it</summary>
+      <p class="ackline"><b>Got it:</b> ${yes.length ? yes.map(a => esc(a.name)).join(", ") : "No one yet"}</p>
+      <p class="ackline"><b>Not yet:</b> ${no.length ? no.map(a => esc(a.name)).join(", ") : "Everyone has"}</p></details>`;
+  };
+
   function renderWeek() {
     const mon = mondayStart(), twoWk = new Date(mon.getTime() - 7 * 864e5);
     $("weeklabel").textContent = "Week of " + mon.toLocaleDateString(undefined, { month: "long", day: "numeric" });
@@ -199,7 +212,7 @@ label.chip input{width:22px;height:22px;margin:0;accent-color:var(--navy)}
     if (!list.length) { $("notes").innerHTML = `<p class="empty">${st.notes.length ? "No notes for this group yet." : "No notes yet. Post your first one below."}</p>`; return; }
     $("notes").innerHTML = list.map(n => `<article class="note">
       <div class="tags">${(n.audience || []).map(a => `<span class="tag${a === "ALL" ? " all" : ""}">${esc(OFF[a] || a)}</span>`).join("")}<span class="date">${esc(fmtDate(n.posted_at))}</span></div>
-      <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p>
+      <h3>${esc(n.headline)}</h3><p>${esc(n.body)}</p>${ackSummary(n)}
       <div class="acts"><button class="btn ghost small" type="button" data-del="${esc(n.id)}">Delete</button></div></article>`).join("");
   }
 
