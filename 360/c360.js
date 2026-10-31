@@ -123,7 +123,17 @@
 
   function buildReport(L, agent, imgs) {
     var F = L.F, used = {};
-    function get(label) { var f = F[label]; if (!f) return ''; used[label] = 1; return cap(f.v); }
+    function get(label) {
+      var f = F[label]; if (!f) return ''; used[label] = 1;
+      var v = cap(f.v);
+      if (/^\d{4,}(\.\d+)?$/.test(v) && !/Year|Lot$|Zip|ID|Number/i.test(label)) {
+        var money = /Amount|Value|Price|Fee|Tax/i.test(label);       // dollar fields get a $
+        v = (money ? '$' : '') + Number(v).toLocaleString('en-US');  // 47700 -> $47,700 ; 10001 -> 10,001
+      } else if (/^\d+(\.\d+)?$/.test(v) && /Amount|Value|Fee/i.test(label)) {
+        v = '$' + v;                                                   // 574 -> $574
+      }
+      return v;
+    }
     function pair(label, value) { return value ? '<div class="r"><span class="l">' + esc(label) + ':</span><span class="v">' + esc(value) + '</span></div>' : ''; }
     function grid(rows) {
       rows = rows.filter(function (r) { return r[1]; });
